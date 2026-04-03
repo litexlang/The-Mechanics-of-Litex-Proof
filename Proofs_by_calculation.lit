@@ -1,0 +1,10 @@
+1.1 Proving equalities
+1.1.1
+"""
+Let a and b be rational numbers, and suppose that a-b=4 and ab=1. Show that (a+b)^2=20.
+"""
+forall a,b Q:
+    a-b=4
+    ab=1
+    =>: 
+        (a+b)^2 = a^2 + 2(a*b) + b^2= (a-b)^2 + 4(a*b) = 4*2 + 4*1 = 20
