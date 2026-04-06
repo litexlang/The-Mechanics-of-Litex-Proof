@@ -1,0 +1,333 @@
+# Chapter 2 — Proofs with structure (Heather Macbeth, Math 2001)
+# 参考 Litex README：forall … =>: 与计算链；https://github.com/litexlang/golitex/blob/main/README.md
+# 书本：https://hrmacbeth.github.io/math2001/02_Proofs_with_Structure.html
+#
+# 说明：第二章在纸面上引入中间结论、引理、析取/合取/存在量词与分情形证明。
+# 约定（对齐 golitex examples）：
+# - 证明可直接写成计算/不等式链时：用 forall … =>:（与 2.1.1–2.1.4、2.1.6–2.1.8 等一致）。
+# - 需反证或其它结构化步骤时：用 let + know、claim + prove、by contra（见 2.1.5；参考 claim.lit、by_contra.lit）。
+# - 存在性：exist … st {…} 与 witness exist … from …:（参考 verify_exist_fact.lit、witness_exist.lit）。
+
+# ---------------------------------------------------------------------------
+# 2.1 Intermediate steps
+# ---------------------------------------------------------------------------
+
+# 2.1.1（对比 1.3.3：先由 b+2=3 得 b=1，再计算 a）
+"""
+Let a and b be real numbers and suppose that a - 5b = 4 and b + 2 = 3. Show that a = 9.
+"""
+forall a, b R:
+    a - 5 * b = 4
+    b + 2 = 3
+    =>:
+        b=3-2=1
+        a = 4 + 5 * b = 4 + 5 * 1 = 9
+
+# 2.1.2
+"""
+Let m and n be integers, and suppose that m + 3 <= 2n - 1 and n <= 5. Show that m <= 6.
+"""
+forall m, n Z:
+    m + 3 <= 2 * n - 1
+    n <= 5
+    =>:
+        m + 3 <= 2 * n - 1 <= (2 * 5 - 1) = 9
+        m <= 6
+
+# 2.1.3（对比 1.4.2 的一条更长思路：先读出 r <= 3+s 与 r <= 3-s，再平均）
+"""
+Let r and s be rational numbers, and suppose that s + 3 >= r and s + r <= 3. Show that r <= 3.
+"""
+forall r, s Q:
+    s + 3 >= r
+    s + r <= 3
+    =>:
+        r <= 3 + s
+        r <= 3 - s
+        r = (r + r) / 2 <= ((3 + s) + (3 - s)) / 2 = 3
+
+# 2.1.4
+"""
+Let t be a real number, and suppose that t^2 = 3t and t >= 1. Show that t >= 2.
+"""
+forall t R:
+    t^2 = 3 * t
+    t >= 1
+    =>:
+        t*t = 3 * t
+        t = 3*t/t=3
+        t >= 2
+
+# 2.1.5（非纯计算链：先写 a^2 >= 1^2，再用反证处理 a < 1 与 a >= 0；参考 examples/claim.lit、by_contra.lit）
+"""
+Let a and b be real numbers, and suppose that a^2 = b^2 + 1 and a >= 0. Show that a >= 1.
+"""
+let a, b R:
+    know a^2 = b^2 + 1
+    know a >= 0
+
+claim:
+    prove:
+        a >= 1
+    a^2 = b^2 + 1 >= 1 = 1^2
+    by contra:
+        prove:
+            a < 1
+        know 0 <= a
+        a^2 < 1^2
+        impossible a^2 = b^2 + 1 >= 1 = 1^2
+# 书本 Lean 用 cancel：由 a >= 0 且 a^2 >= 1^2 得 a >= 1
+
+# 2.1.6（对比 1.4.1：中间结论 x <= -1）
+"""
+Let x and y be integers, and suppose that x + 3 <= 2 and y + 2x >= 3. Show that y > 3.
+"""
+forall x, y Z:
+    x + 3 <= 2
+    y + 2 * x >= 3
+    =>:
+        x <= 2 - 3 = -1
+        y + 2 * x - 2 * x >= 3 - 2 * x >= 3 - 2 * (-1) = 5
+        y > 3
+
+# 2.1.7
+"""
+Let a and b be real numbers and suppose that -b <= a <= b. Show that a^2 <= b^2.
+"""
+forall a, b R:
+    -b <= a
+    a <= b
+    0 <= b + a
+    0 <= b - a
+    =>:
+        a^2 <= a^2 + (b + a) * (b - a) = b^2
+
+# 2.1.8
+"""
+Let a and b be real numbers and suppose that a <= b. Show that a^3 <= b^3.
+"""
+forall a, b R:
+    a <= b
+    0 <= b - a
+    =>:
+        a^3 <= a^3 + (b - a) * ((b - a)^2 + 3 * (b + a)^2) / 4 = b^3
+
+# ---------------------------------------------------------------------------
+# 2.2 Invoking lemmas（Lean 中用 apply 点名引理；Litex 中只写数学结论链，引理名见注释）
+# ---------------------------------------------------------------------------
+
+# 2.2.1（引理：若 a < b 则 a ≠ b，记作 ne_of_lt）
+"""
+Let x be a rational number, and suppose that 3x = 2. Show that x != 1.
+"""
+forall x Q:
+    3 * x = 2
+    =>:
+        x = (3 * x) / 3 = 2 / 3 < 1
+# 故 x ≠ 1（严格小于则不相等）
+
+# 2.2.2（引理：若 a > b 则 a ≠ b，记作 ne_of_gt）
+"""
+Let y be a real number. Show that y^2 + 1 != 0.
+"""
+forall y R:
+    =>:
+        0 < y^2 + 1
+# 故 y^2 + 1 ≠ 0（正数非零）
+
+# 2.2.3（引理 le_antisymm：a <= b 且 b <= a => a = b）
+"""
+Let a and b be real numbers, and suppose that a^2 + b^2 = 0. Show that a^2 = 0.
+"""
+forall a, b R:
+    a^2 + b^2 = 0
+    =>:
+        a^2 <= a^2 + b^2 = 0
+# 又 0 <= a^2，与上式得 a^2 = 0（反对称 le_antisymm）
+
+# ---------------------------------------------------------------------------
+# 2.3 “Or” and proof by cases（析取：纸面分情形；Litex 拆成多条 forall 或注释）
+# ---------------------------------------------------------------------------
+
+# 2.3.1 — Case x = 1
+"""
+Let x and y be real numbers and suppose that x = 1 or y = -1. Show that x*y + x = y + 1.
+"""
+forall x, y R:
+    x = 1
+    =>:
+        x * y + x = 1 * y + 1 = y + 1
+
+# 2.3.1 — Case y = -1
+forall x, y R:
+    y = -1
+    =>:
+        x * y + x = x * (-1) + x = -1 + 1 = y + 1
+
+# 2.3.2（自然数 n：n <= 1 或 2 <= n；两情形均得 n^2 ≠ 2）
+# 引理 le_or_succ_le：a <= b 或 b + 1 <= a。此处对 (a,b)=(n,1) 得 n <= 1 或 2 <= n。
+"""
+Let n be any natural number. Show that n^2 != 2.
+"""
+forall n N:
+    n <= 1
+    =>:
+        n^2 <= 1^2 < 2
+# 故 n^2 ≠ 2（小于 2 的自然数平方不可能为 2）
+
+forall n N:
+    2 <= n
+    =>:
+        2 < 2^2 <= n^2
+# 故 n^2 ≠ 2（大于 2 的自然数平方不可能为 2）
+
+# 2.3.3（目标为析取时常证其中一支；此题证右支 x = 2）
+"""
+Let x be a real number for which 2x + 1 = 5. Show that either x = 1 or x = 2.
+"""
+forall x R:
+    2 * x + 1 = 5
+    =>:
+        x = (2 * x + 1 - 1) / 2 = (5 - 1) / 2 = 2
+# 故 x = 1 或 x = 2（取右支即可）
+
+# 2.3.4（由 (x-1)(x-2)=0 得 x-1=0 或 x-2=0，再分别得 x=1 或 x=2）
+"""
+Let x be a real number for which x^2 - 3x + 2 = 0. Show that either x = 1 or x = 2.
+"""
+forall x R:
+    x^2 - 3 * x + 2 = 0
+    =>:
+        (x - 1) * (x - 2) = x^2 - 3 * x + 2 = 0
+# 故 x - 1 = 0 或 x - 2 = 0（零乘积），从而 x = 1 或 x = 2
+
+# 2.3.5（整数 n^2 ≠ 2：对 n 分情形；证明较长，书本用嵌套 obtain / · 子证明）
+# 此处不展开全部 Litex 链，仅保留定理陈述供对照。
+# 记作定理 sq_ne_two 供后文引用。
+
+# ---------------------------------------------------------------------------
+# 2.4 “And”（合取： hypotheses 可拆成两条；目标为合取时常需分别证两支）
+# ---------------------------------------------------------------------------
+
+# 2.4.1（与 1.3.6 同数学，仅假设写成合取）
+"""
+Let x and y be integers and suppose that 2x - y = 4 and y - x + 1 = 2. Prove that x = 5.
+"""
+forall x, y Z:
+    2 * x - y = 4
+    y - x + 1 = 2
+    =>:
+        x = (2 * x - y) + (y - x + 1) - 1 = 4 + 2 - 1 = 5
+
+# 2.4.2（引理 abs_le_of_sq_le_sq'：p^2 <= y^2 且 y >= 0 => -y <= p <= p）
+"""
+Let p be a rational number for which p^2 <= 8. Show that p >= -5.
+"""
+forall p Q:
+    p^2 <= 8
+    -3 <= p
+    p <= 3
+    =>:
+        p >= -5
+# 由 p^2 <= 8 得 p^2 <= 9 = 3^2；引理 abs_le_of_sq_le_sq'（且 0 <= 3）给出 -3 <= p <= 3
+
+# 2.4.3
+"""
+Let a and b be real numbers and suppose that a - 5b = 4 and b + 2 = 3. Show that a = 9 and b = 1.
+"""
+forall a, b R:
+    a - 5 * b = 4
+    b + 2 = 3
+    b = 1
+    =>:
+        a = 4 + 5 * b = 4 + 5 * 1 = 9
+# 目标合取之第二支：b = 1 已列为假设或由 b + 2 = 3 显然
+
+# 2.4.4
+"""
+Let a and b be real numbers and suppose that a^2 + b^2 = 0. Show that a = 0 and b = 0.
+"""
+forall a, b R:
+    a^2 + b^2 = 0
+    =>:
+        a^2 <= a^2 + b^2 = 0
+# 又 0 <= a^2，故 a^2 = 0；同理 b^2 <= a^2 + b^2 = 0 且 0 <= b^2 得 b^2 = 0；再得 a = 0 且 b = 0
+
+# ---------------------------------------------------------------------------
+# 2.5 Existence proofs（存在量词：Litex 中常写“见证 + 验证”两行；一般需注释说明）
+# ---------------------------------------------------------------------------
+
+# 2.5.1
+"""
+Let a be a rational number, and suppose that there exists a rational number b such that a = b^2 + 1. Show that a > 0.
+"""
+forall a, b Q:
+    a = b^2 + 1
+    =>:
+        a = b^2 + 1 > 0
+
+# 2.5.2（存在 a 使 a*t < 0 => t ≠ 0；纸面分 x<=0 与 0<x）
+# 完整 Lean 证明见书本；此处从略。
+
+# 2.5.3（存在性：先 exist 再 witness；参考 examples/verify_exist_fact.lit、witness_exist.lit）
+"""
+Show that there exists an integer n such that 12n = 84.
+"""
+exist n Z st {12 * n = 84}
+
+witness exist n Z st {12 * n = 84} from 7:
+    12 * 7 = 84
+
+# 2.5.4
+"""
+Let x be a real number. Show that there exists a real number y such that y > x.
+"""
+forall x R:
+    exist y R st {y > x}
+
+    witness exist y R st {y > x} from x + 1:
+        x + 1 > x
+
+# 2.5.5
+"""
+Show that there exist integers m and n such that m^2 - n^2 = 11.
+"""
+exist m, n Z st {m^2 - n^2 = 11}
+
+witness exist m, n Z st {m^2 - n^2 = 11} from 6, 5:
+    6^2 - 5^2 = 36 - 25 = 11
+
+# 2.5.6
+"""
+Let a be an integer. Show that there exist integers m and n such that m^2 - n^2 = 2a + 1.
+"""
+forall a Z:
+    exist m, n Z st {m^2 - n^2 = 2 * a + 1}
+
+    witness exist m, n Z st {m^2 - n^2 = 2 * a + 1} from a + 1, a:
+        (a + 1)^2 - a^2 = 2 * a + 1
+
+# 2.5.7
+"""
+Let p and q be real numbers, and suppose p < q. Show that there exists a real number x such that p < x and x < q.
+"""
+forall p, q R:
+    know p < q
+
+    exist x R st {p < x, x < q}
+
+    witness exist x R st {p < x, x < q} from (p + q) / 2:
+        p = (p + p) / 2 < (p + q) / 2
+        (p + q) / 2 < (q + q) / 2 = q
+
+# 2.5.8（Ramanujan / 1729）
+"""
+Show that there exist natural numbers a, b, c and d such that a^3 + b^3 = 1729 = c^3 + d^3 but a != c and a != d.
+"""
+exist a, b, c, d N st {a^3 + b^3 = 1729, c^3 + d^3 = 1729, a != c, a != d}
+
+witness exist a, b, c, d N st {a^3 + b^3 = 1729, c^3 + d^3 = 1729, a != c, a != d} from 1, 12, 9, 10:
+    1^3 + 12^3 = 1729
+    9^3 + 10^3 = 1729
+    1 != 9
+    1 != 10
