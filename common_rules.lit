@@ -1,0 +1,15 @@
+know:
+    forall a R b R:
+        a>0
+        b>0
+        =>:
+            a*b>0
+    forall a R b R c R:
+        a>0
+        b>c
+        =>:
+            a*b>a*c
+    forall a,b R:
+    a>0
+    =>:
+        b<a+b

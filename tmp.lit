@@ -1,0 +1,19 @@
+know:
+    forall a,b R:
+        a*b=0
+        =>:
+            a=0 or b=0
+let x R:
+        x^2 - 3 * x + 2 = 0
+claim:
+    prove:
+        x=1 or x=2
+    (x - 1) * (x - 2) = x^2 - 3 * x + 2 = 0
+    x-1=0 or x-2=0
+    by cases:
+        prove:
+            x=1 or x=2
+        case x-1=0:
+            x=x-1+1=1 
+        case x-2=0:
+            x=x-2+2=2

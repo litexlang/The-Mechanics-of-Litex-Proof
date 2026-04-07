@@ -62,11 +62,10 @@ forall t R:
 """
 Let a and b be real numbers, and suppose that a^2 = b^2 + 1 and a >= 0. Show that a >= 1.
 """
-let a, b R:
-    know a^2 = b^2 + 1
-    know a >= 0
-
 claim:
+    let a, b R:
+        a^2 = b^2 + 1
+        a >= 0
     prove:
         a >= 1
     a^2 = b^2 + 1 >= 1 = 1^2
@@ -97,9 +96,9 @@ Let a and b be real numbers and suppose that -b <= a <= b. Show that a^2 <= b^2.
 forall a, b R:
     -b <= a
     a <= b
-    0 <= b + a
-    0 <= b - a
     =>:
+        0 <= b + a
+        0 <= b - a
         a^2 <= a^2 + (b + a) * (b - a) = b^2
 
 # 2.1.8
@@ -110,7 +109,7 @@ forall a, b R:
     a <= b
     0 <= b - a
     =>:
-        a^3 <= a^3 + (b - a) * ((b - a)^2 + 3 * (b + a)^2) / 4 = b^3
+        a^3 <= a^3 + (b - a) *(((b - a)^2 + 3 * (b + a)^2) / 4) = b^3
 
 # ---------------------------------------------------------------------------
 # 2.2 Invoking lemmas（Lean 中用 apply 点名引理；Litex 中只写数学结论链，引理名见注释）
@@ -120,66 +119,98 @@ forall a, b R:
 """
 Let x be a rational number, and suppose that 3x = 2. Show that x != 1.
 """
+know:
+    forall a, b R:
+        a<b
+        =>:
+            a!=b
 forall x Q:
     3 * x = 2
     =>:
         x = (3 * x) / 3 = 2 / 3 < 1
-# 故 x ≠ 1（严格小于则不相等）
+        x!=1
+
 
 # 2.2.2（引理：若 a > b 则 a ≠ b，记作 ne_of_gt）
 """
 Let y be a real number. Show that y^2 + 1 != 0.
 """
+know:
+    forall a, b R:
+        a > b
+        =>:
+            a != b
 forall y R:
     =>:
-        0 < y^2 + 1
-# 故 y^2 + 1 ≠ 0（正数非零）
+        0 <= y^2
+        0 < y^2+1
+        y^2+1 != 0
+）
 
 # 2.2.3（引理 le_antisymm：a <= b 且 b <= a => a = b）
 """
+know:
+    forall a, b R:
+        a<=b
+        b<=a
+        =>:
+            a=b
 Let a and b be real numbers, and suppose that a^2 + b^2 = 0. Show that a^2 = 0.
 """
 forall a, b R:
     a^2 + b^2 = 0
     =>:
         a^2 <= a^2 + b^2 = 0
-# 又 0 <= a^2，与上式得 a^2 = 0（反对称 le_antisymm）
+        a^2>=0
+        a^2=0
+
 
 # ---------------------------------------------------------------------------
 # 2.3 “Or” and proof by cases（析取：纸面分情形；Litex 拆成多条 forall 或注释）
 # ---------------------------------------------------------------------------
 
-# 2.3.1 — Case x = 1
+# 2.3.1 
 """
 Let x and y be real numbers and suppose that x = 1 or y = -1. Show that x*y + x = y + 1.
 """
-forall x, y R:
-    x = 1
-    =>:
-        x * y + x = 1 * y + 1 = y + 1
+claim:
+    let x, y R:
+        x = 1 or y = -1
+    prove:
+        x * y + x = y + 1
+    by cases:
+        prove:
+            x*y+x=y+1
+        case x=1:
+            x*y+x=1*y+1=y+1
+        case y=-1:
+            x*y+x=x*(-1)+x=-1+1=y+1
 
-# 2.3.1 — Case y = -1
-forall x, y R:
-    y = -1
-    =>:
-        x * y + x = x * (-1) + x = -1 + 1 = y + 1
 
 # 2.3.2（自然数 n：n <= 1 或 2 <= n；两情形均得 n^2 ≠ 2）
 # 引理 le_or_succ_le：a <= b 或 b + 1 <= a。此处对 (a,b)=(n,1) 得 n <= 1 或 2 <= n。
 """
 Let n be any natural number. Show that n^2 != 2.
 """
-forall n N:
-    n <= 1
-    =>:
-        n^2 <= 1^2 < 2
-# 故 n^2 ≠ 2（小于 2 的自然数平方不可能为 2）
+know:
+    forall a,b N:
+        a>b
+        =>:
+            a>=b+1
 
-forall n N:
-    2 <= n
-    =>:
-        2 < 2^2 <= n^2
-# 故 n^2 ≠ 2（大于 2 的自然数平方不可能为 2）
+claim:
+    let n N
+    prove:
+        n^2 != 2
+    by cases:
+        prove:
+            n^2 != 2
+        case n<=1:
+            n^2 <= 1^2 =1<2
+            n^2 != 2
+        case n>=2:
+            n^2 >= 2^2 =4>2
+            n^2 != 2
 
 # 2.3.3（目标为析取时常证其中一支；此题证右支 x = 2）
 """
@@ -188,22 +219,71 @@ Let x be a real number for which 2x + 1 = 5. Show that either x = 1 or x = 2.
 forall x R:
     2 * x + 1 = 5
     =>:
-        x = (2 * x + 1 - 1) / 2 = (5 - 1) / 2 = 2
-# 故 x = 1 或 x = 2（取右支即可）
+        x=(2*x+1-1)/2=2
+        x=1 or x=2
+
+
 
 # 2.3.4（由 (x-1)(x-2)=0 得 x-1=0 或 x-2=0，再分别得 x=1 或 x=2）
 """
 Let x be a real number for which x^2 - 3x + 2 = 0. Show that either x = 1 or x = 2.
 """
-forall x R:
-    x^2 - 3 * x + 2 = 0
-    =>:
-        (x - 1) * (x - 2) = x^2 - 3 * x + 2 = 0
-# 故 x - 1 = 0 或 x - 2 = 0（零乘积），从而 x = 1 或 x = 2
+know:
+    forall a,b R:
+        a*b=0
+        =>:
+            a=0 or b=0
+let x R:
+        x^2 - 3 * x + 2 = 0
+claim:
+    prove:
+        x=1 or x=2
+    (x - 1) * (x - 2) = x^2 - 3 * x + 2 = 0
+    x-1=0 or x-2=0
+    by cases:
+        prove:
+            x=1 or x=2
+        case x-1=0:
+            x=x-1+1=1 
+        case x-2=0:
+            x=x-2+2=2
+
 
 # 2.3.5（整数 n^2 ≠ 2：对 n 分情形；证明较长，书本用嵌套 obtain / · 子证明）
-# 此处不展开全部 Litex 链，仅保留定理陈述供对照。
-# 记作定理 sq_ne_two 供后文引用。
+"""
+Let n be a integer number. Show that n^2 != 2.
+"""
+claim:
+    let n Z
+    prove:
+        n^2 != 2
+    by cases:
+        prove:
+            n^2 != 2
+        case n<=0:
+            by cases:
+                prove:
+                    n^2 != 2
+                case n=-1:
+                    n^2 = (-1)^2 >= 1<2
+                    n^2 != 2
+                case n<-1:
+                    n<=-2
+                    n^2 = (-n)^2 >= 2^2 =4>2
+                    n^2 != 2
+        case n>=1:
+            by cases:
+                prove:
+                    n^2 != 2
+                case n=1:
+                    n^2 = 1^2 = 1<2
+                    n^2 != 2
+                case n>1:
+                    n>=2
+                    n^2 >= 2^2 =4>2
+                    n^2 != 2
+
+
 
 # ---------------------------------------------------------------------------
 # 2.4 “And”（合取： hypotheses 可拆成两条；目标为合取时常需分别证两支）
