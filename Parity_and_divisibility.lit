@@ -434,54 +434,75 @@ claim:
 # 3.4.2
 """
 Let a and b be integers, with a ≡ 4 (mod 5) and b ≡ 3 (mod 5). Show that a*b + b^3 + 3 ≡ 2 (mod 5).
-（即 5 | (a*b + b^3 + 3 - 2)。纸面：先用 a≡4、b≡3 得
 a*b + b^3 + 3 ≡ 4*3 + 3^3 + 3 = 42 = 2 + 5*8 ≡ 2 (mod 5)。）
 """
+know:
+    forall a, b, c n Z:
+        $mod_eq(a, b, n)
+        $mod_eq(a, c, n)
+        =>:
+            $mod_eq(b,c, n)
 # 代表元（同余类下结论不变）：先算数值，再对照 3.3 乘法/加法引理
 claim:
+    let a, b Z:
+        $mod_eq(a, 4, 5)
+        $mod_eq(b, 3, 5)
     prove:
-        $mod_eq(4 * 3 + 3^3 + 3, 2, 5)
-    witness exist k Z st {4 * 3 + 3^3 + 3 - 2 = 5 * k} from 8:
-        4 * 3 + 3^3 + 3 - 2 = 40 = 5 * 8
-# 一般 a,b：由 a≡4、b≡3 (mod 5) 与 3.3.3、3.3.6 把 a,b 换成 4,3 再算（Lean：rel [ha, hb]）。
+        $mod_eq(a * b + b^3 + 3, 2, 5)
+    $mod_eq(a*b, 4*3, 5)
+    $mod_eq(b^3, 3^3, 5)
+    $mod_eq(a * b + b^3 + 3, 4*3 + 3^3 + 3, 5)
+    witness exist k Z st {4*3 + 3^3 + 3 - 2 = 5 * k} from 8:
+        4*3 + 3^3 + 3 - 2 = 5 * 8
+    $mod_eq(4*3 + 3^3 + 3, 2, 5)
+    $mod_eq(a * b + b^3 + 3, 2, 5)
 
 # 3.4.3
 """
 Show that there exists an integer a such that 6a ≡ 4 (mod 11).
-（即 exist a, k ∈ Z, 6*a - 4 = 11*k。）
 """
 claim:
     prove:
-        $mod_eq(6 * 8, 4, 11)
-    witness exist k Z st {6 * 8 - 4 = 11 * k} from 4:
+        exist a Z st {$mod_eq(6 * a, 4, 11)}
+    witness exist a Z st {$mod_eq(6 * a, 4, 11)} from 8:
         6 * 8 - 4 = 11 * 4
-# 故取见证 a = 8 即可（与上式同一命题）。
 
 # 3.4.4
 """
 Let x be an integer. Show that x^3 ≡ x (mod 3).
-（等价于 3 | (x^3 - x)；因 x^3 - x = x*(x-1)*(x+1) 为三个连续整数之积，必被 3 整除。）
 """
+let min_pos_remian fn (a Z, n Z) Z
+know:
+    forall a,n Z:
+        $mod_eq(a, min_pos_remian(a, n), n)
+        min_pos_remian(a, n) >= 0
+        min_pos_remian(a, n) < n
+
 claim:
     let x Z
     prove:
         $mod_eq(x^3, x, 3)
-    x^3 - x = x * (x - 1) * (x + 1)
-# 三连续整数中恰有一个被 3 整除 ⇒ 3 | x(x−1)(x+1)，即 x^3 ≡ x (mod 3)。
-
-# 书本分情形（与上等价）：x = 3k、3k+1、3k+2 时分别展开 x^3 − x，可见均有因子 3
-forall x, k Z:
-    x = 3 * k
-    =>:
-        x^3 - x = 3 * (9 * k^3 - k)
-forall x, k Z:
-    x = 3 * k + 1
-    =>:
-        x^3 - x = (3 * k + 1) * (3 * k) * (3 * k + 2)
-forall x, k Z:
-    x = 3 * k + 2
-    =>:
-        x^3 - x = (3 * k + 2) * (3 * k + 1) * (3 * k + 3)
+    by cases:
+        case min_pos_remian(x, 3) = 0:
+            $mod_eq(x, 0, 3)
+            $mod_eq(x^3, 0^3, 3)
+            $mod_eq(x^3, 0, 3)
+            $mod_eq(x^3, x, 3)
+        case min_pos_remian(x, 3) = 1:
+            $mod_eq(x, 1, 3)
+            $mod_eq(x^3, 1^3, 3)
+            $mod_eq(x^3, 1, 3)
+            $mod_eq(x^3, x, 3)
+        case min_pos_remian(x, 3) = 2:
+            $mod_eq(x, 2, 3)
+            $mod_eq(x^3, 2^3, 3)
+            $mod_eq(2^3, 8, 3)
+            witness exist k Z st {8 - 2 = 3 * k} from 2:
+                8 - 2 = 3 * 2
+            $mod_eq(8, 2, 3)
+            $mod_eq(x^3, 2, 3)
+            $mod_eq(x^3, x, 3)
+            
 
 # ---------------------------------------------------------------------------
 # 3.5 Bézout’s identity
