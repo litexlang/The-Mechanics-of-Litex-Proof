@@ -158,17 +158,25 @@ prop dvdZ(a Z, b Z):
 prop dvdN(a N, b N):
     exist c N st {b = a * c}
 
+
 know:
-    forall a, b, k N:
-        0 < b
-        b = a * k
+    forall a, b Z:
+        $dvdZ(a, b)
         =>:
-            1 <= k
-    forall a, b, k N:
-        0 < b
-        b = a * k
+            b = a * dvd_num_z(a, b)
+    forall a, b N:
+        $dvdN(a, b)
         =>:
-            0 < a
+            b = a * dvd_num_n(a, b)
+    forall a, b Z:
+        $dvdZ(a, b)
+        =>:
+            b/a in Z
+    forall a, b N:
+        $dvdN(a, b)
+        =>:
+            b/a in N
+    
 
 # 3.2.1
 """
@@ -195,77 +203,108 @@ claim:
 Let a and b be integers and suppose that a | b. Show that a | b^2 + 2b.
 """
 claim:
-    let a, b, k Z:
-        b = a * k
+    let a, b Z:
+        $dvdZ(a, b)
     prove:
         $dvdZ(a, b^2 + 2 * b)
-    witness exist c Z st {b^2 + 2 * b = a * c} from k * (a * k + 2):
-        b^2 + 2 * b = (a * k)^2 + 2 * (a * k) = a * (k * (a * k + 2))
+    witness exist c Z st {b^2 + 2 * b = a * c} from (b/a) * (a * (b/a) + 2):
+        b^2 + 2 * b  = a * ((b/a) * (a * (b/a) + 2))
 
 # 3.2.4
 """
 Let a, b and c be natural numbers and suppose that a | b and b^2 | c. Show that a^2 | c.
 """
 claim:
-    let a, b, c, x, y N:
-        b = a * x
-        c = b^2 * y
+    let a, b, c N:
+        $dvdN(a, b)
+        $dvdN(b^2, c)
     prove:
         $dvdN(a^2, c)
-    witness exist t N st {c = a^2 * t} from x^2 * y:
-        c = b^2 * y = (a * x)^2 * y = a^2 * (x^2 * y)
+    witness exist t N st {c = a^2 * t} from (b/a)^2 * (c/(b^2)):
+        c = b^2 * (c/(b^2)) = a^2 * ((b/a)^2 * (c/(b^2)))
 
 # 3.2.5
 """
 Let x, y and z be natural numbers and suppose that x*y | z. Show that x | z.
 """
 claim:
-    let x, y, z, t N:
-        z = x * y * t
+    let x, y, z N:
+        $dvdN(x * y, z)
     prove:
         $dvdN(x, z)
-    witness exist c N st {z = x * c} from y * t:
-        z = x * (y * t)
+    witness exist c N st {z = x * c} from (z/(x * y)) * y:
+        z = x * ((z/(x * y)) * y)
 
 # 3.2.6
 """
 Show that 12 is not divisible by 5.
 （5*2 < 12 < 5*3，故 12 不是 5 的倍数；书本引理 not_dvd_of_exists_lt_and_lt。）
 """
+know:
+    forall a, b Z:
+        exist q Z st {a*q<b<a*(q+1)}
+        =>:
+            not $dvdZ(a, b)
+    forall a, b N:
+        exist q N st {a*q<b<a*(q+1)}
+        =>:
+            not $dvdN(a, b)
+
 forall c N:
     c <= 2
     =>:
-        5 * c <= 10 < 12
+        5 * c <= 5*2=10 < 12
 forall c N:
     c >= 3
     =>:
-        5 * c >= 15 > 12
+        5 * c >= 5*3=15 > 12
+claim:
+    prove:
+        forall c N:
+            =>:
+                5 * c != 12
+    by cases:
+        prove:
+            forall c N:
+                =>:
+                    5 * c != 12
+        case c <= 2:
+            5 * c <= 5*2=10 < 12
+        case c >= 3:
+            5 * c >= 5*3=15 > 12
 forall c N:
     =>:
         5 * c != 12
+        not $dvdN(5, 12)
 # 故不存在 c∈N 使 12 = 5*c，即 not $dvdN(5, 12)
 
 # 3.2.7
 """
 Let a and b be natural numbers, with b positive, and suppose that a divides b. Show that a <= b.
 """
-forall a, b, k N:
-    0 < b
-    b = a * k
+forall a, b N:
+    $dvdN(a, b)
+    b>0
     =>:
-        1 <= k
-        a = a * 1 <= a * k = b
+        b/a in N
+        b/a!=0
+        b/a>=1
+        a<=b
 
 # 3.2.8
 """
 Let a and b be natural numbers, with b positive, and suppose that a divides b. Show that a is positive.
 """
-forall a, b, k N:
-    b = a * k
-    0 < b
+forall a, b N:
+    $dvdN(a, b)
+    b>0
     =>:
-        0 < a * k
-        0 < a
+        b/a in N
+        b=b/a*a
+        b/a!=0
+        a!=0
+        b/a>=1
+        a>=1>0
 
 # ---------------------------------------------------------------------------
 # 3.3 Modular arithmetic: theory（a ≡ b (mod n) ⇔ n | (a-b) ⇔ exist k, a-b = n*k）
@@ -298,61 +337,70 @@ claim:
 """
 Lemma: If a ≡ b (mod n) and c ≡ d (mod n), then a+c ≡ b+d (mod n).
 """
-forall n, a, b, c, d, x, y Z:
-    a - b = n * x
-    c - d = n * y
+forall n, a, b, c, d Z:
+    $mod_eq(a, b, n)
+    $mod_eq(c, d, n)
     =>:
-        (a + c) - (b + d) = (a - b) + (c - d) = n * x + n * y = n * (x + y)
+        witness exist k Z st {(a + c) - (b + d) = n * k} from ((a-b)/n) + ((c-d)/n):
+            (a + c) - (b + d) = (a - b) + (c - d) = n * ((a-b)/n) + n * ((c-d)/n) = n * ((a-b)/n + (c-d)/n)
 
 # 3.3.4（减法：Exercise）
 """
 Lemma: If a ≡ b (mod n) and c ≡ d (mod n), then a-c ≡ b-d (mod n).
 """
-forall n, a, b, c, d, x, y Z:
-    a - b = n * x
-    c - d = n * y
+forall n, a, b, c, d   Z:
+    $mod_eq(a, b, n)
+    $mod_eq(c, d, n)
     =>:
-        (a - c) - (b - d) = (a - b) - (c - d) = n * x - n * y = n * (x - y)
+        witness exist k Z st {(a - c) - (b - d) = n * k} from ((a-b)/n) - ((c-d)/n):
+            (a - c) - (b - d) = (a - b) - (c - d) = n * ((a-b)/n) - n * ((c-d)/n) = n * ((a-b)/n - (c-d)/n)
 
 # 3.3.5（取负：Exercise）
 """
 Lemma: If a ≡ b (mod n), then -a ≡ -b (mod n).
 """
-forall n, a, b, x Z:
-    a - b = n * x
+forall n, a, b Z:
+    $mod_eq(a, b, n)
     =>:
-        (-a) - (-b) = -(a - b) = n * (-x)
+        witness exist k Z st {(-a) - (-b) = n * k} from -((a-b)/n):
+            (-a) - (-b) = -(a - b) = n * (-((a-b)/n))
 
 # 3.3.6（乘法）
 """
 Lemma: If a ≡ b (mod n) and c ≡ d (mod n), then a*c ≡ b*d (mod n).
 """
-forall n, a, b, c, d, x, y Z:
-    a - b = n * x
-    c - d = n * y
+forall n, a, b, c, d Z:
+    $mod_eq(a, b, n)
+    $mod_eq(c, d, n)
     =>:
-        a * c - b * d = (a - b) * c + b * (c - d) = n * x * c + b * (n * y) = n * (x * c + b * y)
+        witness exist k Z st {a * c - b * d = n * k} from ((a-b)/n) * c + b * ((c-d)/n):
+            a * c - b * d = (a - b) * c + b * (c - d) = n * ((a-b)/n) * c + b * (n * ((c-d)/n)) = n * ((a-b)/n * c + b * ((c-d)/n))
 
 # 3.3.7（无“除法”规则：反例）
+"""
+It is impossible to prove that if a ≡ b (mod n) and c ≡ d (mod n), then (a/c) ≡ (b/d) (mod n).
+"""
 # a=10,b=18,c=2,d=6,n=4：10≡18，2≡6，但 (10/2)-(18/6)=2 不≡0 (mod 4)。
 
 # 3.3.8（平方）
 """
 Lemma: If a ≡ b (mod n), then a^2 ≡ b^2 (mod n).
 """
-forall n, a, b, x Z:
-    a - b = n * x
+forall n, a, b Z:
+    $mod_eq(a, b, n)
     =>:
-        a^2 - b^2 = (a - b) * (a + b) = n * x * (a + b) = n * (x * (a + b))
+        witness exist k Z st {a^2 - b^2 = n * k} from ((a-b)/n) * (a + b):
+            a^2 - b^2 = (a - b) * (a + b) = n * ((a-b)/n) * (a + b) = n * ((a-b)/n * (a + b))
 
 # 3.3.9（立方：Exercise）
 """
 Lemma: If a ≡ b (mod n), then a^3 ≡ b^3 (mod n).
 """
-forall n, a, b, x Z:
-    a - b = n * x
+forall n, a, b Z:
+    $mod_eq(a, b, n)
     =>:
-        a^3 - b^3 = (a - b) * (a^2 + a * b + b^2) = n * x * (a^2 + a * b + b^2) = n * (x * (a^2 + a * b + b^2))
+        witness exist k Z st {a^3 - b^3 = n * k} from ((a-b)/n) * (a^2 + a * b + b^2):
+            a^3 - b^3 = (a - b) * (a^2 + a * b + b^2) = n * ((a-b)/n) * (a^2 + a * b + b^2) = n * ((a-b)/n * (a^2 + a * b + b^2))
 
 # 3.3.10（自反）
 """
@@ -361,6 +409,7 @@ Lemma: a ≡ a (mod n).
 forall n, a Z:
     =>:
         a - a = n * 0
+        $mod_eq(a, a, n)
 
 # 3.3.11
 """
@@ -368,12 +417,12 @@ Let a and b be integers, and suppose that a ≡ 2 (mod 4). Show that
 a*b^2 + a^2*b + 3*a ≡ 2*b^2 + 2^2*b + 3*2 (mod 4).
 """
 claim:
-    let a, b, x Z:
-        a - 2 = 4 * x
+    let a, b Z:
+        $mod_eq(a, 2, 4)
     prove:
-        exist k Z st {a * b^2 + a^2 * b + 3 * a - (2 * b^2 + 2^2 * b + 3 * 2) = 4 * k}
-    witness exist k Z st {a * b^2 + a^2 * b + 3 * a - (2 * b^2 + 2^2 * b + 3 * 2) = 4 * k} from x * (b^2 + a * b + 2 * b + 3):
-        a * b^2 + a^2 * b + 3 * a - (2 * b^2 + 2^2 * b + 3 * 2) = (a - 2) * (b^2 + a * b + 2 * b + 3) = 4 * x * (b^2 + a * b + 2 * b + 3)
+        $mod_eq(a * b^2 + a^2 * b + 3 * a, 2 * b^2 + 2^2 * b + 3 * 2, 4)
+    witness exist k Z st {a * b^2 + a^2 * b + 3 * a - (2 * b^2 + 2^2 * b + 3 * 2) = 4 * k} from ((a-2)/4) * (b^2 + a * b + 2 * b + 3):
+        a * b^2 + a^2 * b + 3 * a - (2 * b^2 + 2^2 * b + 3 * 2) = (a - 2) * (b^2 + a * b + 2 * b + 3) = 4 * ((a-2)/4) * (b^2 + a * b + 2 * b + 3)
 
 # ---------------------------------------------------------------------------
 # 3.4 Modular arithmetic: calculations
