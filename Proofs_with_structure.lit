@@ -303,13 +303,19 @@ forall x, y Z:
 """
 Let p be a rational number for which p^2 <= 8. Show that p >= -5.
 """
+know:
+    forall x,y R:
+        x^2<=y^2
+        y>=0
+        =>:
+            -y<=x<=y
 forall p Q:
     p^2 <= 8
-    -3 <= p
-    p <= 3
     =>:
+        p^2 <=9
+        -3<= p <=3
         p >= -5
-# 由 p^2 <= 8 得 p^2 <= 9 = 3^2；引理 abs_le_of_sq_le_sq'（且 0 <= 3）给出 -3 <= p <= 3
+
 
 # 2.4.3
 """
@@ -318,10 +324,10 @@ Let a and b be real numbers and suppose that a - 5b = 4 and b + 2 = 3. Show that
 forall a, b R:
     a - 5 * b = 4
     b + 2 = 3
-    b = 1
     =>:
-        a = 4 + 5 * b = 4 + 5 * 1 = 9
-# 目标合取之第二支：b = 1 已列为假设或由 b + 2 = 3 显然
+        a=a-5*b+5*b=4+5*b=-6+5*(b+2)=-6+5*3=9
+        b=b+2-2=3-2=1
+
 
 # 2.4.4
 """
@@ -331,7 +337,13 @@ forall a, b R:
     a^2 + b^2 = 0
     =>:
         a^2 <= a^2 + b^2 = 0
-# 又 0 <= a^2，故 a^2 = 0；同理 b^2 <= a^2 + b^2 = 0 且 0 <= b^2 得 b^2 = 0；再得 a = 0 且 b = 0
+        b^2 <= a^2 + b^2 = 0
+        b^2 >= 0
+        a^2 >= 0
+        a^2 = 0
+        b^2 = 0
+        a = 0
+        b = 0
 
 # ---------------------------------------------------------------------------
 # 2.5 Existence proofs（存在量词：Litex 中常写“见证 + 验证”两行；一般需注释说明）
@@ -341,30 +353,48 @@ forall a, b R:
 """
 Let a be a rational number, and suppose that there exists a rational number b such that a = b^2 + 1. Show that a > 0.
 """
-forall a, b Q:
-    a = b^2 + 1
+forall a Q:
+    exist b Q st {a = b^2 + 1}
     =>:
+        b^2 >= 0
         a = b^2 + 1 > 0
 
-# 2.5.2（存在 a 使 a*t < 0 => t ≠ 0；纸面分 x<=0 与 0<x）
-# 完整 Lean 证明见书本；此处从略。
+# 2.5.2
+"""
+Let t be a real number and suppose that there 
+exists a real number a such that a*t < 0. Show that t != 0.
+"""
+claim:
+    let t R:
+        exist a R st {a*t < 0}
+    prove:
+        t != 0
+    by contra:
+        prove:
+            t = 0
+        a*t = 0
+        impossible a*t < 0
+    
 
-# 2.5.3（存在性：先 exist 再 witness；参考 examples/verify_exist_fact.lit、witness_exist.lit）
+# 2.5.3
 """
 Show that there exists an integer n such that 12n = 84.
 """
-exist n Z st {12 * n = 84}
+claim:
+    prove:
+        exist n Z st {12 * n = 84}
+    witness exist n Z st {12 * n = 84} from 7:
+        12 * 7 = 84
 
-witness exist n Z st {12 * n = 84} from 7:
-    12 * 7 = 84
 
 # 2.5.4
 """
 Let x be a real number. Show that there exists a real number y such that y > x.
 """
-forall x R:
-    exist y R st {y > x}
-
+claim:
+    let x R:
+    prove:
+        exist y R st {y > x}
     witness exist y R st {y > x} from x + 1:
         x + 1 > x
 
@@ -372,18 +402,20 @@ forall x R:
 """
 Show that there exist integers m and n such that m^2 - n^2 = 11.
 """
-exist m, n Z st {m^2 - n^2 = 11}
-
-witness exist m, n Z st {m^2 - n^2 = 11} from 6, 5:
-    6^2 - 5^2 = 36 - 25 = 11
+claim:
+    prove:
+        exist m, n Z st {m^2 - n^2 = 11}
+    witness exist m, n Z st {m^2 - n^2 = 11} from 6, 5:
+        6^2 - 5^2 = 36 - 25 = 11
 
 # 2.5.6
 """
 Let a be an integer. Show that there exist integers m and n such that m^2 - n^2 = 2a + 1.
 """
-forall a Z:
-    exist m, n Z st {m^2 - n^2 = 2 * a + 1}
-
+claim:
+    let a Z:
+    prove:
+        exist m, n Z st {m^2 - n^2 = 2 * a + 1}
     witness exist m, n Z st {m^2 - n^2 = 2 * a + 1} from a + 1, a:
         (a + 1)^2 - a^2 = 2 * a + 1
 
@@ -391,23 +423,25 @@ forall a Z:
 """
 Let p and q be real numbers, and suppose p < q. Show that there exists a real number x such that p < x and x < q.
 """
-forall p, q R:
-    know p < q
-
-    exist x R st {p < x, x < q}
-
+claim:
+    let p, q R:
+        p < q
+    prove:
+        exist x R st {p < x, x < q}
     witness exist x R st {p < x, x < q} from (p + q) / 2:
         p = (p + p) / 2 < (p + q) / 2
         (p + q) / 2 < (q + q) / 2 = q
+    
 
 # 2.5.8（Ramanujan / 1729）
 """
 Show that there exist natural numbers a, b, c and d such that a^3 + b^3 = 1729 = c^3 + d^3 but a != c and a != d.
 """
-exist a, b, c, d N st {a^3 + b^3 = 1729, c^3 + d^3 = 1729, a != c, a != d}
-
-witness exist a, b, c, d N st {a^3 + b^3 = 1729, c^3 + d^3 = 1729, a != c, a != d} from 1, 12, 9, 10:
-    1^3 + 12^3 = 1729
-    9^3 + 10^3 = 1729
-    1 != 9
-    1 != 10
+claim:
+    prove:
+        exist a, b, c, d N st {a^3 + b^3 = 1729, c^3 + d^3 = 1729, a != c, a != d}
+    witness exist a, b, c, d N st {a^3 + b^3 = 1729, c^3 + d^3 = 1729, a != c, a != d} from 1, 12, 9, 10:
+        1^3 + 12^3 = 1729
+        9^3 + 10^3 = 1729
+        1 != 9
+        1 != 10
