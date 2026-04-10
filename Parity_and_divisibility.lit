@@ -1,0 +1,546 @@
+# Chapter 3 — Parity and divisibility (Heather Macbeth, Math 2001)
+# 书本：https://hrmacbeth.github.io/math2001/03_Parity_and_Divisibility.html
+#
+# 约定（对齐 Proofs_by_calculation.lit、Proofs_with_structure.lit 与 golitex examples）：
+# - 直接计算链：forall … =>:
+# - 存在性（给出见证）：exist … st {…} 与 witness exist … from …:
+# - 结构化步骤：claim + let + prove + witness；分情形 by cases；反证 by contra（见 Proofs_with_structure.lit）
+# - 3.1：奇偶用 prop odd / even 与 odd_num / even_num；3.2 起：dvdZ / dvdN；同余：mod_eq（均配合 witness）
+#
+# 定义（纸面）：奇数 Odd(a) ⇔ exist k∈Z, a = 2k+1；偶数 Even(a) ⇔ exist k∈Z, a = 2k。
+# 整除 a|b（整数）：exist c∈Z, b = a*c；自然数情形 c∈N。
+# 同余 a ≡ b (mod n) ⇔ n | (a-b) ⇔ exist k∈Z, a - b = n*k。
+
+# ---------------------------------------------------------------------------
+# 3.1 Definitions; parity
+# ---------------------------------------------------------------------------
+
+prop odd(a Z):
+    exist k Z st {a = 2 * k + 1}
+prop even(a Z):
+    exist k Z st {a = 2 * k}
+
+let odd_num fn(a Z:$odd(a)) Z
+let even_num fn(a Z:$even(a)) Z
+know:
+    forall a Z:
+        $odd(a)
+        =>:
+            a = 2 * odd_num(a) + 1
+    forall a Z:
+        $even(a)
+        =>:
+            a = 2 * even_num(a)
+
+# 3.1.1
+"""
+Show that 7 is odd.
+"""
+claim:
+    prove:
+        $odd(7)
+    witness exist k Z st {7 = 2 * k + 1} from 3:
+        7 = 2 * 3 + 1
+
+# 3.1.2
+"""
+Show that -3 is odd.
+"""
+claim:
+    prove:
+        $odd(-3)
+    witness exist k Z st {-3 = 2 * k + 1} from -2:
+        -3 = 2 * (-2) + 1
+
+# 3.1.3
+"""
+Prove that if n is an odd integer, then 3n + 2 is odd.
+"""
+claim:
+    let n Z:
+        $odd(n)
+    prove:
+        $odd(3 * n + 2)
+    witness exist l Z st {3 * n + 2 = 2 * l + 1} from 3 * odd_num(n) + 2:
+        3 * n + 2 = 3 * (2 * odd_num(n) + 1) + 2 = 2 * (3 * odd_num(n) + 2) + 1
+
+# 3.1.4
+"""
+Let n be an integer. Prove that if n is odd, then 7n - 4 is odd.
+"""
+claim:
+    let n Z:
+        $odd(n)
+    prove:
+        $odd(7 * n - 4)
+    witness exist l Z st {7 * n - 4 = 2 * l + 1} from 7 * odd_num(n) + 1:
+        7 * n - 4 = 7 * (2 * odd_num(n) + 1) - 4 = 2 * (7 * odd_num(n) + 1) + 1
+
+# 3.1.5
+"""
+Prove that if the integers x and y are odd, then x + y + 1 is odd.
+"""
+claim:
+    let x, y Z:
+        $odd(x)
+        $odd(y)
+    prove:
+        $odd(x + y + 1)
+    witness exist l Z st {x + y + 1 = 2 * l + 1} from odd_num(x) + odd_num(y) + 1:
+        x + y + 1 = (2 * odd_num(x) + 1) + (2 * odd_num(y) + 1) + 1 = 2 * (odd_num(x) + odd_num(y) + 1) + 1
+
+# 3.1.6
+"""
+Prove that if the integers x and y are odd, then x*y + 2*y is odd.
+"""
+claim:
+    let x, y Z:
+        $odd(x)
+        $odd(y)
+    prove:
+        $odd(x * y + 2 * y)
+    witness exist l Z st {x * y + 2 * y = 2 * l + 1} from 2 * odd_num(x) * odd_num(y) + 3 * odd_num(y) + odd_num(x) + 1:
+        x * y + 2 * y = (2 * odd_num(x) + 1) * (2 * odd_num(y) + 1) + 2 * (2 * odd_num(y) + 1) = 2 * (2 * odd_num(x) * odd_num(y) + 3 * odd_num(y) + odd_num(x) + 1) + 1
+
+# 3.1.7
+"""
+Let m be an integer. Prove that if m is odd, then 3m - 5 is even.
+"""
+claim:
+    let m Z:
+        $odd(m)
+    prove:
+        $even(3 * m - 5)
+    witness exist l Z st {3 * m - 5 = 2 * l} from 3 * odd_num(m) - 1:
+        3 * m - 5 = 3 * (2 * odd_num(m) + 1) - 5 = 2 * (3 * odd_num(m) - 1)
+
+# 3.1.8
+"""
+Let n be an even integer. Prove that n^2 + 2n - 5 is odd.
+"""
+claim:
+    let n Z:
+        $even(n)
+    prove:
+        $odd(n^2 + 2 * n - 5)
+    witness exist l Z st {n^2 + 2 * n - 5 = 2 * l + 1} from 2 * even_num(n)^2 + 2 * even_num(n) - 3:
+        n^2 + 2 * n - 5 = (2 * even_num(n))^2 + 2 * (2 * even_num(n)) - 5 = 2 * (2 * even_num(n)^2 + 2 * even_num(n) - 3) + 1
+
+# 3.1.9
+"""
+Let n be an integer. Prove that n^2 + n + 4 is even.
+（分 n 偶 / n 奇；引理：整数要么偶要么奇。）
+"""
+know:
+    forall n Z:
+        =>:
+            $even(n) or $odd(n)
+claim:
+    let n Z
+    prove:
+        $even(n^2 + n + 4)
+    by cases:
+        prove:
+            $even(n^2 + n + 4)
+        case $even(n):
+            witness exist l Z st {n^2 + n + 4 = 2 * l} from 2 * even_num(n)^2 + 2 * even_num(n) + 2:
+                n^2 + n + 4 = (2 * even_num(n))^2 + 2 * (2 * even_num(n)) + 4 = 2 * (2 * even_num(n)^2 + 2 * even_num(n) + 2)
+        case $odd(n):
+            witness exist l Z st {n^2 + n + 4 = 2 * l} from 2 * odd_num(n)^2 + 3 * odd_num(n) + 3:
+                n^2 + n + 4 = (2 * odd_num(n) + 1)^2 + (2 * odd_num(n) + 1) + 4 = 2 * (2 * odd_num(n)^2 + 3 * odd_num(n) + 3)
+
+# ---------------------------------------------------------------------------
+# 3.2 Divisibility
+# ---------------------------------------------------------------------------
+
+prop dvdZ(a Z, b Z):
+    exist c Z st {b = a * c}
+prop dvdN(a N, b N):
+    exist c N st {b = a * c}
+
+
+know:
+    forall a, b Z:
+        $dvdZ(a, b)
+        =>:
+            b = a * dvd_num_z(a, b)
+    forall a, b N:
+        $dvdN(a, b)
+        =>:
+            b = a * dvd_num_n(a, b)
+    forall a, b Z:
+        $dvdZ(a, b)
+        =>:
+            b/a in Z
+    forall a, b N:
+        $dvdN(a, b)
+        =>:
+            b/a in N
+    
+
+# 3.2.1
+"""
+Show that the natural number 88 is divisible by 11.
+"""
+claim:
+    prove:
+        $dvdN(11, 88)
+    witness exist c N st {88 = 11 * c} from 8:
+        88 = 11 * 8
+
+# 3.2.2
+"""
+Show that the integer 6 is divisible by -2.
+"""
+claim:
+    prove:
+        $dvdZ(-2, 6)
+    witness exist c Z st {6 = (-2) * c} from -3:
+        6 = (-2) * (-3)
+
+# 3.2.3
+"""
+Let a and b be integers and suppose that a | b. Show that a | b^2 + 2b.
+"""
+claim:
+    let a, b Z:
+        $dvdZ(a, b)
+    prove:
+        $dvdZ(a, b^2 + 2 * b)
+    witness exist c Z st {b^2 + 2 * b = a * c} from (b/a) * (a * (b/a) + 2):
+        b^2 + 2 * b  = a * ((b/a) * (a * (b/a) + 2))
+
+# 3.2.4
+"""
+Let a, b and c be natural numbers and suppose that a | b and b^2 | c. Show that a^2 | c.
+"""
+claim:
+    let a, b, c N:
+        $dvdN(a, b)
+        $dvdN(b^2, c)
+    prove:
+        $dvdN(a^2, c)
+    witness exist t N st {c = a^2 * t} from (b/a)^2 * (c/(b^2)):
+        c = b^2 * (c/(b^2)) = a^2 * ((b/a)^2 * (c/(b^2)))
+
+# 3.2.5
+"""
+Let x, y and z be natural numbers and suppose that x*y | z. Show that x | z.
+"""
+claim:
+    let x, y, z N:
+        $dvdN(x * y, z)
+    prove:
+        $dvdN(x, z)
+    witness exist c N st {z = x * c} from (z/(x * y)) * y:
+        z = x * ((z/(x * y)) * y)
+
+# 3.2.6
+"""
+Show that 12 is not divisible by 5.
+（5*2 < 12 < 5*3，故 12 不是 5 的倍数；书本引理 not_dvd_of_exists_lt_and_lt。）
+"""
+know:
+    forall a, b Z:
+        exist q Z st {a*q<b<a*(q+1)}
+        =>:
+            not $dvdZ(a, b)
+    forall a, b N:
+        exist q N st {a*q<b<a*(q+1)}
+        =>:
+            not $dvdN(a, b)
+
+forall c N:
+    c <= 2
+    =>:
+        5 * c <= 5*2=10 < 12
+forall c N:
+    c >= 3
+    =>:
+        5 * c >= 5*3=15 > 12
+claim:
+    prove:
+        forall c N:
+            =>:
+                5 * c != 12
+    by cases:
+        prove:
+            forall c N:
+                =>:
+                    5 * c != 12
+        case c <= 2:
+            5 * c <= 5*2=10 < 12
+        case c >= 3:
+            5 * c >= 5*3=15 > 12
+forall c N:
+    =>:
+        5 * c != 12
+        not $dvdN(5, 12)
+# 故不存在 c∈N 使 12 = 5*c，即 not $dvdN(5, 12)
+
+# 3.2.7
+"""
+Let a and b be natural numbers, with b positive, and suppose that a divides b. Show that a <= b.
+"""
+forall a, b N:
+    $dvdN(a, b)
+    b>0
+    =>:
+        b/a in N
+        b/a!=0
+        b/a>=1
+        a<=b
+
+# 3.2.8
+"""
+Let a and b be natural numbers, with b positive, and suppose that a divides b. Show that a is positive.
+"""
+forall a, b N:
+    $dvdN(a, b)
+    b>0
+    =>:
+        b/a in N
+        b=b/a*a
+        b/a!=0
+        a!=0
+        b/a>=1
+        a>=1>0
+
+# ---------------------------------------------------------------------------
+# 3.3 Modular arithmetic: theory（a ≡ b (mod n) ⇔ n | (a-b) ⇔ exist k, a-b = n*k）
+# ---------------------------------------------------------------------------
+
+prop mod_eq(a Z, b Z, n Z):
+    exist k Z st {a - b = n * k}
+
+# 3.3.1
+"""
+Show that 11 ≡ 3 (mod 4).
+"""
+claim:
+    prove:
+        $mod_eq(11, 3, 4)
+    witness exist k Z st {11 - 3 = 4 * k} from 2:
+        11 - 3 = 4 * 2
+
+# 3.3.2
+"""
+Show that -5 ≡ 1 (mod 3).
+"""
+claim:
+    prove:
+        $mod_eq(-5, 1, 3)
+    witness exist k Z st {(-5) - 1 = 3 * k} from -2:
+        (-5) - 1 = 3 * (-2)
+
+# 3.3.3（加法：同余式相加）
+"""
+Lemma: If a ≡ b (mod n) and c ≡ d (mod n), then a+c ≡ b+d (mod n).
+"""
+forall n, a, b, c, d Z:
+    $mod_eq(a, b, n)
+    $mod_eq(c, d, n)
+    =>:
+        witness exist k Z st {(a + c) - (b + d) = n * k} from ((a-b)/n) + ((c-d)/n):
+            (a + c) - (b + d) = (a - b) + (c - d) = n * ((a-b)/n) + n * ((c-d)/n) = n * ((a-b)/n + (c-d)/n)
+
+# 3.3.4（减法：Exercise）
+"""
+Lemma: If a ≡ b (mod n) and c ≡ d (mod n), then a-c ≡ b-d (mod n).
+"""
+forall n, a, b, c, d   Z:
+    $mod_eq(a, b, n)
+    $mod_eq(c, d, n)
+    =>:
+        witness exist k Z st {(a - c) - (b - d) = n * k} from ((a-b)/n) - ((c-d)/n):
+            (a - c) - (b - d) = (a - b) - (c - d) = n * ((a-b)/n) - n * ((c-d)/n) = n * ((a-b)/n - (c-d)/n)
+
+# 3.3.5（取负：Exercise）
+"""
+Lemma: If a ≡ b (mod n), then -a ≡ -b (mod n).
+"""
+forall n, a, b Z:
+    $mod_eq(a, b, n)
+    =>:
+        witness exist k Z st {(-a) - (-b) = n * k} from -((a-b)/n):
+            (-a) - (-b) = -(a - b) = n * (-((a-b)/n))
+
+# 3.3.6（乘法）
+"""
+Lemma: If a ≡ b (mod n) and c ≡ d (mod n), then a*c ≡ b*d (mod n).
+"""
+forall n, a, b, c, d Z:
+    $mod_eq(a, b, n)
+    $mod_eq(c, d, n)
+    =>:
+        witness exist k Z st {a * c - b * d = n * k} from ((a-b)/n) * c + b * ((c-d)/n):
+            a * c - b * d = (a - b) * c + b * (c - d) = n * ((a-b)/n) * c + b * (n * ((c-d)/n)) = n * ((a-b)/n * c + b * ((c-d)/n))
+
+# 3.3.7（无“除法”规则：反例）
+"""
+It is impossible to prove that if a ≡ b (mod n) and c ≡ d (mod n), then (a/c) ≡ (b/d) (mod n).
+"""
+# a=10,b=18,c=2,d=6,n=4：10≡18，2≡6，但 (10/2)-(18/6)=2 不≡0 (mod 4)。
+
+# 3.3.8（平方）
+"""
+Lemma: If a ≡ b (mod n), then a^2 ≡ b^2 (mod n).
+"""
+forall n, a, b Z:
+    $mod_eq(a, b, n)
+    =>:
+        witness exist k Z st {a^2 - b^2 = n * k} from ((a-b)/n) * (a + b):
+            a^2 - b^2 = (a - b) * (a + b) = n * ((a-b)/n) * (a + b) = n * ((a-b)/n * (a + b))
+
+# 3.3.9（立方：Exercise）
+"""
+Lemma: If a ≡ b (mod n), then a^3 ≡ b^3 (mod n).
+"""
+forall n, a, b Z:
+    $mod_eq(a, b, n)
+    =>:
+        witness exist k Z st {a^3 - b^3 = n * k} from ((a-b)/n) * (a^2 + a * b + b^2):
+            a^3 - b^3 = (a - b) * (a^2 + a * b + b^2) = n * ((a-b)/n) * (a^2 + a * b + b^2) = n * ((a-b)/n * (a^2 + a * b + b^2))
+
+# 3.3.10（自反）
+"""
+Lemma: a ≡ a (mod n).
+"""
+forall n, a Z:
+    =>:
+        a - a = n * 0
+        $mod_eq(a, a, n)
+
+# 3.3.11
+"""
+Let a and b be integers, and suppose that a ≡ 2 (mod 4). Show that
+a*b^2 + a^2*b + 3*a ≡ 2*b^2 + 2^2*b + 3*2 (mod 4).
+"""
+claim:
+    let a, b Z:
+        $mod_eq(a, 2, 4)
+    prove:
+        $mod_eq(a * b^2 + a^2 * b + 3 * a, 2 * b^2 + 2^2 * b + 3 * 2, 4)
+    witness exist k Z st {a * b^2 + a^2 * b + 3 * a - (2 * b^2 + 2^2 * b + 3 * 2) = 4 * k} from ((a-2)/4) * (b^2 + a * b + 2 * b + 3):
+        a * b^2 + a^2 * b + 3 * a - (2 * b^2 + 2^2 * b + 3 * 2) = (a - 2) * (b^2 + a * b + 2 * b + 3) = 4 * ((a-2)/4) * (b^2 + a * b + 2 * b + 3)
+
+# ---------------------------------------------------------------------------
+# 3.4 Modular arithmetic: calculations
+# ---------------------------------------------------------------------------
+
+# 3.4.1
+# 与 3.3.11 同题；书本说明熟练后可用“一眼”验证，Lean 中可用 rel 等。
+
+# 3.4.2
+"""
+Let a and b be integers, with a ≡ 4 (mod 5) and b ≡ 3 (mod 5). Show that a*b + b^3 + 3 ≡ 2 (mod 5).
+a*b + b^3 + 3 ≡ 4*3 + 3^3 + 3 = 42 = 2 + 5*8 ≡ 2 (mod 5)。）
+"""
+know:
+    forall a, b, c n Z:
+        $mod_eq(a, b, n)
+        $mod_eq(a, c, n)
+        =>:
+            $mod_eq(b,c, n)
+# 代表元（同余类下结论不变）：先算数值，再对照 3.3 乘法/加法引理
+claim:
+    let a, b Z:
+        $mod_eq(a, 4, 5)
+        $mod_eq(b, 3, 5)
+    prove:
+        $mod_eq(a * b + b^3 + 3, 2, 5)
+    $mod_eq(a*b, 4*3, 5)
+    $mod_eq(b^3, 3^3, 5)
+    $mod_eq(a * b + b^3 + 3, 4*3 + 3^3 + 3, 5)
+    witness exist k Z st {4*3 + 3^3 + 3 - 2 = 5 * k} from 8:
+        4*3 + 3^3 + 3 - 2 = 5 * 8
+    $mod_eq(4*3 + 3^3 + 3, 2, 5)
+    $mod_eq(a * b + b^3 + 3, 2, 5)
+
+# 3.4.3
+"""
+Show that there exists an integer a such that 6a ≡ 4 (mod 11).
+"""
+claim:
+    prove:
+        exist a Z st {$mod_eq(6 * a, 4, 11)}
+    witness exist a Z st {$mod_eq(6 * a, 4, 11)} from 8:
+        6 * 8 - 4 = 11 * 4
+
+# 3.4.4
+"""
+Let x be an integer. Show that x^3 ≡ x (mod 3).
+"""
+let min_pos_remain fn (a Z, n Z) Z
+know:
+    forall a,n Z:
+        $mod_eq(a, min_pos_remain(a, n), n)
+        min_pos_remain(a, n) >= 0
+        min_pos_remain(a, n) < n
+
+claim:
+    let x Z
+    prove:
+        $mod_eq(x^3, x, 3)
+    by cases:
+        case min_pos_remain(x, 3) = 0:
+            $mod_eq(x, 0, 3)
+            $mod_eq(x^3, 0^3, 3)
+            $mod_eq(x^3, 0, 3)
+            $mod_eq(x^3, x, 3)
+        case min_pos_remain(x, 3) = 1:
+            $mod_eq(x, 1, 3)
+            $mod_eq(x^3, 1^3, 3)
+            $mod_eq(x^3, 1, 3)
+            $mod_eq(x^3, x, 3)
+        case min_pos_remain(x, 3) = 2:
+            $mod_eq(x, 2, 3)
+            $mod_eq(x^3, 2^3, 3)
+            $mod_eq(2^3, 8, 3)
+            witness exist k Z st {8 - 2 = 3 * k} from 2:
+                8 - 2 = 3 * 2
+            $mod_eq(8, 2, 3)
+            $mod_eq(x^3, 2, 3)
+            $mod_eq(x^3, x, 3)
+            
+
+# ---------------------------------------------------------------------------
+# 3.5 Bézout’s identity
+# ---------------------------------------------------------------------------
+
+# 3.5.1
+"""
+Let n be an integer and suppose that 5n is a multiple of 8. Show that n is also a multiple of 8.
+"""
+claim:
+    let n, a Z:
+        5 * n = 8 * a
+    prove:
+        $dvdZ(8, n)
+    witness exist c Z st {n = 8 * c} from -3 * a + 2 * n:
+        n = -3 * (5 * n) + 16 * n = -3 * (8 * a) + 16 * n = 8 * (-3 * a + 2 * n)
+
+# 3.5.2
+"""
+Show that if 5 divides 3n, then 5 divides n.
+"""
+claim:
+    let n, x Z:
+        3 * n = 5 * x
+    prove:
+        $dvdZ(5, n)
+    witness exist c Z st {n = 5 * c} from 2 * x - n:
+        n = 2 * (3 * n) - 5 * n = 2 * (5 * x) - 5 * n = 5 * (2 * x - n)
+
+# 3.5.3
+"""
+Let m be an integer which is divisible by 8 and by 5. Show that it is also divisible by 40.
+"""
+claim:
+    let m, a, b Z:
+        m = 8 * a
+        m = 5 * b
+    prove:
+        $dvdZ(40, m)
+    witness exist c Z st {m = 40 * c} from -3 * a + 2 * b:
+        m = -15 * m + 16 * m = -15 * (8 * a) + 16 * (5 * b) = 40 * (-3 * a + 2 * b)
