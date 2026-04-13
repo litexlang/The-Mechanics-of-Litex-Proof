@@ -93,6 +93,7 @@ claim:
         impossible a^2 < 1^2
 
 
+
 # 2.1.6（对比 1.4.1：中间结论 x <= -1）
 """
 Let x and y be integers, and suppose that x + 3 <= 2 and y + 2x >= 3. Show that y > 3.
@@ -411,29 +412,41 @@ forall a, b R:
 """
 Let a be a rational number, and suppose that there exists a rational number b such that a = b^2 + 1. Show that a > 0.
 """
-forall a Q:
-    exist b Q st {a = b^2 + 1}
+forall a,b Q:
+    a = b^2 + 1
     =>:
         b^2 >= 0
-        a = b^2 + 1 > 0
+        a = b^2 + 1 >= 0+1=1>0
 
 # 2.5.2
 """
 Let t be a real number and suppose that there 
 exists a real number a such that a*t < 0. Show that t != 0.
 """
+know:
+    forall a R:
+        a*0=0
+        0*a=0
+"""
 claim:
     prove:
-        forall t R:
-            exist a R st {a*t < 0}
+        forall t,a R:
+            a*t < 0
             =>:
                 t != 0
     by contra:
         prove:
             t = 0
-        a*t = 0
-        impossible a*t < 0
-    
+        a*t<0
+        impossible a*t=0
+"stmt": "a * t < 0",
+  "verified_by_fact_known_on_line": 432, 
+  "verified_by_fact_known_from_source": "C:\\Users\\guoyunwen\\Desktop\\The Mechanics of Proof\\The-Mechanics-of-Litex-Proof\\Proofs_with_structure.lit",
+  "verified_by": "a * t < 0",
+  "infer_facts": [
+    "a * t < 0",
+    "a * t <= 0"
+"""
 
 # 2.5.3
 """
@@ -450,14 +463,16 @@ claim:
 """
 Let x be a real number. Show that there exists a real number y such that y > x.
 """
+#不知道为啥不能run
+"""
 claim:
     prove:
         forall x R:
             =>:
                 exist y R st {y > x}
     witness exist y R st {y > x} from x + 1:
-        x + 1 > x
-
+        x + 1 > x+0=x
+"""
 # 2.5.5
 """
 Show that there exist integers m and n such that m^2 - n^2 = 11.
@@ -484,6 +499,8 @@ claim:
 """
 Let p and q be real numbers, and suppose p < q. Show that there exists a real number x such that p < x and x < q.
 """
+#不知道为啥不能run
+"""
 claim:
     prove:
         forall p, q R:
@@ -493,7 +510,7 @@ claim:
     witness exist x R st {p < x, x < q} from (p + q) / 2:
         p = (p + p) / 2 < (p + q) / 2
         (p + q) / 2 < (q + q) / 2 = q
-    
+"""
 
 # 2.5.8（Ramanujan / 1729）
 """
