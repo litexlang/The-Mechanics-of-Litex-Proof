@@ -332,7 +332,12 @@ forall a, b N:
 
 prop mod_eq(a Z, b Z, n Z):
     exist k Z st {a - b = n * k}
-
+let mod_num_z fn(a Z, b Z, n Z:$mod_eq(a, b, n)) Z
+know:
+    forall a, b, n Z:
+        $mod_eq(a, b, n)
+        =>:
+            a - b = n * mod_num_z(a, b, n)
 # 3.3.1
 """
 Show that 11 ≡ 3 (mod 4).
@@ -357,44 +362,63 @@ claim:
 """
 Lemma: If a ≡ b (mod n) and c ≡ d (mod n), then a+c ≡ b+d (mod n).
 """
-forall n, a, b, c, d Z:
-    $mod_eq(a, b, n)
-    $mod_eq(c, d, n)
-    =>:
-        witness exist k Z st {(a + c) - (b + d) = n * k} from ((a-b)/n) + ((c-d)/n):
-            (a + c) - (b + d) = (a - b) + (c - d) = n * ((a-b)/n) + n * ((c-d)/n) = n * ((a-b)/n + (c-d)/n)
+claim:
+    prove:
+        forall a, b, c, d, n Z:
+            $mod_eq(a, b, n)
+            $mod_eq(c, d, n)
+            =>:
+                $mod_eq(a + c, b + d, n)
+    a-b=n*mod_num_z(a, b, n)
+    c-d=n*mod_num_z(c, d, n)
+    witness exist k Z st {(a + c) - (b + d) = n * k} from mod_num_z(a, b, n) + mod_num_z(c, d, n):
+        (a + c) - (b + d) = (a - b) + (c - d) = n * (mod_num_z(a, b, n)) + n * (mod_num_z(c, d, n)) = n * (mod_num_z(a, b, n) + mod_num_z(c, d, n))
 
 # 3.3.4（减法：Exercise）
 """
 Lemma: If a ≡ b (mod n) and c ≡ d (mod n), then a-c ≡ b-d (mod n).
 """
-forall n, a, b, c, d   Z:
-    $mod_eq(a, b, n)
-    $mod_eq(c, d, n)
-    =>:
-        witness exist k Z st {(a - c) - (b - d) = n * k} from ((a-b)/n) - ((c-d)/n):
-            (a - c) - (b - d) = (a - b) - (c - d) = n * ((a-b)/n) - n * ((c-d)/n) = n * ((a-b)/n - (c-d)/n)
+claim:
+    prove:
+        forall a, b, c, d, n Z:
+            $mod_eq(a, b, n)
+            $mod_eq(c, d, n)
+            =>:
+                $mod_eq(a - c, b - d, n)
+    a-b=n*mod_num_z(a, b, n)
+    c-d=n*mod_num_z(c, d, n)
+    witness exist k Z st {(a - c) - (b - d) = n * k} from mod_num_z(a, b, n) - mod_num_z(c, d, n):
+        (a - c) - (b - d) = (a - b) - (c - d) = n * mod_num_z(a, b, n) - n * mod_num_z(c, d, n) = n * (mod_num_z(a, b, n) - mod_num_z(c, d, n))
 
 # 3.3.5（取负：Exercise）
 """
 Lemma: If a ≡ b (mod n), then -a ≡ -b (mod n).
 """
-forall n, a, b Z:
-    $mod_eq(a, b, n)
-    =>:
-        witness exist k Z st {(-a) - (-b) = n * k} from -((a-b)/n):
-            (-a) - (-b) = -(a - b) = n * (-((a-b)/n))
+claim:
+    prove:
+        forall a, b, n Z:
+            $mod_eq(a, b, n)
+            =>:
+                $mod_eq(-a, -b, n)
+    a-b=n*mod_num_z(a, b, n)
+    witness exist k Z st {(-a) - (-b) = n * k} from -mod_num_z(a, b, n):
+        (-a) - (-b) = -(a - b) = -(n * mod_num_z(a, b, n)) = n * (-mod_num_z(a, b, n))
 
 # 3.3.6（乘法）
 """
 Lemma: If a ≡ b (mod n) and c ≡ d (mod n), then a*c ≡ b*d (mod n).
 """
-forall n, a, b, c, d Z:
-    $mod_eq(a, b, n)
-    $mod_eq(c, d, n)
-    =>:
-        witness exist k Z st {a * c - b * d = n * k} from ((a-b)/n) * c + b * ((c-d)/n):
-            a * c - b * d = (a - b) * c + b * (c - d) = n * ((a-b)/n) * c + b * (n * ((c-d)/n)) = n * ((a-b)/n * c + b * ((c-d)/n))
+claim:
+    prove:
+        forall a, b, c, d, n Z:
+            $mod_eq(a, b, n)
+            $mod_eq(c, d, n)
+            =>:
+                $mod_eq(a * c, b * d, n)
+    a-b=n*mod_num_z(a, b, n)
+    c-d=n*mod_num_z(c, d, n)
+    witness exist k Z st {a * c - b * d = n * k} from mod_num_z(a, b, n) * c + b * mod_num_z(c, d, n):
+        a * c - b * d = (a - b) * c + b * (c - d) = n * mod_num_z(a, b, n) * c + b * (n * mod_num_z(c, d, n)) = n * (mod_num_z(a, b, n) * c + b * mod_num_z(c, d, n))
 
 # 3.3.7（无“除法”规则：反例）
 """
@@ -406,30 +430,41 @@ It is impossible to prove that if a ≡ b (mod n) and c ≡ d (mod n), then (a/c
 """
 Lemma: If a ≡ b (mod n), then a^2 ≡ b^2 (mod n).
 """
-forall n, a, b Z:
-    $mod_eq(a, b, n)
-    =>:
-        witness exist k Z st {a^2 - b^2 = n * k} from ((a-b)/n) * (a + b):
-            a^2 - b^2 = (a - b) * (a + b) = n * ((a-b)/n) * (a + b) = n * ((a-b)/n * (a + b))
+claim:
+    prove:
+        forall a, b, n Z:
+            $mod_eq(a, b, n)
+            =>:
+                $mod_eq(a^2, b^2, n)
+    a-b=n*mod_num_z(a, b, n)
+    witness exist k Z st {a^2 - b^2 = n * k} from mod_num_z(a, b, n) * (a + b):
+        a^2 - b^2 = (a - b) * (a + b) = n * mod_num_z(a, b, n) * (a + b) = n * (mod_num_z(a, b, n) * (a + b))
 
 # 3.3.9（立方：Exercise）
 """
 Lemma: If a ≡ b (mod n), then a^3 ≡ b^3 (mod n).
 """
-forall n, a, b Z:
-    $mod_eq(a, b, n)
-    =>:
-        witness exist k Z st {a^3 - b^3 = n * k} from ((a-b)/n) * (a^2 + a * b + b^2):
-            a^3 - b^3 = (a - b) * (a^2 + a * b + b^2) = n * ((a-b)/n) * (a^2 + a * b + b^2) = n * ((a-b)/n * (a^2 + a * b + b^2))
+claim:
+    prove:
+        forall a, b, n Z:
+            $mod_eq(a, b, n)
+            =>:
+                $mod_eq(a^3, b^3, n)
+    a-b=n*mod_num_z(a, b, n)
+    witness exist k Z st {a^3 - b^3 = n * k} from mod_num_z(a, b, n) * (a^2 + a * b + b^2):
+        a^3 - b^3 = (a - b) * (a^2 + a * b + b^2) = n * mod_num_z(a, b, n) * (a^2 + a * b + b^2) = n * (mod_num_z(a, b, n) * (a^2 + a * b + b^2))
 
 # 3.3.10（自反）
 """
 Lemma: a ≡ a (mod n).
 """
-forall n, a Z:
-    =>:
+claim:
+    prove:
+        forall a, n Z:
+            =>:
+                $mod_eq(a, a, n)
+    witness exist k Z st {a - a = n * k} from 0:
         a - a = n * 0
-        $mod_eq(a, a, n)
 
 # 3.3.11
 """
@@ -442,8 +477,9 @@ claim:
             $mod_eq(a, 2, 4)
             =>:
                 $mod_eq(a * b^2 + a^2 * b + 3 * a, 2 * b^2 + 2^2 * b + 3 * 2, 4)
-    witness exist k Z st {a * b^2 + a^2 * b + 3 * a - (2 * b^2 + 2^2 * b + 3 * 2) = 4 * k} from ((a-2)/4) * (b^2 + a * b + 2 * b + 3):
-        a * b^2 + a^2 * b + 3 * a - (2 * b^2 + 2^2 * b + 3 * 2) = (a - 2) * (b^2 + a * b + 2 * b + 3) = 4 * ((a-2)/4) * (b^2 + a * b + 2 * b + 3)
+    a-2=4*mod_num_z(a, 2, 4)
+    witness exist k Z st {a * b^2 + a^2 * b + 3 * a - (2 * b^2 + 2^2 * b + 3 * 2) = 4 * k} from mod_num_z(a, 2, 4) * (b^2 + a * b + 2 * b + 3):
+        a * b^2 + a^2 * b + 3 * a - (2 * b^2 + 2^2 * b + 3 * 2) = (a - 2) * (b^2 + a * b + 2 * b + 3) = 4 * mod_num_z(a, 2, 4) * (b^2 + a * b + 2 * b + 3) = 4 * (mod_num_z(a, 2, 4) * (b^2 + a * b + 2 * b + 3))
 
 # ---------------------------------------------------------------------------
 # 3.4 Modular arithmetic: calculations
