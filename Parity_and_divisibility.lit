@@ -1,16 +1,4 @@
-# Chapter 3 — Parity and divisibility (Heather Macbeth, Math 2001)
-# 书本：https://hrmacbeth.github.io/math2001/03_Parity_and_Divisibility.html
-#
-# 约定（对齐 Proofs_by_calculation.lit、Proofs_with_structure.lit 与 golitex examples）：
-# - 直接计算链：forall … =>:
-# - 存在性（给出见证）：exist … st {…} 与 witness exist … from …:
-# - 结构化步骤：claim（prove 内 forall … =>: 目标，或 exist / 闭式命题）+ witness；分情形 by cases；反证 by contra（见 Proofs_with_structure.lit）
-# - 3.1：奇偶用 prop odd / even 与 odd_num / even_num；3.2 起：dvdZ / dvdN；同余：mod_eq（均配合 witness）
-#
-# 定义（纸面）：奇数 Odd(a) ⇔ exist k∈Z, a = 2k+1；偶数 Even(a) ⇔ exist k∈Z, a = 2k。
-# 整除 a|b（整数）：exist c∈Z, b = a*c；自然数情形 c∈N。
-# 同余 a ≡ b (mod n) ⇔ n | (a-b) ⇔ exist k∈Z, a - b = n*k。
-
+# Chapter 3 — Parity and divisibility 
 # ---------------------------------------------------------------------------
 # 3.1 Definitions; parity
 # ---------------------------------------------------------------------------
@@ -62,6 +50,7 @@ claim:
             $odd(n)
             =>:
                 $odd(3 * n + 2)
+    n=2*odd_num(n)+1
     witness exist l Z st {3 * n + 2 = 2 * l + 1} from 3 * odd_num(n) + 2:
         3 * n + 2 = 3 * (2 * odd_num(n) + 1) + 2 = 2 * (3 * odd_num(n) + 2) + 1
 
@@ -75,6 +64,7 @@ claim:
             $odd(n)
             =>:
                 $odd(7 * n - 4)
+    n=2*odd_num(n)+1
     witness exist l Z st {7 * n - 4 = 2 * l + 1} from 7 * odd_num(n) + 1:
         7 * n - 4 = 7 * (2 * odd_num(n) + 1) - 4 = 2 * (7 * odd_num(n) + 1) + 1
 
@@ -89,6 +79,8 @@ claim:
             $odd(y)
             =>:
                 $odd(x + y + 1)
+    x=2*odd_num(x)+1
+    y=2*odd_num(y)+1
     witness exist l Z st {x + y + 1 = 2 * l + 1} from odd_num(x) + odd_num(y) + 1:
         x + y + 1 = (2 * odd_num(x) + 1) + (2 * odd_num(y) + 1) + 1 = 2 * (odd_num(x) + odd_num(y) + 1) + 1
 
@@ -103,6 +95,8 @@ claim:
             $odd(y)
             =>:
                 $odd(x * y + 2 * y)
+    x=2*odd_num(x)+1
+    y=2*odd_num(y)+1
     witness exist l Z st {x * y + 2 * y = 2 * l + 1} from 2 * odd_num(x) * odd_num(y) + 3 * odd_num(y) + odd_num(x) + 1:
         x * y + 2 * y = (2 * odd_num(x) + 1) * (2 * odd_num(y) + 1) + 2 * (2 * odd_num(y) + 1) = 2 * (2 * odd_num(x) * odd_num(y) + 3 * odd_num(y) + odd_num(x) + 1) + 1
 
@@ -116,6 +110,7 @@ claim:
             $odd(m)
             =>:
                 $even(3 * m - 5)
+    m=2*odd_num(m)+1
     witness exist l Z st {3 * m - 5 = 2 * l} from 3 * odd_num(m) - 1:
         3 * m - 5 = 3 * (2 * odd_num(m) + 1) - 5 = 2 * (3 * odd_num(m) - 1)
 
@@ -129,6 +124,7 @@ claim:
             $even(n)
             =>:
                 $odd(n^2 + 2 * n - 5)
+    n=2*even_num(n)
     witness exist l Z st {n^2 + 2 * n - 5 = 2 * l + 1} from 2 * even_num(n)^2 + 2 * even_num(n) - 3:
         n^2 + 2 * n - 5 = (2 * even_num(n))^2 + 2 * (2 * even_num(n)) - 5 = 2 * (2 * even_num(n)^2 + 2 * even_num(n) - 3) + 1
 
@@ -150,9 +146,11 @@ claim:
         prove:
             $even(n^2 + n + 4)
         case $even(n):
-            witness exist l Z st {n^2 + n + 4 = 2 * l} from 2 * even_num(n)^2 + 2 * even_num(n) + 2:
-                n^2 + n + 4 = (2 * even_num(n))^2 + 2 * (2 * even_num(n)) + 4 = 2 * (2 * even_num(n)^2 + 2 * even_num(n) + 2)
+            n=2*even_num(n)
+            witness exist l Z st {n^2 + n + 4 = 2 * l} from 2 * even_num(n)^2 +  even_num(n) + 2:
+                n^2 + n + 4 = (2 * even_num(n))^2 +  (2 * even_num(n)) + 4 = 2 * (2 * even_num(n)^2 +  even_num(n) + 2)
         case $odd(n):
+            n=2*odd_num(n)+1
             witness exist l Z st {n^2 + n + 4 = 2 * l} from 2 * odd_num(n)^2 + 3 * odd_num(n) + 3:
                 n^2 + n + 4 = (2 * odd_num(n) + 1)^2 + (2 * odd_num(n) + 1) + 4 = 2 * (2 * odd_num(n)^2 + 3 * odd_num(n) + 3)
 
