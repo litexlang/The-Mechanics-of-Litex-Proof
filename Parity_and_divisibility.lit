@@ -493,12 +493,21 @@ claim:
 Let a and b be integers, with a ≡ 4 (mod 5) and b ≡ 3 (mod 5). Show that a*b + b^3 + 3 ≡ 2 (mod 5).
 a*b + b^3 + 3 ≡ 4*3 + 3^3 + 3 = 42 = 2 + 5*8 ≡ 2 (mod 5)。）
 """
+prop mod_eq_trans(a,b,c,n Z):
+    $mod_eq(a,c,n)
+
 know:
-    forall a, b, c n Z:
+    forall a, b, c, n Z:
         $mod_eq(a, b, n)
-        $mod_eq(a, c, n)
+        $mod_eq(b, c, n)
         =>:
-            $mod_eq(b,c, n)
+            $mod_eq_trans(a, b, c, n)
+    forall a, b, c,d, n Z:
+        $mod_eq(a, b, n)
+        $mod_eq(c, d, n)
+        =>:
+            $mod_eq(a * c, b * d, n)
+            $mod_eq(a + c, b + d, n)
 # 代表元（同余类下结论不变）：先算数值，再对照 3.3 乘法/加法引理
 claim:
     prove:
@@ -509,25 +518,35 @@ claim:
                 $mod_eq(a * b + b^3 + 3, 2, 5)
     $mod_eq(a*b, 4*3, 5)
     $mod_eq(b^3, 3^3, 5)
+    $mod_eq(a*b+b^3, 4*3+3^3, 5)
+    $mod_eq(3, 3, 5)
     $mod_eq(a * b + b^3 + 3, 4*3 + 3^3 + 3, 5)
     witness exist k Z st {4*3 + 3^3 + 3 - 2 = 5 * k} from 8:
         4*3 + 3^3 + 3 - 2 = 5 * 8
     $mod_eq(4*3 + 3^3 + 3, 2, 5)
+    $mod_eq_trans(a * b + b^3 + 3, 4*3 + 3^3 + 3, 2, 5)
     $mod_eq(a * b + b^3 + 3, 2, 5)
 
 # 3.4.3
 """
 Show that there exists an integer a such that 6a ≡ 4 (mod 11).
 """
+#不知道怎么写
+"""
 claim:
     prove:
         exist a Z st {$mod_eq(6 * a, 4, 11)}
     witness exist a Z st {$mod_eq(6 * a, 4, 11)} from 8:
-        6 * 8 - 4 = 11 * 4
+        witness exist c Z st {6 * 8 = 4 + 11 * c} from 4:
+            6 * 8 - 4 = 11 * 4 
+        $mod_eq(6 * 8, 4, 11)
+"""
 
 # 3.4.4
 """
 Let x be an integer. Show that x^3 ≡ x (mod 3).
+"""
+#不知道怎么写
 """
 let min_pos_remain fn (a Z, n Z) Z
 know:
@@ -564,7 +583,7 @@ claim:
             $mod_eq(x^3, 2, 3)
             $mod_eq(x^3, x, 3)
             
-
+"""
 # ---------------------------------------------------------------------------
 # 3.5 Bézout’s identity
 # ---------------------------------------------------------------------------
