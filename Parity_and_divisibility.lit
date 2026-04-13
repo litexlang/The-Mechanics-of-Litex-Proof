@@ -4,7 +4,7 @@
 # 约定（对齐 Proofs_by_calculation.lit、Proofs_with_structure.lit 与 golitex examples）：
 # - 直接计算链：forall … =>:
 # - 存在性（给出见证）：exist … st {…} 与 witness exist … from …:
-# - 结构化步骤：claim + let + prove + witness；分情形 by cases；反证 by contra（见 Proofs_with_structure.lit）
+# - 结构化步骤：claim（prove 内 forall … =>: 目标，或 exist / 闭式命题）+ witness；分情形 by cases；反证 by contra（见 Proofs_with_structure.lit）
 # - 3.1：奇偶用 prop odd / even 与 odd_num / even_num；3.2 起：dvdZ / dvdN；同余：mod_eq（均配合 witness）
 #
 # 定义（纸面）：奇数 Odd(a) ⇔ exist k∈Z, a = 2k+1；偶数 Even(a) ⇔ exist k∈Z, a = 2k。
@@ -57,10 +57,11 @@ claim:
 Prove that if n is an odd integer, then 3n + 2 is odd.
 """
 claim:
-    let n Z:
-        $odd(n)
     prove:
-        $odd(3 * n + 2)
+        forall n Z:
+            $odd(n)
+            =>:
+                $odd(3 * n + 2)
     witness exist l Z st {3 * n + 2 = 2 * l + 1} from 3 * odd_num(n) + 2:
         3 * n + 2 = 3 * (2 * odd_num(n) + 1) + 2 = 2 * (3 * odd_num(n) + 2) + 1
 
@@ -69,10 +70,11 @@ claim:
 Let n be an integer. Prove that if n is odd, then 7n - 4 is odd.
 """
 claim:
-    let n Z:
-        $odd(n)
     prove:
-        $odd(7 * n - 4)
+        forall n Z:
+            $odd(n)
+            =>:
+                $odd(7 * n - 4)
     witness exist l Z st {7 * n - 4 = 2 * l + 1} from 7 * odd_num(n) + 1:
         7 * n - 4 = 7 * (2 * odd_num(n) + 1) - 4 = 2 * (7 * odd_num(n) + 1) + 1
 
@@ -81,11 +83,12 @@ claim:
 Prove that if the integers x and y are odd, then x + y + 1 is odd.
 """
 claim:
-    let x, y Z:
-        $odd(x)
-        $odd(y)
     prove:
-        $odd(x + y + 1)
+        forall x, y Z:
+            $odd(x)
+            $odd(y)
+            =>:
+                $odd(x + y + 1)
     witness exist l Z st {x + y + 1 = 2 * l + 1} from odd_num(x) + odd_num(y) + 1:
         x + y + 1 = (2 * odd_num(x) + 1) + (2 * odd_num(y) + 1) + 1 = 2 * (odd_num(x) + odd_num(y) + 1) + 1
 
@@ -94,11 +97,12 @@ claim:
 Prove that if the integers x and y are odd, then x*y + 2*y is odd.
 """
 claim:
-    let x, y Z:
-        $odd(x)
-        $odd(y)
     prove:
-        $odd(x * y + 2 * y)
+        forall x, y Z:
+            $odd(x)
+            $odd(y)
+            =>:
+                $odd(x * y + 2 * y)
     witness exist l Z st {x * y + 2 * y = 2 * l + 1} from 2 * odd_num(x) * odd_num(y) + 3 * odd_num(y) + odd_num(x) + 1:
         x * y + 2 * y = (2 * odd_num(x) + 1) * (2 * odd_num(y) + 1) + 2 * (2 * odd_num(y) + 1) = 2 * (2 * odd_num(x) * odd_num(y) + 3 * odd_num(y) + odd_num(x) + 1) + 1
 
@@ -107,10 +111,11 @@ claim:
 Let m be an integer. Prove that if m is odd, then 3m - 5 is even.
 """
 claim:
-    let m Z:
-        $odd(m)
     prove:
-        $even(3 * m - 5)
+        forall m Z:
+            $odd(m)
+            =>:
+                $even(3 * m - 5)
     witness exist l Z st {3 * m - 5 = 2 * l} from 3 * odd_num(m) - 1:
         3 * m - 5 = 3 * (2 * odd_num(m) + 1) - 5 = 2 * (3 * odd_num(m) - 1)
 
@@ -119,10 +124,11 @@ claim:
 Let n be an even integer. Prove that n^2 + 2n - 5 is odd.
 """
 claim:
-    let n Z:
-        $even(n)
     prove:
-        $odd(n^2 + 2 * n - 5)
+        forall n Z:
+            $even(n)
+            =>:
+                $odd(n^2 + 2 * n - 5)
     witness exist l Z st {n^2 + 2 * n - 5 = 2 * l + 1} from 2 * even_num(n)^2 + 2 * even_num(n) - 3:
         n^2 + 2 * n - 5 = (2 * even_num(n))^2 + 2 * (2 * even_num(n)) - 5 = 2 * (2 * even_num(n)^2 + 2 * even_num(n) - 3) + 1
 
@@ -136,9 +142,10 @@ know:
         =>:
             $even(n) or $odd(n)
 claim:
-    let n Z
     prove:
-        $even(n^2 + n + 4)
+        forall n Z:
+            =>:
+                $even(n^2 + n + 4)
     by cases:
         prove:
             $even(n^2 + n + 4)
@@ -203,10 +210,11 @@ claim:
 Let a and b be integers and suppose that a | b. Show that a | b^2 + 2b.
 """
 claim:
-    let a, b Z:
-        $dvdZ(a, b)
     prove:
-        $dvdZ(a, b^2 + 2 * b)
+        forall a, b Z:
+            $dvdZ(a, b)
+            =>:
+                $dvdZ(a, b^2 + 2 * b)
     witness exist c Z st {b^2 + 2 * b = a * c} from (b/a) * (a * (b/a) + 2):
         b^2 + 2 * b  = a * ((b/a) * (a * (b/a) + 2))
 
@@ -215,11 +223,12 @@ claim:
 Let a, b and c be natural numbers and suppose that a | b and b^2 | c. Show that a^2 | c.
 """
 claim:
-    let a, b, c N:
-        $dvdN(a, b)
-        $dvdN(b^2, c)
     prove:
-        $dvdN(a^2, c)
+        forall a, b, c N:
+            $dvdN(a, b)
+            $dvdN(b^2, c)
+            =>:
+                $dvdN(a^2, c)
     witness exist t N st {c = a^2 * t} from (b/a)^2 * (c/(b^2)):
         c = b^2 * (c/(b^2)) = a^2 * ((b/a)^2 * (c/(b^2)))
 
@@ -228,10 +237,11 @@ claim:
 Let x, y and z be natural numbers and suppose that x*y | z. Show that x | z.
 """
 claim:
-    let x, y, z N:
-        $dvdN(x * y, z)
     prove:
-        $dvdN(x, z)
+        forall x, y, z N:
+            $dvdN(x * y, z)
+            =>:
+                $dvdN(x, z)
     witness exist c N st {z = x * c} from (z/(x * y)) * y:
         z = x * ((z/(x * y)) * y)
 
@@ -417,10 +427,11 @@ Let a and b be integers, and suppose that a ≡ 2 (mod 4). Show that
 a*b^2 + a^2*b + 3*a ≡ 2*b^2 + 2^2*b + 3*2 (mod 4).
 """
 claim:
-    let a, b Z:
-        $mod_eq(a, 2, 4)
     prove:
-        $mod_eq(a * b^2 + a^2 * b + 3 * a, 2 * b^2 + 2^2 * b + 3 * 2, 4)
+        forall a, b Z:
+            $mod_eq(a, 2, 4)
+            =>:
+                $mod_eq(a * b^2 + a^2 * b + 3 * a, 2 * b^2 + 2^2 * b + 3 * 2, 4)
     witness exist k Z st {a * b^2 + a^2 * b + 3 * a - (2 * b^2 + 2^2 * b + 3 * 2) = 4 * k} from ((a-2)/4) * (b^2 + a * b + 2 * b + 3):
         a * b^2 + a^2 * b + 3 * a - (2 * b^2 + 2^2 * b + 3 * 2) = (a - 2) * (b^2 + a * b + 2 * b + 3) = 4 * ((a-2)/4) * (b^2 + a * b + 2 * b + 3)
 
@@ -444,11 +455,12 @@ know:
             $mod_eq(b,c, n)
 # 代表元（同余类下结论不变）：先算数值，再对照 3.3 乘法/加法引理
 claim:
-    let a, b Z:
-        $mod_eq(a, 4, 5)
-        $mod_eq(b, 3, 5)
     prove:
-        $mod_eq(a * b + b^3 + 3, 2, 5)
+        forall a, b Z:
+            $mod_eq(a, 4, 5)
+            $mod_eq(b, 3, 5)
+            =>:
+                $mod_eq(a * b + b^3 + 3, 2, 5)
     $mod_eq(a*b, 4*3, 5)
     $mod_eq(b^3, 3^3, 5)
     $mod_eq(a * b + b^3 + 3, 4*3 + 3^3 + 3, 5)
@@ -479,10 +491,13 @@ know:
         min_pos_remain(a, n) < n
 
 claim:
-    let x Z
     prove:
-        $mod_eq(x^3, x, 3)
+        forall x Z:
+            =>:
+                $mod_eq(x^3, x, 3)
     by cases:
+        prove:
+            $mod_eq(x^3, x, 3)
         case min_pos_remain(x, 3) = 0:
             $mod_eq(x, 0, 3)
             $mod_eq(x^3, 0^3, 3)
@@ -513,10 +528,11 @@ claim:
 Let n be an integer and suppose that 5n is a multiple of 8. Show that n is also a multiple of 8.
 """
 claim:
-    let n, a Z:
-        5 * n = 8 * a
     prove:
-        $dvdZ(8, n)
+        forall n, a Z:
+            5 * n = 8 * a
+            =>:
+                $dvdZ(8, n)
     witness exist c Z st {n = 8 * c} from -3 * a + 2 * n:
         n = -3 * (5 * n) + 16 * n = -3 * (8 * a) + 16 * n = 8 * (-3 * a + 2 * n)
 
@@ -525,10 +541,11 @@ claim:
 Show that if 5 divides 3n, then 5 divides n.
 """
 claim:
-    let n, x Z:
-        3 * n = 5 * x
     prove:
-        $dvdZ(5, n)
+        forall n, x Z:
+            3 * n = 5 * x
+            =>:
+                $dvdZ(5, n)
     witness exist c Z st {n = 5 * c} from 2 * x - n:
         n = 2 * (3 * n) - 5 * n = 2 * (5 * x) - 5 * n = 5 * (2 * x - n)
 
@@ -537,10 +554,11 @@ claim:
 Let m be an integer which is divisible by 8 and by 5. Show that it is also divisible by 40.
 """
 claim:
-    let m, a, b Z:
-        m = 8 * a
-        m = 5 * b
     prove:
-        $dvdZ(40, m)
+        forall m, a, b Z:
+            m = 8 * a
+            m = 5 * b
+            =>:
+                $dvdZ(40, m)
     witness exist c Z st {m = 40 * c} from -3 * a + 2 * b:
         m = -15 * m + 16 * m = -15 * (8 * a) + 16 * (5 * b) = 40 * (-3 * a + 2 * b)

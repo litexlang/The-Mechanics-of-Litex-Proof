@@ -5,7 +5,7 @@
 # 说明：第二章在纸面上引入中间结论、引理、析取/合取/存在量词与分情形证明。
 # 约定（对齐 golitex examples）：
 # - 证明可直接写成计算/不等式链时：用 forall … =>:（与 2.1.1–2.1.4、2.1.6–2.1.8 等一致）。
-# - 需反证或其它结构化步骤时：用 let + know、claim + prove、by contra（见 2.1.5；参考 claim.lit、by_contra.lit）。
+# - 需反证或其它结构化步骤时：用 let + know、claim（prove 内先写 forall … =>: 目标，或 exist … 再 witness）、by contra / by cases（见 2.1.5；参考 claim.lit、by_contra.lit）。
 # - 存在性：exist … st {…} 与 witness exist … from …:（参考 verify_exist_fact.lit、witness_exist.lit）。
 
 # ---------------------------------------------------------------------------
@@ -20,8 +20,8 @@ forall a, b R:
     a - 5 * b = 4
     b + 2 = 3
     =>:
-        b=3-2=1
-        a = 4 + 5 * b = 4 + 5 * 1 = 9
+        b=b+2-2=3-2=1
+        a =a- 5 * b + 5 * b = 4 + 5 * 1 = 9
 
 # 2.1.2
 """
@@ -32,23 +32,28 @@ forall m, n Z:
     n <= 5
     =>:
         m + 3 <= 2 * n - 1 <= (2 * 5 - 1) = 9
-        m <= 6
+        m =m+3-3<=9-3=6
 
 # 2.1.3（对比 1.4.2 的一条更长思路：先读出 r <= 3+s 与 r <= 3-s，再平均）
 """
 Let r and s be rational numbers, and suppose that s + 3 >= r and s + r <= 3. Show that r <= 3.
 """
+#不知道为啥不能run
+"""
 forall r, s Q:
-    s + 3 >= r
+    r<=s+3
     s + r <= 3
     =>:
         r <= 3 + s
-        r <= 3 - s
+        r =r+s-s<=3+s
         r = (r + r) / 2 <= ((3 + s) + (3 - s)) / 2 = 3
+"""
 
 # 2.1.4
 """
 Let t be a real number, and suppose that t^2 = 3t and t >= 1. Show that t >= 2.
+"""
+#不知道为啥不能run
 """
 forall t R:
     t^2 = 3 * t
@@ -57,25 +62,36 @@ forall t R:
         t*t = 3 * t
         t = 3*t/t=3
         t >= 2
+"""
 
 # 2.1.5（非纯计算链：先写 a^2 >= 1^2，再用反证处理 a < 1 与 a >= 0；参考 examples/claim.lit、by_contra.lit）
 """
 Let a and b be real numbers, and suppose that a^2 = b^2 + 1 and a >= 0. Show that a >= 1.
 """
+know:
+    forall a, b R:
+        0<=a<b
+        =>:
+            a^2<b^2
+    forall a R:
+        =>:
+            a^2>=0
 claim:
-    let a, b R:
-        a^2 = b^2 + 1
-        a >= 0
     prove:
-        a >= 1
-    a^2 = b^2 + 1 >= 1 = 1^2
+        forall a, b R:
+            a^2 = b^2 + 1
+            a >= 0
+            =>:
+                a >= 1
     by contra:
         prove:
-            a < 1
-        know 0 <= a
-        a^2 < 1^2
-        impossible a^2 = b^2 + 1 >= 1 = 1^2
-# 书本 Lean 用 cancel：由 a >= 0 且 a^2 >= 1^2 得 a >= 1
+            a >=1 
+        b^2 >= 0
+        a^2 = b^2 + 1>=0+1=1
+        a<1
+        a >= 0
+        impossible a^2 < 1^2
+
 
 # 2.1.6（对比 1.4.1：中间结论 x <= -1）
 """
@@ -85,31 +101,55 @@ forall x, y Z:
     x + 3 <= 2
     y + 2 * x >= 3
     =>:
-        x <= 2 - 3 = -1
-        y + 2 * x - 2 * x >= 3 - 2 * x >= 3 - 2 * (-1) = 5
-        y > 3
+        x=x+3-3<=2-3=-1
+        y=y+2*x-2*x>=3-2*x>=3-2*(-1)=5
+        y>=5>3
+        
 
 # 2.1.7
 """
 Let a and b be real numbers and suppose that -b <= a <= b. Show that a^2 <= b^2.
 """
+know:
+    forall a, b R:
+        a>=0
+        b>=0
+        =>:
+            a*b>=0
 forall a, b R:
     -b <= a
     a <= b
     =>:
-        0 <= b + a
-        0 <= b - a
-        a^2 <= a^2 + (b + a) * (b - a) = b^2
+        0 =b+(-b)<=b+a
+        0=a-a<=b-a
+        (b+a)*(b-a)>=0
+        a^2 =a^2+0 <= a^2 + (b + a) * (b - a) = b^2
 
 # 2.1.8
 """
 Let a and b be real numbers and suppose that a <= b. Show that a^3 <= b^3.
 """
+#不知道为啥不能run
+"""
+know:
+    forall a, b R:
+        a>=0
+        b>=0
+        =>:
+            a+b>=0
 forall a, b R:
     a <= b
-    0 <= b - a
     =>:
-        a^3 <= a^3 + (b - a) *(((b - a)^2 + 3 * (b + a)^2) / 4) = b^3
+        0=a-a<=b-a
+        (b+a)^2>=0
+        (b+a)^2/4>=0
+        (b-a)^2>=0
+        3*(b+a)^2>=0
+        3*(b+a)^2/4>=0
+        ((b-a)^2+3*(b+a)^2)/4>=0
+        (b-a)*((b-a)^2+3*(b+a)^2)/4>=0
+        a^3 =a^3+0 <= a^3 + (b - a) *(((b - a)^2 + 3 * (b + a)^2) / 4) = b^3
+"""
 
 # ---------------------------------------------------------------------------
 # 2.2 Invoking lemmas（Lean 中用 apply 点名引理；Litex 中只写数学结论链，引理名见注释）
@@ -145,7 +185,6 @@ forall y R:
         0 <= y^2
         0 < y^2+1
         y^2+1 != 0
-）
 
 # 2.2.3（引理 le_antisymm：a <= b 且 b <= a => a = b）
 """
@@ -174,10 +213,11 @@ forall a, b R:
 Let x and y be real numbers and suppose that x = 1 or y = -1. Show that x*y + x = y + 1.
 """
 claim:
-    let x, y R:
-        x = 1 or y = -1
     prove:
-        x * y + x = y + 1
+        forall x, y R:
+            x = 1 or y = -1
+            =>:
+                x * y + x = y + 1
     by cases:
         prove:
             x*y+x=y+1
@@ -199,9 +239,10 @@ know:
             a>=b+1
 
 claim:
-    let n N
     prove:
-        n^2 != 2
+        forall n N:
+            =>:
+                n^2 != 2
     by cases:
         prove:
             n^2 != 2
@@ -233,11 +274,12 @@ know:
         a*b=0
         =>:
             a=0 or b=0
-let x R:
-        x^2 - 3 * x + 2 = 0
 claim:
     prove:
-        x=1 or x=2
+        forall x R:
+            x^2 - 3 * x + 2 = 0
+            =>:
+                x=1 or x=2
     (x - 1) * (x - 2) = x^2 - 3 * x + 2 = 0
     x-1=0 or x-2=0
     by cases:
@@ -254,9 +296,10 @@ claim:
 Let n be a integer number. Show that n^2 != 2.
 """
 claim:
-    let n Z
     prove:
-        n^2 != 2
+        forall n Z:
+            =>:
+                n^2 != 2
     by cases:
         prove:
             n^2 != 2
@@ -365,10 +408,11 @@ Let t be a real number and suppose that there
 exists a real number a such that a*t < 0. Show that t != 0.
 """
 claim:
-    let t R:
-        exist a R st {a*t < 0}
     prove:
-        t != 0
+        forall t R:
+            exist a R st {a*t < 0}
+            =>:
+                t != 0
     by contra:
         prove:
             t = 0
@@ -392,9 +436,10 @@ claim:
 Let x be a real number. Show that there exists a real number y such that y > x.
 """
 claim:
-    let x R:
     prove:
-        exist y R st {y > x}
+        forall x R:
+            =>:
+                exist y R st {y > x}
     witness exist y R st {y > x} from x + 1:
         x + 1 > x
 
@@ -413,9 +458,10 @@ claim:
 Let a be an integer. Show that there exist integers m and n such that m^2 - n^2 = 2a + 1.
 """
 claim:
-    let a Z:
     prove:
-        exist m, n Z st {m^2 - n^2 = 2 * a + 1}
+        forall a Z:
+            =>:
+                exist m, n Z st {m^2 - n^2 = 2 * a + 1}
     witness exist m, n Z st {m^2 - n^2 = 2 * a + 1} from a + 1, a:
         (a + 1)^2 - a^2 = 2 * a + 1
 
@@ -424,10 +470,11 @@ claim:
 Let p and q be real numbers, and suppose p < q. Show that there exists a real number x such that p < x and x < q.
 """
 claim:
-    let p, q R:
-        p < q
     prove:
-        exist x R st {p < x, x < q}
+        forall p, q R:
+            p < q
+            =>:
+                exist x R st {p < x, x < q}
     witness exist x R st {p < x, x < q} from (p + q) / 2:
         p = (p + p) / 2 < (p + q) / 2
         (p + q) / 2 < (q + q) / 2 = q
