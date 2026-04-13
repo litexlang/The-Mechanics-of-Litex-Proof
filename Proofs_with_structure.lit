@@ -1,13 +1,4 @@
-# Chapter 2 — Proofs with structure (Heather Macbeth, Math 2001)
-# 参考 Litex README：forall … =>: 与计算链；https://github.com/litexlang/golitex/blob/main/README.md
-# 书本：https://hrmacbeth.github.io/math2001/02_Proofs_with_Structure.html
-#
-# 说明：第二章在纸面上引入中间结论、引理、析取/合取/存在量词与分情形证明。
-# 约定（对齐 golitex examples）：
-# - 证明可直接写成计算/不等式链时：用 forall … =>:（与 2.1.1–2.1.4、2.1.6–2.1.8 等一致）。
-# - 需反证或其它结构化步骤时：用 let + know、claim（prove 内先写 forall … =>: 目标，或 exist … 再 witness）、by contra / by cases（见 2.1.5；参考 claim.lit、by_contra.lit）。
-# - 存在性：exist … st {…} 与 witness exist … from …:（参考 verify_exist_fact.lit、witness_exist.lit）。
-
+# Chapter 2 — Proofs with structure 
 # ---------------------------------------------------------------------------
 # 2.1 Intermediate steps
 # ---------------------------------------------------------------------------
