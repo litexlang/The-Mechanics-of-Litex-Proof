@@ -163,6 +163,8 @@ prop dvdZ(a Z, b Z):
 prop dvdN(a N, b N):
     exist c N st {b = a * c}
 
+let dvd_num_z fn(a Z, b Z:$dvdZ(a, b)) Z
+let dvd_num_n fn(a N, b N:$dvdN(a, b)) N
 
 know:
     forall a, b Z:
@@ -173,14 +175,7 @@ know:
         $dvdN(a, b)
         =>:
             b = a * dvd_num_n(a, b)
-    forall a, b Z:
-        $dvdZ(a, b)
-        =>:
-            b/a in Z
-    forall a, b N:
-        $dvdN(a, b)
-        =>:
-            b/a in N
+
     
 
 # 3.2.1
@@ -213,12 +208,14 @@ claim:
             $dvdZ(a, b)
             =>:
                 $dvdZ(a, b^2 + 2 * b)
-    witness exist c Z st {b^2 + 2 * b = a * c} from (b/a) * (a * (b/a) + 2):
-        b^2 + 2 * b  = a * ((b/a) * (a * (b/a) + 2))
-
+    b=a*dvd_num_z(a, b)
+    witness exist c Z st {b^2 + 2 * b = a * c} from a * dvd_num_z(a, b)^2 + 2 * dvd_num_z(a, b):
+        b^2 + 2 * b  = (a*dvd_num_z(a, b))^2 + 2 * (a*dvd_num_z(a, b)) = a^2 * dvd_num_z(a, b)^2 + 2 * a * dvd_num_z(a, b) = a * (a * dvd_num_z(a, b)^2 + 2 * dvd_num_z(a, b))
 # 3.2.4
 """
 Let a, b and c be natural numbers and suppose that a | b and b^2 | c. Show that a^2 | c.
+"""
+#不知道为啥不能run
 """
 claim:
     prove:
@@ -227,12 +224,17 @@ claim:
             $dvdN(b^2, c)
             =>:
                 $dvdN(a^2, c)
-    witness exist t N st {c = a^2 * t} from (b/a)^2 * (c/(b^2)):
-        c = b^2 * (c/(b^2)) = a^2 * ((b/a)^2 * (c/(b^2)))
+    b=a*dvd_num_n(a, b)
+    c=b^2*dvd_num_n(b^2, c)
+    witness exist t N st {c = a^2 * t} from dvd_num_n(a, b)^2 * dvd_num_n(b^2, c):
+        c = b^2 * dvd_num_n(b^2, c) = (a * dvd_num_n(a, b))^2 * dvd_num_n(b^2, c) = a^2 * (dvd_num_n(a, b)^2 * dvd_num_n(b^2, c))
+"""
 
 # 3.2.5
 """
 Let x, y and z be natural numbers and suppose that x*y | z. Show that x | z.
+"""
+#不知道为啥不能run
 """
 claim:
     prove:
@@ -240,13 +242,17 @@ claim:
             $dvdN(x * y, z)
             =>:
                 $dvdN(x, z)
-    witness exist c N st {z = x * c} from (z/(x * y)) * y:
-        z = x * ((z/(x * y)) * y)
+    z=x*y*dvd_num_n(x*y, z)
+    witness exist c N st {z = x * c} from y * dvd_num_n(x * y, z):
+        z = (x * y) * dvd_num_n(x * y, z) = x * (y * dvd_num_n(x * y, z))
+"""
 
 # 3.2.6
 """
 Show that 12 is not divisible by 5.
 （5*2 < 12 < 5*3，故 12 不是 5 的倍数；书本引理 not_dvd_of_exists_lt_and_lt。）
+"""
+#不知道为啥不能run
 """
 know:
     forall a, b Z:
@@ -263,9 +269,9 @@ forall c N:
     =>:
         5 * c <= 5*2=10 < 12
 forall c N:
-    c >= 3
+    3<=c
     =>:
-        5 * c >= 5*3=15 > 12
+        12<15=5*3<=5*c
 claim:
     prove:
         forall c N:
@@ -285,23 +291,29 @@ forall c N:
         5 * c != 12
         not $dvdN(5, 12)
 # 故不存在 c∈N 使 12 = 5*c，即 not $dvdN(5, 12)
+"""
 
 # 3.2.7
 """
 Let a and b be natural numbers, with b positive, and suppose that a divides b. Show that a <= b.
 """
+#不知道为啥不能run
+""" 
 forall a, b N:
     $dvdN(a, b)
     b>0
     =>:
-        b/a in N
-        b/a!=0
-        b/a>=1
-        a<=b
+        dvd_num_n(a, b) in N
+        dvd_num_n(a, b)!=0
+        dvd_num_n(a, b)>=1
+        a=1*a<=dvd_num_n(a, b)*a=b
+"""
 
 # 3.2.8
 """
 Let a and b be natural numbers, with b positive, and suppose that a divides b. Show that a is positive.
+"""
+#不知道为啥不能run
 """
 forall a, b N:
     $dvdN(a, b)
@@ -313,7 +325,7 @@ forall a, b N:
         a!=0
         b/a>=1
         a>=1>0
-
+"""
 # ---------------------------------------------------------------------------
 # 3.3 Modular arithmetic: theory（a ≡ b (mod n) ⇔ n | (a-b) ⇔ exist k, a-b = n*k）
 # ---------------------------------------------------------------------------
