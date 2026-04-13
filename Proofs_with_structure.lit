@@ -237,12 +237,16 @@ claim:
 """
 Let n be any natural number. Show that n^2 != 2.
 """
+#不知道为啥不能run
+"""
 know:
     forall a,b N:
         a>b
         =>:
             a>=b+1
-
+know:
+    forall n Z:
+        n>=2 or n<=1
 claim:
     prove:
         forall n N:
@@ -257,6 +261,7 @@ claim:
         case n>=2:
             n^2 >= 2^2 =4>2
             n^2 != 2
+"""
 
 # 2.3.3（目标为析取时常证其中一支；此题证右支 x = 2）
 """
@@ -265,7 +270,7 @@ Let x be a real number for which 2x + 1 = 5. Show that either x = 1 or x = 2.
 forall x R:
     2 * x + 1 = 5
     =>:
-        x=(2*x+1-1)/2=2
+        x=(2*x+1-1)/2=(5-1)/2=2
         x=1 or x=2
 
 
@@ -291,14 +296,16 @@ claim:
         prove:
             x=1 or x=2
         case x-1=0:
-            x=x-1+1=1 
+            x=x-1+1=0+1=1 
         case x-2=0:
-            x=x-2+2=2
+            x=x-2+2=0+2=2
 
 
 # 2.3.5（整数 n^2 ≠ 2：对 n 分情形；证明较长，书本用嵌套 obtain / · 子证明）
 """
 Let n be a integer number. Show that n^2 != 2.
+"""
+#不知道为啥不能run
 """
 claim:
     prove:
@@ -331,7 +338,7 @@ claim:
                     n^2 >= 2^2 =4>2
                     n^2 != 2
 
-
+"""
 
 # ---------------------------------------------------------------------------
 # 2.4 “And”（合取： hypotheses 可拆成两条；目标为合取时常需分别证两支）
