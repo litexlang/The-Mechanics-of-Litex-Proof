@@ -29,36 +29,52 @@ forall m, n Z:
 """
 Let r and s be rational numbers, and suppose that s + 3 >= r and s + r <= 3. Show that r <= 3.
 """
-#不知道为啥不能run
-"""
+
+# SOLVED
 forall r, s Q:
     r<=s+3
     s + r <= 3
     =>:
-        r <= 3 + s
-        r =r+s-s<=3+s
-        r = (r + r) / 2 <= ((3 + s) + (3 - s)) / 2 = 3
-"""
+        2 * r = r + r <= (s + 3) + r = 3 + (s + r) <= 3 + 3 = 6
+        r <= 6 / 2 = 3
 
 # 2.1.4
 """
 Let t be a real number, and suppose that t^2 = 3t and t >= 1. Show that t >= 2.
-"""
-#不知道为啥不能run
-"""
-forall t R:
-    t^2 = 3 * t
-    t >= 1
-    =>:
-        t*t = 3 * t
-        t = 3*t/t=3
-        t >= 2
-"""
+
+# SOLVED
+claim:
+    prove:
+        forall t R:
+            t^2 = 3 * t
+            t >= 1
+            =>:
+                t >= 2
+    0 = t^2 - 3 * t = t * (t - 3)
+    t = 0 or t - 3 = 0
+    by cases:
+        prove:
+            t = 3
+        case t = 0:
+            impossible 0 >= 1
+        case t - 3 = 0:
+            t = 3
 
 # 2.1.5（非纯计算链：先写 a^2 >= 1^2，再用反证处理 a < 1 与 a >= 0；参考 examples/claim.lit、by_contra.lit）
 """
 Let a and b be real numbers, and suppose that a^2 = b^2 + 1 and a >= 0. Show that a >= 1.
 """
+
+# SOLVED
+# when 0 <= b - a, then a <= b is verified automatically; when a <= b, then 0 <= b - a is verified automatically.
+claim:
+    prove:
+        forall a, b R:
+            0 <= a < b
+            =>:
+                a^2 < b^2
+    0 < (b - a) * (b + a) = b^2 - a^2
+
 know:
     forall a, b R:
         0<=a<b
@@ -121,14 +137,8 @@ forall a, b R:
 """
 Let a and b be real numbers and suppose that a <= b. Show that a^3 <= b^3.
 """
-#不知道为啥不能run
-"""
-know:
-    forall a, b R:
-        a>=0
-        b>=0
-        =>:
-            a+b>=0
+
+# SOLVED
 forall a, b R:
     a <= b
     =>:
@@ -141,7 +151,6 @@ forall a, b R:
         ((b-a)^2+3*(b+a)^2)/4>=0
         (b-a)*((b-a)^2+3*(b+a)^2)/4>=0
         a^3 =a^3+0 <= a^3 + (b - a) *(((b - a)^2 + 3 * (b + a)^2) / 4) = b^3
-"""
 
 # ---------------------------------------------------------------------------
 # 2.2 Invoking lemmas（Lean 中用 apply 点名引理；Litex 中只写数学结论链，引理名见注释）
@@ -151,11 +160,9 @@ forall a, b R:
 """
 Let x be a rational number, and suppose that 3x = 2. Show that x != 1.
 """
-know:
-    forall a, b R:
-        a<b
-        =>:
-            a!=b
+
+# SOLVED: Now a != b can be verified automatically when a < b.
+
 forall x Q:
     3 * x = 2
     =>:
@@ -167,11 +174,9 @@ forall x Q:
 """
 Let y be a real number. Show that y^2 + 1 != 0.
 """
-know:
-    forall a, b R:
-        a > b
-        =>:
-            a != b
+
+# SOLVED: a != b can be verified automatically when a > b.
+
 forall y R:
     =>:
         y^2>=0
