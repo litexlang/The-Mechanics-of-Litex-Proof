@@ -1,3 +1,5 @@
+# SOLVED: All these rules can be verified automatically
+
 know:
     forall a R b R:
         a>0

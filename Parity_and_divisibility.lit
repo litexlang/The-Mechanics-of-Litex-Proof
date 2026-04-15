@@ -8,6 +8,7 @@ prop odd(a Z):
 prop even(a Z):
     exist k Z st {a = 2 * k}
 
+"""
 let odd_num fn(a Z:$odd(a)) Z
 let even_num fn(a Z:$even(a)) Z
 know:
@@ -19,6 +20,40 @@ know:
         $even(a)
         =>:
             a = 2 * even_num(a)
+"""
+
+# SOLVED: 不建议写let fn，更好的是用 have fn 直接得到函数。
+
+claim:
+    prove:
+        forall a Z:
+            $odd(a)
+            =>:
+                (a - 1) / 2 $in Z
+    have by exist k Z st {a = 2 * k + 1}: k
+    k = ((2 * k + 1) - 1) / 2 = (a - 1) / 2
+
+claim:
+    prove:
+        forall a Z:
+            $even(a)
+            =>:
+                a / 2 $in Z
+    have by exist k Z st {a = 2 * k}: k
+    k = (2 * k) / 2 = a / 2
+
+have fn odd_num(a Z:$odd(a)) Z = (a - 1) / 2
+forall a Z:
+    $odd(a)
+    =>:
+        (a - 1) / 2 = odd_num(a)
+        a = 2 * ((a - 1) / 2) + 1 = 2 * odd_num(a) + 1
+have fn even_num(a Z:$even(a)) Z = a / 2
+forall a Z:
+    $even(a)
+    =>:
+        a / 2 = even_num(a)
+        a = 2 * (a / 2) = 2 * even_num(a)
 
 # 3.1.1
 """
@@ -158,6 +193,8 @@ claim:
 # 3.2 Divisibility
 # ---------------------------------------------------------------------------
 
+# TODO: 请完成：参考 23-57行的代码把这里的let改成have fn
+
 prop dvdZ(a Z, b Z):
     exist c Z st {b = a * c}
 prop dvdN(a N, b N):
@@ -254,6 +291,11 @@ Show that 12 is not divisible by 5.
 """
 #不知道为啥不能run
 """
+
+# TODO: 首先，你的know是错的，因为a = 0的时候就错了
+# 其次，这个事实应该可以所以 by induc 出来。就是固定a，然后对b做迭代
+@ 其次，后面一个事实可以用：如果存在这样的t让 b = a * t，那 q < t < q + 1，则 0 < t - q < 1。又因为 x $in Z, 0 < x => 1 <= x，所以 1 <= t - q < 1 矛盾了。
+
 know:
     forall a, b Z:
         exist q Z st {a*q<b<a*(q+1)}
@@ -298,6 +340,9 @@ forall c N:
 Let a and b be natural numbers, with b positive, and suppose that a divides b. Show that a <= b.
 """
 #不知道为啥不能run
+
+# TODO：肯定能用反证法来证明
+
 """ 
 forall a, b N:
     $dvdN(a, b)
@@ -546,6 +591,9 @@ claim:
 """
 Let x be an integer. Show that x^3 ≡ x (mod 3).
 """
+
+# TODO: 应该是先证明了任何数x，它满足 x mod 3 = 0, 1, 2 中的一个。然后用分类讨论来证明
+
 #不知道怎么写
 """
 let min_pos_remain fn (a Z, n Z) Z
