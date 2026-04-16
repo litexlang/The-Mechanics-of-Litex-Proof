@@ -22,6 +22,7 @@ forall m, n Z:
     m + 3 <= 2 * n - 1
     n <= 5
     =>:
+        2*n<=2*5=10
         m + 3 <= 2 * n - 1 <= (2 * 5 - 1) = 9
         m =m+3-3<=9-3=6
 
@@ -44,16 +45,15 @@ forall r, s Q:
 """
 Let t be a real number, and suppose that t^2 = 3t and t >= 1. Show that t >= 2.
 """
-#不知道为啥不能run
-"""
+
 forall t R:
     t^2 = 3 * t
     t >= 1
     =>:
+        t^2 = t*t
         t*t = 3 * t
-        t = 3*t/t=3
-        t >= 2
-"""
+        t=t*t/t = 3*t/t=3
+        t=3>2
 
 # 2.1.5（非纯计算链：先写 a^2 >= 1^2，再用反证处理 a < 1 与 a >= 0；参考 examples/claim.lit、by_contra.lit）
 """

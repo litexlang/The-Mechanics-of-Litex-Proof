@@ -1,0 +1,223 @@
+# Chapter 5 — 逻辑
+# 第二、四章在具体数学对象（等式、不等式、数）上学习了 ∧、∀、→ 等符号的「文法」。
+# 本章从更抽象的角度研究推理本身：核心是逻辑等价——只凭抽象逻辑、不依赖具体数学情境，
+# 就能在两种陈述形式之间互推变形。
+# 最重要的是 5.3 节：把否定符号 ¬「向内推」，从而减少与 ¬ 打交道（它是最别扭的逻辑符号）。
+
+# ---------------------------------------------------------------------------
+# 最小数论谓词（与第四章一致，供「超能力数」等例子）
+# ---------------------------------------------------------------------------
+
+prop dvdN(a N, b N):
+    exist c N st {b = a * c}
+
+prop Prime(p N):
+    2 <= p
+    forall m N:
+        $dvdN(m, p)
+        =>:
+            m = 1 or m = p
+
+# ---------------------------------------------------------------------------
+# 5.1 逻辑等价（命题层：抽象命题变元）
+# ---------------------------------------------------------------------------
+
+# 抽去具体数字与不等式后，只剩纯逻辑；纸面仍可用分情形、矛盾等。
+# （Lean：Prop 上的 obtain / apply / constructor。）
+
+abstract_prop P
+abstract_prop Q
+abstract_prop R
+
+# 5.1.1
+# 由 P∨Q 与 ¬Q 得 P：析取分情形，第二支与 ¬Q 矛盾。
+"""
+If P ∨ Q and ¬ Q, then P.
+"""
+know:
+    P or Q
+    not Q
+    =>:
+        P
+
+# P → P ∨ ¬Q：由 P 可左注入得 P∨(¬Q)（书本 left）。
+"""
+P implies P ∨ (not Q).
+"""
+know:
+    P
+    =>:
+        P or not Q
+
+# 5.1.2
+# 真值表：P∧Q、¬P 等按行规定真假；复杂式子由内层逐步算出。
+# 例：¬(P∧¬Q) 的真值表可手算；Lean 中可用 #truth_table（略）。
+# 练习 5.1.3：自行列出 P ↔ (¬P ∨ Q) 的真值表并与 Lean 核对。
+
+# 5.1.4
+# 两公式逻辑等价：指其 ↔ 在 Lean 可证（尚有一处 tactic 在 5.2 才齐全，故有些等价暂时无法演示）。
+# P∨P ↔ P：左到右析取消去；右到左重复左注入。
+"""
+(P ∨ P) is logically equivalent to P.
+"""
+know:
+    P or P
+    =>:
+        P
+know:
+    P
+    =>:
+        P or P
+
+# 5.1.5
+# P∧(Q∨R) ↔ (P∧Q)∨(P∧R)（∧ 对 ∨ 分配）。书本给出 ⇨ 方向；⇐ 留作习题。
+"""
+P ∧ (Q ∨ R) is logically equivalent to (P ∧ Q) ∨ (P ∧ R).
+"""
+
+# 5.1.6
+# 谓词 P(x)、Q(x)：由 ∀x Px 与 ∀x Qx 得 ∀x (Px∧Qx)。
+# ∃x, ∀y P(x,y) ⇒ ∀y, ∃x P(x,y)：先取见证 x，再对每个 y 用同一 x。
+# 逻辑等价：¬∃x Px ↔ ∀x ¬Px（书本定理；与 litex_statement 中量词否定读法一致）。
+# （一阶情形需在 litex 中为论域与谓词配上类型；此处仅保留数学表述。）
+#   ∀x Px 且 ∀x Qx ⊢ ∀x (Px∧Qx)
+#   ∃x, ∀y P(x,y) ⊢ ∀y, ∃x P(x,y)
+#   ¬∃x Px ↔ ∀x ¬Px
+
+# 5.1.7 习题（提要，Lean 多为 sorry）
+# (1) P∧Q ⇒ P∨Q
+# (2) P⇒Q, P⇒R, P ⊢ Q∧R
+# (3) ¬(P∧¬P)
+# (4) P↔¬Q, Q ⊢ ¬P
+# (5) P∨Q, Q⇒P ⊢ P
+# (6) P↔Q ⊢ (P∧R)↔(Q∧R)
+# (7) P∧P ↔ P
+# (8) P∨Q ↔ Q∨P
+# (9) ¬(P∨Q) ↔ ¬P∧¬Q（De Morgan，库名 not_or）
+# (10) ∀x(Px⇒Qx), ∀x Px ⊢ ∀x Qx
+# (11) ∀x(Px↔Qx) ⊢ (∃x Px)↔(∃x Qx)
+# (12) ∃x∃y P(x,y) ↔ ∃y∃x P(x,y)
+# (13) ∀x∀y P(x,y) ↔ ∀y∀x P(x,y)
+# (14) (∃x Px)∧Q ↔ ∃x(Px∧Q)（Q 与 x 无关）
+
+# ---------------------------------------------------------------------------
+# 5.2 排中律（Law of the excluded middle）
+# ---------------------------------------------------------------------------
+
+# 定义：自然数 k 为「超能力」，当且仅当对每个 n，k^(k^n)+1 为素数。
+# （Lean：Superpowered (k) := ∀ n, Prime (k^k^n+1)；幂次右结合。）
+
+prop Superpowered(k N):
+    forall n N:
+        $Prime(k ^ (k ^ n) + 1)
+
+# 5.2.1
+# 0 不是超能力：n=0 时 0^0^0+1=1，而 1 不是素数（引理 not_prime_one，第四章习题）。
+"""
+0 is not superpowered.
+"""
+# 若 0 超能力，则 Prime(0^0^0+1)=Prime(1)，而 1 非素数（not_prime_one），矛盾。
+
+# 5.2.2
+# 1 是超能力：对任意 n，1^1^n+1=2，而 2 为素数（prime_two）。
+"""
+1 is superpowered.
+"""
+# ∀n, Prime(1^1^n+1)=Prime(2)。
+
+# 5.2.3
+# 2 是否超能力？前几项 3,5,17,257,65537 皆为素数（费马观察），但一般项判定极繁；书本暂留作开放问题。
+# 欧拉 1732：2^2^5+1 = 641×6700417，故 2 非超能力（习题 5.2.7(3)）。
+
+# 5.2.4
+# 3 不是超能力：n=0 时 3^3^0+1=4=2·2，非素数（not_prime）。
+"""
+3 is not superpowered.
+"""
+# 反设 3 超能力 ⇒ Prime(4)，矛盾。
+
+# 5.2.5
+# 存在 k 使得 k 超能力且 k+1 不超能力。
+# 证明：对「2 是否超能力」作二值分情形（排中律）：
+# — 若 2 超能力，取 k=2（2 超能力，3 不超，见 5.2.4）；
+# — 若 2 不超，取 k=1（1 超能力，2 不超）。
+# 因而无需知道 2 是否真超能力即可构造 k。（Lean：by_cases h : Superpowered 2。）
+# 脚注：思路类似「存在无理数的无理数次幂为有理」的经典题。
+"""
+There exists k such that Superpowered k and not Superpowered (k+1).
+"""
+# 排中律：Superpowered(2) ∨ ¬Superpowered(2)。
+# — 若 2 超能力：取 k=2（2 超能力，且 3 不超，见 5.2.4）。
+# — 若 ¬Superpowered(2)：取 k=1（1 超能力 5.2.2，且 2 不超）。
+# （Litex 中需 by cases 或两条 witness；Lean 见 by_cases h : Superpowered 2。）
+
+# 5.2.6
+# 命题逻辑：¬¬P ⇒ P（「负负得正」）需排中律：对 P 本身作 by_cases。
+"""
+From ¬¬P deduce P (using excluded middle).
+"""
+know:
+    not not P
+    =>:
+        P
+
+# 5.2.7 习题（提要）
+# (1) Tribalanced(x) := ∀n, (1+x/n)^n < 3；证 ∃x, Tribalanced x ∧ ¬Tribalanced(x+1)（同 5.2.5 结构）。
+# (2) (¬P→¬Q) ↔ (Q→P)（逆否），需 LEM。
+# (3) 用欧拉分解 2^32+1 = 641×6700417 证 2 不超能力，从而 k=1 见证 5.2.5（无需分情形）。
+
+# ---------------------------------------------------------------------------
+# 5.3 否定的范式（把 ¬ 向内推）
+# ---------------------------------------------------------------------------
+
+# 5.3.1
+# 否定 ∧：¬(P∧Q) ↔ ¬P∨¬Q（需排中律证明 ⇨ 方向的一枝；库名 not_and_or）。
+# 否定 ∃：¬∃x Px ↔ ∀x ¬Px（5.1.6）。
+# 否定 ∨：¬(P∨Q) ↔ ¬P∧¬Q（De Morgan，not_or）。
+# 表 5.1 汇总（译文）：
+# | 运算 | 否定在外 | 否定向内 | Lean 名 |
+# | ¬¬ | ¬(¬P) | P | not_not |
+# | ∨ | ¬(P∨Q) | ¬P∧¬Q | not_or |
+# | ∧ | ¬(P∧Q) | ¬P∨¬Q | not_and_or |
+# | → | ¬(P→Q) | P∧¬Q | not_imp |
+# | ∃ | ¬∃x Px | ∀x ¬Px | not_exists |
+# | ∀ | ¬∀x Px | ∃x ¬Px | not_forall |
+
+# 5.3.2
+# 例：¬(∀m∈Z, m≠2 → ∃n∈Z, n²=m) ↔ ∃m∈Z, m≠2 ∧ ∀n∈Z, n²≠m。
+# 逐步用 not_forall、not_imp、not_exists（Lean：calc + rel，或 push_neg）。
+
+# 5.3.3
+# ¬(∀n∃m, n²<m<(n+1)²) ↔ ∃n∀m, n²≥m ∨ m≥(n+1)²；另需 not_lt 等把 ¬(a<b) 换成 a≥b。
+# 注意 n²<m<(n+1)² 是合取缩写（见 1.4.4）。
+
+# 5.3.4
+# Lean  tactic `push_neg` 自动把否定推向内层；可对复杂式子核对心算结果。
+
+# 5.3.5
+# 回到「不存在 n∈N 使 n²=2」：¬∃n, n²=2 与 ∀n, n²≠2 等价（not_exists + 论域为 N）。
+# 因而 4.5.4 与 2.3.2 本质同一题；用 push_neg 后可直接分情形估计，而无需先设反证。
+"""
+There is no natural number n with n^2 = 2.
+"""
+# 等价：¬∃n∈N, n²=2 ↔ ∀n∈N, n²≠2（规则 not_exists）。
+know:
+    not exist n N st {n^2 = 2}
+    =>:
+        forall n N:
+            n^2 != 2
+know:
+    forall n N:
+        n^2 != 2
+    =>:
+        not exist n N st {n^2 = 2}
+
+# 5.3.6 习题（提要）
+# (1) ¬¬P ↔ P（证 not_not，禁用 push_neg）
+# (2) ¬(P→Q) ↔ P∧¬Q（证 not_imp）
+# (3) ¬∀x Px ↔ ∃x ¬Px（证 not_forall）
+# (4)–(6) 逐步用表 5.1 化简复杂否定
+# (7) 心算后用 #push_neg 核对
+# (8)–(11) 用 push_neg 重证 4.5.1、4.5 习题、4.5.7 等
+# (12) ¬∃a∈Z, ∀n, 2a³≥na+7（与 2.5 习题 8 对照：一真一假的原因在量词顺序）
+# (13) p≥2 非素数 ⇒ ∃m, 2≤m<p 且 m∣p（exists_factor_of_not_prime；用 prime_test 与 push_neg）

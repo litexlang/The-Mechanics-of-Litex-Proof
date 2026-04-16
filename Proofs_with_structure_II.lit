@@ -1,15 +1,8 @@
-# Chapter 4 — 结构化证明 II（Heather Macbeth, Math 2001）
-# 书本：https://hrmacbeth.github.io/math2001/04_Proofs_with_Structure_II.html
-# Litex 语句形式参考：仓库根目录 litex_statement.lit（forall / =>: / know / claim / by cases / by contra / witness exist 等）
-# 与第三、二章衔接：奇偶、整除、同余见 Parity_and_divisibility.lit；本章补全 ∀、→、¬、↔、∃! 的「文法」与纸面对应。
-#
-# 章首说明（译文）：
+# Chapter 4 — 结构化证明 II
+
 # 第二章学过 ∨、∧、∃，以及假设/目标中各联结词的 natural deduction 用法。
 # 本章补全其余逻辑符号：∀、→、¬；以及可由它们定义的 ↔ 与 ∃!。
 
-# ---------------------------------------------------------------------------
-# 与第三章一致的最小定义（单文件可读；亦可 run_file 载入第三章）
-# ---------------------------------------------------------------------------
 
 prop odd(a Z):
     exist k Z st {a = 2 * k + 1}
@@ -21,6 +14,29 @@ prop dvdZ(a Z, b Z):
     exist c Z st {b = a * c}
 prop mod_eq(a Z, b Z, n Z):
     exist k Z st {a - b = n * k}
+
+let odd_num fn(a Z:$odd(a)) Z
+let even_num fn(a Z:$even(a)) Z
+know:
+    forall a Z:
+        $odd(a)
+        =>:
+            a = 2 * odd_num(a) + 1
+    forall a Z:
+        $even(a)
+        =>:
+            a = 2 * even_num(a)
+let dvd_num_z fn(a Z, b Z:$dvdZ(a, b)) Z
+let dvd_num_n fn(a N, b N:$dvdN(a, b)) N
+know:
+    forall a, b Z:
+        $dvdZ(a, b)
+        =>:
+            b = a * dvd_num_z(a, b)
+    forall a, b N:
+        $dvdN(a, b)
+        =>:
+            b = a * dvd_num_n(a, b)
 
 prop Prime(p N):
     2 <= p
@@ -52,13 +68,17 @@ know:
 """
 Let a be a real number and suppose that for all real numbers x, a <= x^2 - 2x. Show that a <= -1.
 """
-forall a R:
+#不知道怎么写
+"""
+
+claim:
     prove:
-        know:
+        forall a R:
             forall x R:
                 a <= x^2 - 2 * x
-        a <= 1^2 - 2 * 1
-        a <= -1
+            =>:
+                a <= -1
+"""
 
 # 4.1.2
 # n 整除每个自然数 ⇒ n 整除 1；又 1>0，由因子大小界（第三章例 3.2.7、3.2.8）得 n<=1 且 1<=n，故 n=1。
@@ -208,13 +228,6 @@ prove:
     2 != 6
     not $Prime(6)
 
-# 4.1.10 Exercises（提要）
-# (1) 有理 a >= -3+4b-b^2 对所有 b；取 b=2 得 a>=1。
-# (2) m=3,5 得 3|n 且 5|n ⇒ 15|n（第三章 3.5）。
-# (3) 取 n=0：∀m∈N, 0<=m。
-# (4) 取 a=0：∀b, ∃c, b<c（如 c=b+1）。
-# (5) 充分大实数 x：取足够大阈值使 x^3+3x >= 7x^2+12。
-# (6) 45 = 9*5 等，用 not_prime。
 
 # ---------------------------------------------------------------------------
 # 4.2 当且仅当（↔）
@@ -242,14 +255,23 @@ forall a Q:
 Let n be an integer. Show that 5n is a multiple of 8 if and only if n is.
 """
 # ⇒：8∣5n ⇒ 8∣n；⇐：8∣n ⇒ 8∣5n。
-forall n Z:
-    $dvdZ(8, 5 * n)
-    =>:
-        $dvdZ(8, n)
-forall n Z:
-    $dvdZ(8, n)
-    =>:
-        $dvdZ(8, 5 * n)
+claim:
+    prove:
+        forall n Z:
+            $dvdZ(8, 5 * n)
+            =>:
+                $dvdZ(8, n)
+    witness exist c Z st {n = 8 * c} from dvd_num_z(8, 5 * n)/5:
+        n =5*n/5= 8 * dvd_num_z(8, 5 * n) / 5  
+claim:
+    prove:
+        forall n Z:
+            $dvdZ(8, n)
+            =>:
+                $dvdZ(8, 5 * n)
+    witness exist c Z st {5 * n = 8 * c} from 5*dvd_num_z(8, n):
+        5 * n = 5 * n= 5*(8 * dvd_num_z(8, n) )= 8 * (5 * dvd_num_z(8, n))
+
 
 # 4.2.3 / 4.2.4
 # 奇数 ⇔ n ≡ 1 (mod 2)；偶数 ⇔ n ≡ 0 (mod 2)。（书本定理 odd_iff_modEq、even_iff_modEq；反向分支 Lean 留作 sorry。）
@@ -257,22 +279,43 @@ forall n Z:
 Show that an integer n is odd, if and only if it is congruent to 1 modulo 2.
 Show that an integer n is even, if and only if it is congruent to 0 modulo 2.
 """
-forall n Z:
-    $odd(n)
-    =>:
-        $mod_eq(n, 1, 2)
-forall n Z:
-    $mod_eq(n, 1, 2)
-    =>:
-        $odd(n)
-forall n Z:
-    $even(n)
-    =>:
-        $mod_eq(n, 0, 2)
-forall n Z:
-    $mod_eq(n, 0, 2)
-    =>:
-        $even(n)
+claim:
+    prove:
+        forall n Z:
+            $odd(n)
+            =>:
+                $mod_eq(n, 1, 2)
+    witness exist c Z st {n-1 = 2 * c} from odd_num(n):
+        n-1 = 2 * odd_num(n) 
+
+claim:
+    prove:
+        forall n Z:
+            $mod_eq(n, 1, 2)
+            =>:
+                $odd(n)
+    $dvd_num_z(2,n-1)
+    witness exist c Z st {n = 2 * c + 1} from $dvd_num_z(2,n-1):
+        n=n-1+1 = 2 * dvd_num_z(2,n-1) + 1
+
+claim:
+    prove:
+        forall n Z:
+            $even(n)
+            =>:
+                $mod_eq(n, 0, 2)
+    witness exist c Z st {n-0 = 2 * c} from $even_num(n):
+        n-0=n= 2 * even_num(n)
+claim:
+    prove:
+        forall n Z:
+            $mod_eq(n, 0, 2)
+            =>:
+                $even(n)
+    $dvd_num_z(2,n-0)
+    witness exist c Z st {n = 2 * c} from $dvd_num_z(2,n-0):
+        n=n-0= 2 * dvd_num_z(2,n-0)    
+
 
 # 4.2.5
 # 解方程型 ↔：左边因式分解 (x+3)(x-2)=0 ⇒ x=-3 或 x=2；反向代入验证。
@@ -282,10 +325,16 @@ Let x be a real number. Show that x^2 + x - 6 = 0 if and only if x = -3 or x = 2
 forall x R:
     x^2 + x - 6 = 0
     =>:
-        x = -3 or x = 2
+        x^2 + x - 6 = (x + 3) * (x - 2) = 0
+        x + 3 = 0 or x - 2 = 0
+        x =x+3-3=0-3=-3 or x =x-2+2=0+2=2 
+
 forall x R:
     x = -3 or x = 2
     =>:
+        x+3=-3+3=0
+        x-2=2-2=0
+        x^2 + x - 6 = (x + 3) * (x - 2) = 0 * 0 = 0
         x^2 + x - 6 = 0
 
 # 4.2.6
@@ -293,51 +342,126 @@ forall x R:
 """
 Let a be an integer. Show that a^2 - 5a + 5 <= -1 if and only if a is 2 or 3.
 """
+know:
+    forall a,b R:
+        a^2<=b^2
+        b>=0
+        =>:
+            -b<=a
+            a<=b
 forall a Z:
     a^2 - 5 * a + 5 <= -1
     =>:
+        (2*a-5)^2 = 4*(a^2-5*a+5)+5 <= 4*(-1)+5 = -4+5 = 1
+        (2*a-5)^2 <= 1
+        -1 <= 2*a-5 
+        2*a-5 <= 1
+        a=(2*a-5+5)/2<=1+5/2=3
+        a=(2*a-5+5)/2>=2+5/2=2
+        2 <= a <= 3
         a = 2 or a = 3
-forall a Z:
-    a = 2 or a = 3
-    =>:
-        a^2 - 5 * a + 5 <= -1
-
+claim:
+    prove:
+        forall a Z:
+            a = 2 or a = 3
+            =>:
+                a^2 - 5 * a + 5 <= -1
+    by cases:
+        prove:
+                a^2 - 5 * a + 5 <= -1
+        case a = 2:
+            a^2 - 5 * a + 5 = 2^2 - 5 * 2 + 5 = 4 - 10 + 5 = -1
+            a^2 - 5 * a + 5 <= -1
+        case a = 3:
+            a^2 - 5 * a + 5 = 3^2 - 5 * 3 + 5 = 9 - 15 + 5 = -1
+            a^2 - 5 * a + 5 <= -1
+        
 # 4.2.7
-# 库引理 a*b=0 ↔ a=0 ∨ b=0：可用 rw 重写假设或目标（Lean）。
+
 """
 Let n be an integer and suppose n^2 - 10n + 24 = 0. Show that n is even.
 """
-forall n Z:
-    n^2 - 10 * n + 24 = 0
-    =>:
-        (n - 4) * (n - 6) = 0
-        n - 4 = 0 or n - 6 = 0
-        n = 4 or n = 6
-        $even(n)
+claim:
+    prove:
+        forall n Z:
+            n^2 - 10 * n + 24 = 0
+            =>:
+                $even(n)
+    0=n^2 - 10 * n + 24 = (n - 4) * (n - 6) = 0
+    n - 4 = 0 or n - 6 = 0
+    n =n- 4 + 4=0+4=4 or n =n- 6 + 6 = 0+6 = 6
+    n=4 or n=6
+    by cases:
+        prove:
+            $even(n)
+        case n = 4:
+            witness exist c Z st {n = 2 * c} from 2:
+                n =4= 2 * 2 
+        case n = 6:
+            witness exist c Z st {n = 2 * c} from 3:
+                n =6= 2 * 3 
 
 # 4.2.8
 # 用 odd_iff_modEq 把奇偶翻译为同余，在同余下计算。
 """
 Prove that if the integers x and y are odd, then x+y+1 is odd.
 """
-forall x, y Z:
-    $odd(x)
-    $odd(y)
-    =>:
-        $mod_eq(x, 1, 2)
-        $mod_eq(y, 1, 2)
-        $mod_eq(x + y + 1, 1 + 1 + 1, 2)
-        $mod_eq(x + y + 1, 1, 2)
-        $odd(x + y + 1)
+prop mod_eq_trans(a,b,c,n Z):
+    $mod_eq(a,c,n)
+
+know:
+    forall a, b, c, n Z:
+        $mod_eq(a, b, n)
+        $mod_eq(b, c, n)
+        =>:
+            $mod_eq_trans(a, b, c, n)
+    forall a, b, c,d, n Z:
+        $mod_eq(a, b, n)
+        $mod_eq(c, d, n)
+        =>:
+            $mod_eq(a * c, b * d, n)
+
+know:
+    forall a Z:
+        =>:
+            $mod_eq(a, 0, 2)
+        <=>:
+            $even(a)
+    forall a Z:
+        =>:
+            $mod_eq(a, 1, 2)
+        <=>:
+            $odd(a)
+claim:
+    prove:
+        forall x, y Z:
+            $odd(x)
+            $odd(y)
+            =>:
+                $odd(x + y + 1)
+    $mod_eq(x,1,2)
+    $mod_eq(y,1,2)
+    $mod_eq(x+y,1+1,2)
+    $mod_eq(1,1,2)
+    $mod_eq(x+y+1,1+1+1,2)
+    $mod_eq(x+y+1,3,2)
+    witness exist c Z st {3 = 2 * c + 1} from 1:
+        3 = 2 * 1 + 1
+    $mod_eq(3,1,2)
+    $mod_eq_trans(x+y+1,3,1,2)
+    $mod_eq(x+y+1,1,2)
+    $odd(x+y+1)
+
 
 # 4.2.9
-# 每个整数偶或奇：按 n mod 2 分情形；若余 0 则偶，若余 1 则奇（书本已写左支；右支用 odd_iff_modEq）。
-# 原文下一行误印两处「n≡0」；应为：若 n≡1 (mod 2)，则 n 为奇。
+# 每个整数偶或奇：按 n mod 2 分情形；若余 0 则偶，若余 1 则奇
+
 """
 Every integer is either even or odd.
 """
 forall n Z:
-    $even(n) or $odd(n)
+    =>:
+        $even(n) or $odd(n)
 
 # ---------------------------------------------------------------------------
 # 4.3 存在唯一（∃!）
@@ -364,7 +488,17 @@ forall y R:
 """
 Show that there exists a unique rational number x such that for every rational a between 1 and 3, (a-x)^2 <= 1.
 """
-
+#不知道怎么写
+"""
+prop sq_le_1(a,x Q):
+    a<=3
+    a>=1
+    (a-x)^2 <= 1
+claim:
+    prove:
+        exist x Q st {forall a Q: $sq_le_1(a,x)}
+    
+"""
 # 4.3.3
 # 若 ∃! a, a^2=x，则 (-a)^2=x ⇒ -a=a ⇒ a=0 ⇒ x=0。
 """
@@ -372,20 +506,57 @@ Let x be a rational number, and suppose there exists a unique rational a such th
 """
 # 设 a 为满足 a^2=x 的唯一有理数，则 (-a)^2=x，由唯一性 -a=a，故 a=0，x=0（形式化需 have by exist 引入见证；见书本 Lean 的 obtain ⟨a, ha1, ha2⟩）。
 # （目标命题依赖「唯一性」假设，不单写成 forall x: x=0。）
+#不知道怎么写
+"""
+claim:
+    prove:
+        forall x Q:
+            exist a Q st {a^2 = x}
+            =>:
+                x = 0
+"""
 
 # 4.3.4
 # 除法算法：∃! r, 0<=r<b 且 a≡r (mod b)。特例 r=4 为 14 mod 5。（长证明见书本；Lean：Int.existsUnique_modEq_lt。）
 """
 Show that there exists a unique integer r such that 0 <= r < 5 and 14 ≡ r (mod 5).
 """
+let min_pos_remain fn (a Z, b Z) Z
+know:
+    forall a, b Z:
+        b>0
+        =>:
+            exist r Z st {0 <= r and r < b and $mod_eq(a, r, b)}
+   =
+    forall a,b Z:
+        b>0
+        =>:
+            $mod_eq(a, min_pos_remain(a, b), b)
+            min_pos_remain(a, b) >= 0
+            min_pos_remain(a, b) < b
+    forall a,b,r Z:
+        b>0
+        r<b
+        r>=0
+        $mod_eq(a, r, b)
+        =>:
+            r=min_pos_remain(a,b)
 claim:
     prove:
         exist r Z st {0 <= r and r < 5 and $mod_eq(14, r, 5)}
     witness exist r Z st {0 <= r and r < 5 and $mod_eq(14, r, 5)} from 4:
         0 <= 4
         4 < 5
+        witness exist c Z st {14-4 = 5 * c } from 2:
+            14 = 5 * 2 + 4
         $mod_eq(14, 4, 5)
-# 唯一性：书本用 1<q<3 迫使 q=2，得 r=4（长计算）。
+forall r Z:
+    0 <= r and r < 5 and $mod_eq(14, r, 5)
+    =>:
+        0=<r
+        r<5
+        r=min_pos_remain(14,5)
+
 
 # ---------------------------------------------------------------------------
 # 4.4 矛盾的假设
@@ -397,11 +568,20 @@ claim:
 Lemma: Let x and y be real numbers, and suppose 0 < x*y and 0 <= x. Show that 0 < y.
 """
 # 分情形：y≤0 时 0=x·0≥x·y 与 0<x·y 矛盾；故 y>0（Lean：contradiction）。
-forall x, y R:
-    0 < x * y
-    0 <= x
-    =>:
-        0 < y
+claim:
+    prove:
+        forall x, y R:
+            0 < x * y
+            0 <= x
+            =>:
+                0 < y
+    by contra:
+        prove:
+            0 < y
+        y<=0
+        x*y<=x*0=0
+        impossible x*y<=0
+        
 
 # 4.4.2
 # t<3 且 t-1=6 ⇒ t=7<3，假命题 ⇒ 爆炸原理可推出任意结论（含 t=13）。（Lean：numbers at H。）

@@ -531,16 +531,14 @@ claim:
 """
 Show that there exists an integer a such that 6a ≡ 4 (mod 11).
 """
-#不知道怎么写
-"""
+
 claim:
     prove:
         exist a Z st {$mod_eq(6 * a, 4, 11)}
     witness exist a Z st {$mod_eq(6 * a, 4, 11)} from 8:
-        witness exist c Z st {6 * 8 = 4 + 11 * c} from 4:
+        witness exist c Z st {6 * 8 -4=11 * c} from 4:
             6 * 8 - 4 = 11 * 4 
         $mod_eq(6 * 8, 4, 11)
-"""
 
 # 3.4.4
 """
