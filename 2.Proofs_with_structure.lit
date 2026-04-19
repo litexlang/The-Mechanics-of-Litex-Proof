@@ -61,6 +61,7 @@ Let a and b be real numbers, and suppose that a^2 = b^2 + 1 and a >= 0. Show tha
 
 # SOLVED
 # when 0 <= b - a, then a <= b is verified automatically; when a <= b, then 0 <= b - a is verified automatically.
+"""
 claim:
     prove:
         forall a, b R:
@@ -92,7 +93,19 @@ claim:
         a<1
         a >= 0
         impossible a^2 < 1^2
+"""
 
+claim:
+    prove:
+        forall a, b R:
+            a^2 = b^2 + 1
+            a >= 0
+            =>:
+                a >= 1
+    1 <= b^2 + 1 = a^2
+    0 <= a^2 - 1 = (a - 1) * (a + 1)
+    0 < 0 + 1 <= a + 1
+    0 = 0 * (1/(a + 1)) <= (a - 1) * (a + 1) * (1/(a + 1)) = a - 1
 
 
 # 2.1.6（对比 1.4.1：中间结论 x <= -1）
