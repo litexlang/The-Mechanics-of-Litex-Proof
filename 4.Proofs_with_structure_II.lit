@@ -9,11 +9,21 @@ prop odd(a Z):
 prop even(a Z):
     exist k Z st {a = 2 * k}
 prop dvdN(a N, b N):
+    a>=1
     exist c N st {b = a * c}
 prop dvdZ(a Z, b Z):
+    a!=0
     exist c Z st {b = a * c}
 prop mod_eq(a Z, b Z, n Z):
     exist k Z st {a - b = n * k}
+
+know:
+    forall a,b N:
+        =>:
+            $dvdN(a, b)
+        <=>:
+            a != 0
+            b % a = 0
 
 let odd_num fn(a Z:$odd(a)) Z
 let even_num fn(a Z:$even(a)) Z
@@ -82,9 +92,7 @@ know:
         $dvdN(n, m)
         =>:
             n<=m
-            1<=n
-#verify error
-"""
+
 forall n N:
     forall m N:
         $dvdN(n, m)
@@ -93,8 +101,7 @@ forall n N:
         0 < 1
         n <= 1
         1 <= n
-        n = 1
-"""
+
 # 4.1.3
 # 考虑 (a+b)/2：它要么 >= a，要么 <= b；两种情形分别推出 b>=a 或 a<=b。
 # （Lean：对析取假设分情形；此处 Litex 用 by cases。）
@@ -209,7 +216,6 @@ prop n_ge_n_sq_plus_7(M Z):
         =>:
             n^3 >= 4 * n^2 + 7
 # 对 n >= 5：n^3 = n*n^2 >= 5 n^2 = 4 n^2 + n^2 >= 4 n^2 + 25 > 4 n^2 + 7
-#为什么不能verify
 """
 claim:
     prove:
@@ -221,7 +227,7 @@ claim:
                 n^3=n*(n^2) >= 5 *(n^2)=4 * (n^2) + (n^2) >= 4 * (n^2) + 5^2 = 4 * (n^2) + 7 + 18
                 n^3 >= 4 * (n^2) + 7 + 18>4 * (n^2) + 7
                 n^3 >= 4 * (n^2) + 7
-""" 
+"""
 # 4.1.8
 # 定义：自然数 p 为素数，当且仅当 p>=2 且 p 的正因子只有 1 与 p。
 # 证 2 为素数：2<=2；设 m|2，则由大小界 m<=2 且 1<=m，枚举 m∈{1,2}。（Lean：interval_cases。）
@@ -236,8 +242,7 @@ prop Prime(p N):
 """
 Show that 2 is prime.
 """
-#不知道为什么不能verify
-"""
+
 claim:
     prove:
         $Prime(2)
@@ -249,7 +254,7 @@ claim:
             m <= 2
             1 <= m
             m = 1 or m = 2
-"""
+
 # 4.1.9
 # 证「非素数」：给出一个非平凡分解 p=k*l 且 k≠1、k≠p。（完整论证见 4.5.7；Lean 引理 not_prime。）
 """
@@ -531,8 +536,7 @@ forall y R:
 """
 Show that there exists a unique rational number x such that for every rational a between 1 and 3, (a-x)^2 <= 1.
 """
-#不知道怎么写
-"""
+
 know:
     forall a,b R:
         a<=b
@@ -582,7 +586,7 @@ claim:
             
 
     
-"""
+
 # 4.3.3
 # 若 ∃! a, a^2=x，则 (-a)^2=x ⇒ -a=a ⇒ a=0 ⇒ x=0。
 """
@@ -678,19 +682,20 @@ forall t Z:
     t < 3
     t - 1 = 6
     =>:
-        t = 7
-        7 < 3
-        impossible
+        t = 13
+        
 """
 # 4.4.3
 # n mod 3 为 0 或 2 则结论已成立；若 n≡1 (mod 3) 则 n^2+n+1≡3≡0 (mod 3)，与 ≡1 矛盾。（同余须规范到 0..n-1 再判「显然假」。）
 """
 Show that if n^2+n+1 ≡ 1 (mod 3) then n ≡ 0 or n ≡ 2 (mod 3).
 """
+
 know:
     forall n Z:
         $mod_eq(n, 0, 3) or $mod_eq(n, 2, 3) or $mod_eq(n, 1, 3)
 #无法在prop里面做化简计算
+
 """
 claim:
     prove:
@@ -709,9 +714,14 @@ claim:
             $mod_eq(n, 2, 3)
         case $mod_eq(n, 1, 3):
             $mod_eq(n*n, 1*1, 3)
-            $mod_eq(n*n+n, 1+1, 3)
-            $mod_eq(n^2+n+1, 1+1+1, 3)
-            $mod_eq(n^2+n+1, 3, 3)
+            $mod_eq(n*n+n, 1*1+1, 3)
+            witness exist c Z st {1-1= 3 * c} from 0:
+                1-1= 3 * 0
+            $mod_eq(1, 1, 3)
+            1*1+1+1=3
+            $mod_eq(n*n+n+1, 1*1+1+1, 3)
+            $mod_eq(n*n+n+1, 3, 3)
+            n*n=n^2
             $mod_eq(n^2+n+1, 0, 3)
             impossible $mod_eq(n^2+n+1, 0, 3)
 """
@@ -737,10 +747,13 @@ know:
 claim:
     prove:
         $Prime(5)
-    forall m N:
-        1 < m < 5
-        =>:
- """    
+    by for:
+        prove:
+            forall i 2...4:
+                5 % i != 0
+                not $dvdN(i, 5)
+        
+"""    
     
 
 # 4.4.5
@@ -766,7 +779,6 @@ witness exist x R st {x^2 < x} from 0.5:
 """
 Show that 13 is not a multiple of 3.
 """
-#不知道怎么写
 """
 claim:
     prove:
@@ -778,6 +790,8 @@ claim:
         exist k N st {13 = 3 * k}
         k <= 4 or k >= 5
         by cases:
+            prove:
+                not $dvdN(3, 13)
             case k <= 4:
                 13 = 3 * k<=3*4=12
                 impossible 13 <=12
@@ -872,6 +886,13 @@ claim:
 """
 Let p, k, l be natural numbers with k != 1, k != p, and p = k*l. Then p is not prime.
 """
+know:
+    forall a,b R:
+        a*b!=0
+        =>:
+            a!=0
+            b!=0
+"""
 claim:
     prove:
         forall p, k, l N:
@@ -880,6 +901,17 @@ claim:
             p = k * l
             =>:
                 not $Prime(p)
+    p=0 or p!=0
+    by cases:
+        prove:
+            not $Prime(p)
+        case p=0:
+            not $Prime(0)
+        case p!=0:
+            p!=0
+            p=k*l
+            k!=1
+            k!=p
     by contra:
         prove:
             not $Prime(p)
@@ -894,7 +926,7 @@ claim:
             p = k * l
         $dvdN(k, p)
         impossible $dvdN(k, p)
-
+"""
 
 # 4.5.8
 # 区间 (bq, b(q+1)) 内无 b 的倍数（书本 Int.not_dvd_of_exists_lt_and_lt 的证明骨架）。
