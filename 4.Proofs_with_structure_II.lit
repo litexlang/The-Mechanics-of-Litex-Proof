@@ -687,24 +687,61 @@ forall t Z:
 """
 Show that if n^2+n+1 ≡ 1 (mod 3) then n ≡ 0 or n ≡ 2 (mod 3).
 """
+know:
+    forall n Z:
+        $mod_eq(n, 0, 3) or $mod_eq(n, 2, 3) or $mod_eq(n, 1, 3)
+#无法在prop里面做化简计算
+"""
 claim:
     prove:
         forall n Z:
             $mod_eq(n^2+n+1, 1, 3)
             =>:
                 $mod_eq(n, 0, 3) or $mod_eq(n, 2, 3)
-    by contra:
+    
+    $mod_eq(n, 0, 3) or $mod_eq(n, 2, 3) or $mod_eq(n, 1, 3)
+    by cases:
         prove:
             $mod_eq(n, 0, 3) or $mod_eq(n, 2, 3)
-        $mod_eq(n, 1, 3)
+        case $mod_eq(n, 0, 3):
+            $mod_eq(n, 0, 3)
+        case $mod_eq(n, 2, 3):
+            $mod_eq(n, 2, 3)
+        case $mod_eq(n, 1, 3):
+            $mod_eq(n*n, 1*1, 3)
+            $mod_eq(n*n+n, 1+1, 3)
+            $mod_eq(n^2+n+1, 1+1+1, 3)
+            $mod_eq(n^2+n+1, 3, 3)
+            $mod_eq(n^2+n+1, 0, 3)
+            impossible $mod_eq(n^2+n+1, 0, 3)
+"""
+
 # 4.4.4
 # 素数判定引理：若 2<=p 且所有满足 1<m<p 的 m 都不整除 p，则 p 素数（prime_test）。证 5：枚举 m=2,3,4。
 """
 Lemma: Let p >= 2. If for all m with 1 < m < p, m does not divide p, then p is prime.
 Show that 5 is prime.
 """
-prove:
-    $Prime(5)
+know:
+    forall p N:
+        p >= 2
+        forall m N:
+            1 < m < p
+            =>:
+                not $dvdN(m, p)
+        =>:
+            $Prime(p)
+
+#不知道怎么写
+"""
+claim:
+    prove:
+        $Prime(5)
+    forall m N:
+        1 < m < 5
+        =>:
+ """    
+    
 
 # 4.4.5
 # 勾股数 a^2+b^2=c^2 且 a,b,c 为正 ⇒ a>=3（最小本原解 3,4,5）。书本对 a<=2 分情形导出矛盾（较长）。
@@ -721,7 +758,7 @@ Let a, b, c be positive natural numbers with a^2 + b^2 = c^2. Show that 3 <= a.
 """
 Show that it is not true that for all real numbers x, x^2 >= x.
 """
-prove:
+witness exist x R st {x^2 < x} from 0.5:
     0.5^2 < 0.5
 
 # 4.5.2
@@ -729,26 +766,70 @@ prove:
 """
 Show that 13 is not a multiple of 3.
 """
-prove:
-    not $dvdN(3, 13)
-
+#不知道怎么写
+"""
+claim:
+    prove:
+        not $dvdN(3, 13)
+    by contra:
+        prove:
+            not $dvdN(3, 13)
+        $dvdN(3, 13)
+        exist k N st {13 = 3 * k}
+        k <= 4 or k >= 5
+        by cases:
+            case k <= 4:
+                13 = 3 * k<=3*4=12
+                impossible 13 <=12
+            case k >= 5:
+                13 = 3 * k>=3*5=15
+                impossible 13 >=15
+"""
 # 4.5.3
 # x+y=0 时不能同时 x>0 且 y>0（否则 0=x+y>0）。
 """
 Let x and y be real numbers and suppose x + y = 0. Show it is not possible for both x and y to be positive.
 """
-forall x, y R:
-    x + y = 0
-    =>:
-        not (x > 0 and y > 0)
+claim:
+    prove:
+        forall x, y R:
+            x + y = 0
+            =>:
+                x<=0 or y<=0
+    x>0 or x<=0
+    by cases:
+        prove:
+            x<=0 or y<=0
+        case x<=0:
+            x<=0
+        case x>0:
+            y=x+y-x=0-x<0
+            y<=0
+
 
 # 4.5.4
 # 无自然数 n 满足 n^2=2（与 2.3.2 对照）。
 """
 Show that there does not exist a natural number n such that n^2 = 2.
 """
-prove:
-    not exist n N st {n^2 = 2}
+claim:
+    prove:
+        forall n N:
+            =>:
+                n^2 != 2
+    n<=1 or n>=2
+    by cases:
+        prove:
+            n^2!=2
+        case n<=1:
+            n^2<=1^2=1<2
+            n^2!=2
+        case n>=2:
+            n>=2
+            n^2>=2^2=4>2
+            n^2!=2
+
+
 
 # 4.5.5
 # 偶 ⇔ 非奇；奇 ⇔ 非偶（整数；用 mod 2 或分类讨论）。
@@ -761,14 +842,59 @@ Show that an integer n is even if and only if it is not odd; odd if and only if 
 """
 Let n be an integer. Show that n^2 not≡ 2 (mod 3).
 """
-forall n Z:
-    not $mod_eq(n^2, 2, 3)
+#得完善剩余类这个事情
+"""
+claim:
+    prove:
+        forall n Z:
+            not $mod_eq(n^2, 2, 3)
+    $mod_eq(n, 0, 3) or $mod_eq(n, 1, 3) or $mod_eq(n, 2, 3)
+    by cases:
+        prove:
+            not $mod_eq(n^2, 2, 3)
+        case $mod_eq(n, 0, 3):
+            $mod_eq(n^2, 0^2, 3)
+            $mod_eq(n^2, 0, 3)
+            not $mod_eq(n^2, 2, 3)
+        case $mod_eq(n, 1, 3):
+            $mod_eq(n^2, 1^2, 3)
+            $mod_eq(n^2, 1, 3)
+            not $mod_eq(n^2, 2, 3)
+        case $mod_eq(n, 2, 3):
+            $mod_eq(n^2, 2^2, 3)
+            $mod_eq(n^2, 4, 3)
+            $mod_eq(n^2, 1, 3)
+            not $mod_eq(n^2, 2, 3)
+"""
 
 # 4.5.7
 # p=k*l 且 k≠1、k≠p ⇒ p 非素数（书本定理）。
 """
 Let p, k, l be natural numbers with k != 1, k != p, and p = k*l. Then p is not prime.
 """
+claim:
+    prove:
+        forall p, k, l N:
+            k != 1
+            k != p
+            p = k * l
+            =>:
+                not $Prime(p)
+    by contra:
+        prove:
+            not $Prime(p)
+        $Prime(p)
+        k != 1 and k != p
+        p = k * l !=0
+        k!=0
+        l!=0
+        k<p
+        1<k
+        witness exist l N st {p = k * l} from l:
+            p = k * l
+        $dvdN(k, p)
+        impossible $dvdN(k, p)
+
 
 # 4.5.8
 # 区间 (bq, b(q+1)) 内无 b 的倍数（书本 Int.not_dvd_of_exists_lt_and_lt 的证明骨架）。
@@ -784,13 +910,4 @@ Show that 79 is prime.
 prove:
     $Prime(79)
 
-# 4.5.10 习题（提要）
-# (1) 不存在 t 同时 t≤4 且 t≥5。
-# (2) 不存在 a 同时 a^2≤8 且 a^3≥30（可先估 a 的范围）。
-# (3) ¬Even(7)。
-# (4) n+3=7 ⇒ n=4 为偶；若又 n^2=10 则矛盾。
-# (5) x^2<9 ⇒ -3<x<3，故 ¬(x≤-3 ∨ x≥3)。
-# (6) 对任意 N，取奇数 k>N 即否定「N 之后皆偶」。
-# (7) n^2 ≢ 2 (mod 4)（mod 2 或 mod 4 枚举）。
-# (8) 1 不满足素数定义中 2≤p（not_prime_one）。
-# (9) 用 better_prime_test（如 T=10）验证 97 为素数。
+
