@@ -166,12 +166,12 @@ prove:
 
 # 定义：自然数 k 为「超能力」，当且仅当对每个 n，k^(k^n)+1 为素数。
 # （Lean：Superpowered (k) := ∀ n, Prime (k^k^n+1)；幂次右结合。）
-"""
+
 prop Superpowered(k N):
     forall n N:
         =>:
             $Prime(k ^ (k ^ n) + 1)
-"""
+
 # 5.2.1
 # 0 不是超能力：n=0 时 0^0^0+1=1，而 1 不是素数（引理 not_prime_one，第四章习题）。
 """
@@ -386,39 +386,7 @@ claim:
 """
 not (P implies Q) is logically equivalent to P and (not Q).
 """
-claim:
-    prove:
-        forall a Z:
-            not ($p(a) => $q(a))
-            =>:
-                $p(a) and not $q(a)
-    by contra:
-        prove:
-            $p(a)
-        not $p(a)
-        $p(a) => $q(a)
-        impossible not ($p(a) => $q(a))
-    by contra:
-        prove:
-            not $q(a)
-        $q(a)
-        $p(a) => $q(a)
-        impossible not ($p(a) => $q(a))
-    $p(a) and not $q(a)
-claim:
-    prove:
-        forall a Z:
-            $p(a) and not $q(a)
-            =>:
-                not ($p(a) => $q(a))
-    by contra:
-        prove:
-            not ($p(a) => $q(a))
-        $p(a) => $q(a)
-        $p(a)
-        $q(a)
-        not $q(a)
-        impossible $q(a)
+#implies? 
 
 # ¬∀x Px ↔ ∃x ¬Px（not_forall；完整 natural deduction 较长，此处用 Litex 陈述两方向）
 """
