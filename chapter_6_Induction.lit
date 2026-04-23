@@ -1,0 +1,554 @@
+# Chapter 6 — 归纳法（Induction）
+# 本章命题用 Litex 写出；归纳骨架对齐 litex_statement.lit 中 `by induc n from 0` 与 `KnowStmt` 模式。
+# 自然数嵌入整数时用 `n >= 0`；亦可写 `forall n N` 作陈述（与第四章一致）。
+# 原文：https://hrmacbeth.github.io/math2001/06_Induction.html
+
+# ---------------------------------------------------------------------------
+# 与第四章对齐的最小谓词与约定（litex_statement：DefPropStmt / HaveObj）
+# ---------------------------------------------------------------------------
+
+prop odd(a Z):
+    exist k Z st {a = 2 * k + 1}
+prop even(a Z):
+    exist k Z st {a = 2 * k}
+prop mod_eq(a Z, b Z, n Z):
+    exist k Z st {a - b = n * k}
+prop dvdN(a N, b N):
+    a >= 1
+    exist c N st {b = a * c}
+prop dvdZ(a Z, b Z):
+    a != 0
+    exist c Z st {b = a * c}
+
+prop Prime(p N):
+    2 <= p
+    forall m N:
+        $dvdN(m, p)
+        =>:
+            m = 1 or m = p
+
+# 自然数上的奇偶（第六章 6.1.2 在 ℕ 上陈述；Litex 用 N 上的存在刻画）
+prop oddN(n N):
+    exist k N st {n = 2 * k + 1}
+prop evenN(n N):
+    exist k N st {n = 2 * k}
+
+# 6.1.2 亦可用第四章 Z 上 `even`/`odd` 对非负整数陈述（与 Lean `Even`/`Odd` 在 ℕ 上对应）
+
+prove:
+    know:
+        0 >= 0
+        $even(0) or $odd(0)
+        forall k Z:
+            k >= 0
+            ($even(k) or $odd(k))
+            =>:
+                k + 1 >= 0
+                $even(k + 1) or $odd(k + 1)
+
+    by induc n from 0:
+        $even(n) or $odd(n)
+
+    forall m Z:
+        m >= 0
+        =>:
+            $even(m) or $odd(m)
+
+# ---------------------------------------------------------------------------
+# 6.1 入门
+# ---------------------------------------------------------------------------
+
+# --- 6.1.1：2^n >= n+1（对 n 作归纳；Lean：`simple_induction`）---
+# litex_statement：ByInducStmt — 先 `know` 基始与归纳步，再 `by induc`，最后 `forall` 收口到非负整数。
+
+prop Pow2_ge_one_plus(n Z):
+    2^n >= n + 1
+
+prove:
+    know:
+        2^0 >= 0 + 1
+        forall k Z:
+            k >= 0
+            $Pow2_ge_one_plus(k)
+            =>:
+                2^(k + 1) >= (k + 1) + 1
+
+    by induc n from 0:
+        $Pow2_ge_one_plus(n)
+
+    forall m Z:
+        m >= 0
+        =>:
+            $Pow2_ge_one_plus(m)
+
+# --- 6.1.2：每个自然数要么偶要么奇（完整分情形归纳证明在 Lean；Litex 给出目标命题）---
+"""
+Let n be a natural number. Then n is either even or odd.
+"""
+
+claim:
+    prove:
+        forall n N:
+            $evenN(n) or $oddN(n)
+
+# --- 6.1.3：模幂 a^n ≡ b^n (mod d)，已知 a≡b (mod d) ---
+"""
+Let a, b, d be integers with a ≡ b (mod d). Let n be a natural number. Then a^n ≡ b^n (mod d).
+"""
+
+claim:
+    prove:
+        forall a, b, d Z:
+            $mod_eq(a, b, d)
+            =>:
+                forall n N:
+                    $mod_eq(a^n, b^n, d)
+
+# --- 6.1.4：4^n ≡ 1 或 4 (mod 15)（litex_statement：ByCasesStmt；证明见 Lean `simple_induction` + `obtain`）---
+
+claim:
+    prove:
+        forall n N:
+            $mod_eq(4^n, 1, 15) or $mod_eq(4^n, 4, 15)
+
+# --- 6.1.5：n>=2 时 3^n >= 2^n+5（从 2 起归纳；Lean：`induction_from_starting_point`）---
+# Litex 无专用语法：用 `know` 标明基始 n=2 与步进，纸面/Lean 仍用课程战术。
+
+claim:
+    prove:
+        forall n Z:
+            n >= 2
+            =>:
+                3^n >= 2^n + 5
+    3^2 >= 2^2 + 5
+    forall k Z:
+        k >= 2
+        3^k >= 2^k + 5
+        =>:
+            k + 1 >= 2
+            3^(k + 1) >= 2^(k + 1) + 5
+
+# --- 6.1.6：充分大 n 有 2^n >= n^2（书本从 n=4 起；此处只写目标形状 litex_statement：WitnessExistFact 可给阈值）---
+
+prop Eventually_ge_sq():
+    exist N0 Z st {
+        forall n Z:
+            n >= N0
+            =>:
+                2^n >= n^2
+    }
+
+claim:
+    prove:
+        $Eventually_ge_sq()
+    witness exist N0 Z st {
+        forall n Z:
+            n >= N0
+            =>:
+                2^n >= n^2
+    } from 4:
+        forall n Z:
+            n >= 4
+            =>:
+                2^n >= n^2
+
+# --- 6.1.7 习题：陈述为 Litex `forall` / `exist`（证明留作练习）---
+
+claim:
+    prove:
+        forall n N:
+            3^n >= n^2 + n + 1
+
+claim:
+    prove:
+        forall a R:
+            -1 <= a
+            =>:
+                forall n N:
+                    (1 + a)^n >= 1 + n * a
+
+claim:
+    prove:
+        forall n N:
+            $mod_eq(5^n, 1, 8) or $mod_eq(5^n, 5, 8)
+
+claim:
+    prove:
+        forall n N:
+            $mod_eq(6^n, 1, 7) or $mod_eq(6^n, 6, 7)
+
+claim:
+    prove:
+        forall n N:
+            $mod_eq(4^n, 1, 7) or $mod_eq(4^n, 2, 7) or $mod_eq(4^n, 4, 7)
+
+claim:
+    prove:
+        exist N1 Z st {
+            forall n Z:
+                n >= N1
+                =>:
+                    3^n >= 2^n + 100
+        }
+
+claim:
+    prove:
+        exist N2 Z st {
+            forall n Z:
+                n >= N2
+                =>:
+                    2^n >= n^2 + 4
+        }
+
+claim:
+    prove:
+        exist N3 Z st {
+            forall n Z:
+                n >= N3
+                =>:
+                    2^n >= n^3
+        }
+
+claim:
+    prove:
+        forall a N:
+            $oddN(a)
+            =>:
+                forall n N:
+                    $oddN(a^n)
+
+claim:
+    prove:
+        forall a N, n N:
+            $evenN(a^n)
+            =>:
+                $evenN(a)
+
+# ---------------------------------------------------------------------------
+# 6.2 递推关系：用 `have fn` 或分式定义数列（litex_statement：HaveFnEqualStmt / HaveFnEqualCaseByCaseStmt）
+# ---------------------------------------------------------------------------
+
+# 闭式 a(n)=2^n
+have fn seq_pow2(n N) N = 2^n
+
+# 递归 b：b_0=3, b_{n+1}=b_n^2-2（与 Lean `| 0 => 3 | n+1 => ...` 对齐的按情形定义）
+have fn seq_b(n N) Z:
+    case n = 0:
+        3
+    case n != 0:
+        seq_b(n - 1)^2 - 2
+
+# --- 6.2.1：b_n 为奇（seq_b(n) 为整数；用第四章 `odd`）---
+
+claim:
+    prove:
+        forall n N:
+            $odd(seq_b(n))
+
+# --- 6.2.2–6.2.3：数列 x ---
+
+have fn seq_x(n N) Z:
+    case n = 0:
+        5
+    case n != 0:
+        2 * seq_x(n - 1) - 1
+
+claim:
+    prove:
+        forall n N:
+            $mod_eq(seq_x(n), 1, 4)
+
+claim:
+    prove:
+        forall n N:
+            seq_x(n) = 2^(n + 2) + 1
+
+# --- 6.2.4：三角数和 ---
+
+have fn seq_A(n N) Q:
+    case n = 0:
+        0
+    case n != 0:
+        seq_A(n - 1) + n
+
+claim:
+    prove:
+        forall n N:
+            seq_A(n) = n * (n + 1) / 2
+
+# --- 6.2.5–6.2.6：阶乘与整除 ---
+
+have fn factorial(n N) N:
+    case n = 0:
+        1
+    case n != 0:
+        n * factorial(n - 1)
+
+claim:
+    prove:
+        forall n N:
+            forall d N:
+                1 <= d
+                d <= n
+                =>:
+                    $dvdN(d, factorial(n))
+
+claim:
+    prove:
+        forall n N:
+            factorial(n + 1) >= 2^n
+
+# --- 6.2.7 习题（Litex 陈述）---
+
+have fn seq_c(n N) Z:
+    case n = 0:
+        7
+    case n != 0:
+        3 * seq_c(n - 1) - 10
+
+claim:
+    prove:
+        forall n N:
+            $odd(seq_c(n))
+
+claim:
+    prove:
+        forall n N:
+            seq_c(n) = 2 * 3^n + 5
+
+have fn seq_y(n N) N:
+    case n = 0:
+        2
+    case n != 0:
+        seq_y(n - 1)^2
+
+claim:
+    prove:
+        forall n N:
+            seq_y(n) = 2^(2^n)
+
+have fn seq_B(n N) Q:
+    case n = 0:
+        0
+    case n != 0:
+        seq_B(n - 1) + n^2
+
+claim:
+    prove:
+        forall n N:
+            seq_B(n) = n * (n + 1) * (2 * n + 1) / 6
+
+have fn seq_S(n N) Q:
+    case n = 0:
+        1
+    case n != 0:
+        seq_S(n - 1) + 1 / 2^n
+
+claim:
+    prove:
+        forall n N:
+            seq_S(n) = 2 - 1 / 2^n
+
+claim:
+    prove:
+        forall n N:
+            factorial(n) > 0
+
+claim:
+    prove:
+        forall n N:
+            n >= 2
+            =>:
+                $evenN(factorial(n))
+
+claim:
+    prove:
+        forall n N:
+            factorial(n + 1) <= (n + 1)^n
+
+# ---------------------------------------------------------------------------
+# 6.3 两步归纳：递推依赖前两项（Lean：`two_step_induction`；Litex 用两条基始 + 一步递推的 `know` 注释）
+# ---------------------------------------------------------------------------
+
+have fn seq_a2(n N) Z:
+    case n = 0:
+        2
+    case n = 1:
+        1
+    case n != 0:
+        case n = 1:
+            1
+        case n != 1:
+            seq_a2(n - 1) + 2 * seq_a2(n - 2)
+
+# 上式在 Litex 中按情形展开易冗长；书本 Lean 用 `| n+2 => ...`。此处目标式仍可直接写出：
+
+claim:
+    prove:
+        forall n N:
+            seq_a2(n) = 2^n + (-1)^n
+
+claim:
+    prove:
+        forall m N:
+            m >= 1
+            =>:
+                $mod_eq(seq_a2(m), 1, 6) or $mod_eq(seq_a2(m), 5, 6)
+
+have fn Fib(n N) Z:
+    case n = 0:
+        1
+    case n = 1:
+        1
+    case n != 0:
+        case n = 1:
+            1
+        case n != 1:
+            Fib(n - 1) + Fib(n - 2)
+
+claim:
+    prove:
+        forall n N:
+            Fib(n) <= 2^n
+
+claim:
+    prove:
+        forall n N:
+            Fib(n + 1)^2 - Fib(n + 1) * Fib(n) - Fib(n)^2 = -(-1)^n
+
+# 6.3.5–6.3.6：略去冗长 `seq_d` 定义，保留习题 Litex 目标
+
+claim:
+    prove:
+        exist N4 Z st {
+            forall n Z:
+                n >= N4
+                =>:
+                    Fib(n) > (2 / 5) * (8 / 5)^n
+                    Fib(n) < (1 / 2) * (17 / 10)^n
+        }
+
+# ---------------------------------------------------------------------------
+# 6.4 强归纳：目标写成 `forall`，证明依赖更小实例时在 Lean 中自引用定理名（Litex 以注释标明）
+# ---------------------------------------------------------------------------
+
+claim:
+    prove:
+        forall n N:
+            n >= 2
+            =>:
+                exist p N:
+                    $Prime(p)
+                    $dvdN(p, n)
+
+claim:
+    prove:
+        forall n N:
+            n > 0
+            =>:
+                exist a N, x N:
+                    $oddN(x)
+                    n = 2^a * x
+
+# ---------------------------------------------------------------------------
+# 6.5 帕斯卡（双下标递归；litex_statement：`termination_by` 在 Lean 侧；Litex 用 `have fn` 双参数情形）
+# ---------------------------------------------------------------------------
+
+have fn pascal(a N, b N) N:
+    case b = 0:
+        1
+    case b != 0:
+        case a = 0:
+            1
+        case a != 0:
+            pascal(a, b - 1) + pascal(a - 1, b - 1)
+
+claim:
+    prove:
+        forall a N, b N:
+            pascal(a, b) <= factorial(a + b)
+
+claim:
+    prove:
+        forall a N, b N:
+            pascal(a, b) * factorial(a) * factorial(b) = factorial(a + b)
+
+claim:
+    prove:
+        forall m N, n N:
+            pascal(m, n) = pascal(n, m)
+
+claim:
+    prove:
+        forall a N:
+            pascal(a, 1) = a + 1
+
+# ---------------------------------------------------------------------------
+# 6.6–6.7：除法算法、gcd、贝祖（递归定义在 Lean；Litex 只写主要等式与存在命题形状）
+# ---------------------------------------------------------------------------
+
+have fn fmod(n Z, d Z) Z:
+    case n * d < 0:
+        fmod(n + d, d)
+    case 0 < d * (n - d):
+        fmod(n - d, d)
+    case n = d:
+        0
+    case n != d:
+        n
+
+have fn fdiv(n Z, d Z) Z:
+    case n * d < 0:
+        fdiv(n + d, d) - 1
+    case 0 < d * (n - d):
+        fdiv(n - d, d) + 1
+    case n = d:
+        1
+    case n != d:
+        0
+
+claim:
+    prove:
+        forall n Z, d Z:
+            fmod(n, d) + d * fdiv(n, d) = n
+
+claim:
+    prove:
+        forall n Z, d Z:
+            d > 0
+            =>:
+                0 <= fmod(n, d)
+                fmod(n, d) < d
+
+claim:
+    prove:
+        forall a Z, b Z:
+            b > 0
+            =>:
+                exist r Z:
+                    0 <= r
+                    r < b
+                    $mod_eq(a, r, b)
+
+claim:
+    prove:
+        forall n Z, d Z:
+            d < 0
+            =>:
+                d < fmod(n, d)
+
+# 习题 6.6.2：分段递归 T(n)=n^2（需良基度量 |3n−1|；Litex 语句集不内置 `termination_by`，在 Lean 中形式化。）
+# claim: forall n Z, T(n) = n^2
+
+# 节 6.7：gcd 的递归定义、互归纳证 gcd|a 且 gcd|b、扩展欧几里得 L,R、贝祖与最大公因子性质 —— 均在 Lean 中完成；
+# Litex 可将其读作未定符号 `gcd(a,b)` 上的公理簇（下略具体 `have fn`，以免与 `fmod`/`fdiv` 互递归校验纠缠）。
+
+# ---------------------------------------------------------------------------
+# 备忘（对照 litex_statement.lit）
+# ---------------------------------------------------------------------------
+# - `by induc n from 0`：需前置 `know` 给出基始 P(0) 与归纳 P(k)=>P(k+1)，结论为 `forall m Z, m>=0 => P(m)` 形式见 Stmt::ByInducStmt。
+# - `by cases`： Stmt::ByCasesStmt — 对析取假设或目标分情形。
+# - `witness exist ... from ...`： Stmt::WitnessExistFact — 存在量词给出见证。
+# - `have fn f(x) T : case ...`： Stmt::HaveFnEqualCaseByCaseStmt — 分段递归与书本 `match` 一致。
+# - 两步归纳、强归纳、互归纳：当前 Litex 语句集无单独关键字，用 Lean 侧 `two_step_induction`、`match`+自调用定理、`mutual` 实现；上文已用 `claim` 固定数学目标。
+# - 6.1.2、6.1.3、6.1.4 及多数习题：只保留 `claim`/`prove` 中的目标式（与第四章部分条目相同），避免 Litex 尚不支持的冗长证明树。
