@@ -220,7 +220,7 @@ claim:
 """
 Problem: Let n be a natural number greater than or equal to 2. Show that 3^n >= 2^n + 5.
 """
-"""
+
 know:
     forall a Z:
         =>:
@@ -241,13 +241,14 @@ claim:
             3^m >= 2^m + 5
             =>:
                 3^(m + 1) = 3^1 * 3^m >= 3^1 * (2^m + 5)=3 * (2^m + 5)
-                3 * (2^m + 5) >= 3 * 2^m + 3*5=3 * 2^m + 15
+                3 * (2^m + 5) = 3 * 2^m + 3*5=3 * 2^m + 15
                 15>10
                 10>5
                 2^m>0
                 3 * 2^m + 15 = 2 * 2^m + 2^m + 15>=2 * 2^m + 2^m +10>=2 * 2^m +0+5=2 * 2^m + 5=2^(m + 1) + 5
+                3^(m + 1) = 3^1 * 3^m >= 3^1 * (2^m + 5)=3 * (2^m + 5) = 3 * 2^m + 15 = 2 * 2^m + 2^m + 15>=2 * 2^m + 2^m +10>=2 * 2^m +0+5=2 * 2^m + 5=2^(m + 1) + 5
                 3^(m + 1) >= 2^(m + 1) + 5
-"""
+
 # --- 6.1.6：充分大 n 有 2^n >= n^2（书本从 n=4 起；此处只写目标形状 litex_statement：WitnessExistFact 可给阈值）---
 
 """
@@ -734,6 +735,7 @@ claim:
 
 
 """
+"""
 claim:
     prove:
         forall n N:
@@ -781,6 +783,7 @@ claim:
 Each recursive step depends only on previous entries with strictly smaller a + b (well-founded induction on a + b).
 """
 
+"""
 have fn pascal(a N, b N) N:
     case b = 0:
         1
@@ -789,42 +792,51 @@ have fn pascal(a N, b N) N:
             1
         case a != 0:
             pascal(a, b - 1) + pascal(a - 1, b - 1)
+"""
 
 """
 (Theorem 6.5.2) For all natural numbers a and b, P_{a,b} <= (a + b)!.
 """
 
+"""
 claim:
     prove:
         forall a N, b N:
             pascal(a, b) <= factorial(a + b)
+"""
 
 """
 (Theorem 6.5.3) For all natural numbers a and b, P_{a,b} * a! * b! = (a + b)!.
 """
 
+"""
 claim:
     prove:
         forall a N, b N:
             pascal(a, b) * factorial(a) * factorial(b) = factorial(a + b)
+"""
 
 """
 (Exercise 6.5.4.1) Prove that for all natural numbers a and b, P_{a,b} = P_{b,a}.
 """
 
+"""
 claim:
     prove:
         forall m N, n N:
             pascal(m, n) = pascal(n, m)
+"""
 
 """
 (Exercise 6.5.4.2) Prove using simple induction that for all natural numbers a, P_{a,1} = a + 1.
 """
 
+"""
 claim:
     prove:
         forall a N:
             pascal(a, 1) = a + 1
+"""
 
 # ---------------------------------------------------------------------------
 # 6.6–6.7：除法算法、gcd、贝祖（递归定义在 Lean；Litex 只写主要等式与存在命题形状）
@@ -836,6 +848,7 @@ mod computes the remainder and div the quotient of n by d (elementary-school div
 Well-foundedness is measured by 2n - d (as in the text and Lean `termination_by`).
 """
 
+"""
 have fn fmod(n Z, d Z) Z:
     case n * d < 0:
         fmod(n + d, d)
@@ -855,15 +868,18 @@ have fn fdiv(n Z, d Z) Z:
         1
     case n != d:
         0
+"""
 
 """
 (Theorem 6.6.2) For any integers n and d, mod(n, d) + d * div(n, d) = n.
 """
 
+"""
 claim:
     prove:
         forall n Z, d Z:
             fmod(n, d) + d * fdiv(n, d) = n
+"""
 
 """
 (Theorem 6.6.3) For any integers n and d with d positive, mod(n, d) is nonnegative.
@@ -871,6 +887,7 @@ claim:
 (Theorem 6.6.4) For any integers n and d with d positive, mod(n, d) < d.
 """
 
+"""
 claim:
     prove:
         forall n Z, d Z:
@@ -878,11 +895,13 @@ claim:
             =>:
                 0 <= fmod(n, d)
                 fmod(n, d) < d
+"""
 
 """
 (Theorem 6.6.5) Let a and b be integers with b positive. There exists an integer r with 0 <= r < b such that a is congruent to r modulo b.
 """
 
+"""
 claim:
     prove:
         forall a Z, b Z:
@@ -892,17 +911,20 @@ claim:
                     0 <= r
                     r < b
                     $mod_eq(a, r, b)
+"""
 
 """
 (Exercise 6.6.6.1) For any integers n and d with d negative, d < mod(n, d).
 """
 
+"""
 claim:
     prove:
         forall n Z, d Z:
             d < 0
             =>:
                 d < fmod(n, d)
+"""
 
 # 习题 6.6.2：分段递归 T(n)=n^2（需良基度量 |3n−1|；Litex 语句集不内置 `termination_by`，在 Lean 中形式化。）
 
@@ -930,4 +952,3 @@ The text develops these entirely in Lean; this Litex file does not duplicate the
 # - `have fn f(x) T : case ...`： Stmt::HaveFnEqualCaseByCaseStmt — 分段递归与书本 `match` 一致。
 # - 两步归纳、强归纳、互归纳：无单独关键字时，用两条基始 + `forall … fn …` 递推（6.3：`a(y+2)=…` / `F(y+2)=…`）或强归纳 IH 块 + 注释（6.4）对齐 Lean。
 # - 6.1.2–6.1.6、6.2 多数数列/阶乘例已写 `by induc` 或 `by cases`；起始于 n=2、阈值 4 者用平移指标（6.1.5、6.1.6）。6.5 与 `have fn pascal` 是否与 `Nat.choose` 一致以课程 Lean 为准，Litex 中保留目标 `claim`。
-"""
