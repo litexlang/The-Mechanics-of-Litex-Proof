@@ -163,12 +163,14 @@ claim:
 # ---------------------------------------------------------------------------
 # 8.2 双射（Bijectivity）
 # ---------------------------------------------------------------------------
-
+prop bijective(f fn(x R) R):
+    $injective(f) 
+    $surjective(f)
 # 8.2.1 定义：双射 ⇔ 单射 ∧ 满射。Lean：`Bijective f` := `Injective f ∧ Surjective f`。
 
 # --- 8.2.2 例：p(x)=2x−5 在 ℝ 上双射 ---
 
-"""
+
 have fn p_R(x R) R = 2 * x - 5
 
 claim:
@@ -177,78 +179,66 @@ claim:
             p_R(x1) = p_R(x2)
             =>:
                 x1 = x2
-    forall y R:
-        exist x R st {p_R(x) = y}
+    p_R(x1) = 2 * x1 - 5
+    p_R(x2) = 2 * x2 - 5
+    p_R(x1) = p_R(x2)
+    (2 * x1 - 5) = (2 * x2 - 5)
+    x1 =(2*x1-5+5)/2 = (2*x2-5+5)/2 = x2
+claim:
+    prove:
+        forall y R:
+            exist x R st {p_R(x) = y}
     witness exist x R st {p_R(x) = y} from (y + 5) / 2:
-        p_R((y + 5) / 2) = y
-"""
+        p_R((y + 5) / 2) = 2 * ((y + 5) / 2) - 5 = y
+
 
 # --- 8.2.3 例：a(t)=t^3−t 非双射（0≠1 但 a(0)=a(1)）---
 
-"""
+
 have fn a_cubic(t R) R = t^3 - t
 
 claim:
     prove:
-        exist x1 R, x2 R st {
-            x1 != x2
-            a_cubic(x1) = a_cubic(x2)
-        }
-    witness exist x1 R, x2 R st {0 != 1 and a_cubic(0) = a_cubic(1)} from 0, 1:
-        a_cubic(0) = 0 = 1 - 1 = a_cubic(1)
-"""
+        exist x1 R, x2 R st {x1 != x2,a_cubic(x1) = a_cubic(x2)}
+    witness exist x1 R, x2 R st {x1 != x2,a_cubic(x1) = a_cubic(x2)} from 0, 1:
+        0 != 1
+        a_cubic(0) = 0^3 - 0 = 0
+        a_cubic(1) = 1^3 - 1 = 0
+        a_cubic(0) = a_cubic(1)
+
 
 # --- 8.2.4–8.2.5 有限类型 Celestial/Subatomic；f 不满射故非双射；双射 ⟺ ∀y∃!x, f(x)=y（8.2.5 定理，Lean 中 `↔` 证明）---
 # --- 8.2.6：|Celestial|=2 时自映射单射 ⇒ 双射（穷举四种函数）---
+
 # --- 8.2.7：∃f:ℕ→ℕ 单射但非双射（例 f(n)=n+1，0 无原象）---
 
-"""
-have fn succ_N(n N) N = n + 1
 
+have fn succ_N(n N) N = n + 1
+prop not_bi_N(y N):
+    forall n N:
+        succ_N(n) != y
 claim:
     prove:
         forall n1 N, n2 N:
             succ_N(n1) = succ_N(n2)
             =>:
                 n1 = n2
+    succ_N(n1) = n1 + 1
+    succ_N(n2) = n2 + 1
+    succ_N(n1) = succ_N(n2)
+    (n1 + 1) = (n2 + 1)
+    n1 = n1+1-1 = n2+1-1 = n2
 claim:
     prove:
-        exist y N st {
-            forall n N:
-                succ_N(n) != y
-        }
-    witness exist y N st {forall n N: succ_N(n) != y} from 0:
+        exist y N st {$not_bi_N(y)}
+    witness exist y N st {$not_bi_N(y)} from 0:
         forall n N:
-            n + 1 > 0
+            n>=0
+            n + 1 >= 0+1=1>0
+            succ_N(n) = n + 1>0
             succ_N(n) != 0
-"""
 
-# --- 8.2.8 习题 ---
-# (1) x↦4−3x 在 ℝ 上双射 ✓。(2) x↦x^2+2x 非双射 ✓。
-# (3) Element={fire,water,earth,air} 上给定置换 e — 双射 ✓。
-# (4)(5) Subatomic、Element 上自映射单射 ⇒ 双射（穷举）。
 
-"""
-have fn affine_bi_R(x R) R = 4 - 3 * x
-
-claim:
-    prove:
-        forall x1 R, x2 R:
-            affine_bi_R(x1) = affine_bi_R(x2)
-            =>:
-                x1 = x2
-    forall y R:
-        exist x R st {affine_bi_R(x) = y}
-
-have fn quad_shift_R(x R) R = x^2 + 2 * x
-
-claim:
-    prove:
-        exist x1 R, x2 R st {
-            x1 != x2
-            quad_shift_R(x1) = quad_shift_R(x2)
-        }
-"""
 
 # ---------------------------------------------------------------------------
 # 8.3 复合、恒等与逆（Composition, identity, inverse）
@@ -257,7 +247,7 @@ claim:
 # 8.3.1 定义：(g∘f)(x)=g(f(x))（Lean：`comp` / `g ∘ f`，注意记号顺序与部份教材相反：此处 g 外层与课本一致）。
 # litex：`have fn` 复合用显式外层函数写出。
 
-"""
+
 have fn f_add3_R(a R) R = a + 3
 have fn g_times2_R(b R) R = 2 * b
 have fn h_lin_R(c R) R = 2 * c + 6
@@ -269,7 +259,6 @@ claim:
         forall x R:
             gf_R(x) = h_lin_R(x)
     gf_R(x) = 2 * (x + 3) = 2 * x + 6 = h_lin_R(x)
-
 have fn id_R(t R) R = t
 
 # --- 8.3.4 例：s(x)=5−x 满足 s∘s = id ---
@@ -277,166 +266,238 @@ have fn id_R(t R) R = t
 have fn s_reflect_R(x R) R = 5 - x
 
 have fn ss_R(x R) R = s_reflect_R(s_reflect_R(x))
-
 claim:
     prove:
         forall x R:
             ss_R(x) = id_R(x)
     ss_R(x) = 5 - (5 - x) = x
-"""
+
 
 # 8.3.5 定义：g 为 f 的逆 ⇔ g∘f = Id_X 且 f∘g = Id_Y。Lean：`Inverse f g`。
 # （Humour 四元置换 p、逆 q — 课本 `Inverse p q`，`cases <;> exhaust`。）
 # Litex 可对具体 u,v 写：`forall x, v(u(x))=x` 且 `forall y, u(v(y))=y`（见下 `u_R`/`v_R`）。
+prop inverse_R(f fn(x R) R, g fn(x R) R):
+    forall x R:
+        g(f(x)) = x
+    forall y R:
+        f(g(y)) = y
+
 
 # --- 8.3.7：双射 ⇒ 存在逆（选择公理 / Lean `choose`）---
+"""
+claim:
+    prove:
+        forall f fn(x R) R:
+            $bijective(f)
+            =>:
+                exist g fn(x R) R st {$inverse_R(f, g)}
+    witness exist g fn(x R) R st {$inverse_R(f, g)} from f_add3_R, g_times2_R, h_lin_R:
+        forall x R:
+            g(f(x)) = x
+            f(g(x)) = x
+"""
 # --- 8.3.8：存在逆 ⇒ 双射（用 g∘f=id 证单射，f∘g=id 证满射）---
 # --- 8.3.9：Bijective f ↔ ∃g, Inverse f g（课本 `bijective_iff_exists_inverse`）---
 # （二阶「存在函数 g」在 Litex 中不单独写法；在 Lean 用 `bijective_iff_exists_inverse` 整条定理。）
-
-# --- 8.3.10 习题 ---
-# (1) Humour 上给定 a,b，求 c 使 b∘a=c（逐项算复合）。
-# (2) u(x)=5x+1，逆 v(x)=(x−1)/5。
-# (3) f,g 单射 ⇒ g∘f 单射。(4) f,g 满射 ⇒ g∘f 满射。
-# (5) f 满射 ⇒ ∃g, f∘g=id（截面 / 选择）。
-# (6) Inverse f g ⇒ Inverse g f（对称）。
-# (7) 同一 f 的两个逆 g1=g2（唯一性）。
-
-"""
-have fn u_R(x R) R = 5 * x + 1
-have fn v_R(x R) R = (x - 1) / 5
-
-claim:
-    prove:
-        forall x R:
-            v_R(u_R(x)) = x
-    forall y R:
-            u_R(v_R(y)) = y
-"""
 
 # ---------------------------------------------------------------------------
 # 8.4 积类型（Product types）
 # ---------------------------------------------------------------------------
 
-# 有序对相等：`obtain ⟨h1,h2⟩` 与 `constructor`（与逻辑 ∧ 类比）。Litex 不内置积类型返回值时，
-# 把 `q(m)=(m+1,2−m)` 拆成两个分量函数（与课本证明「逐分量相等」一致）。
-#
-# 本节下述 Litex 例题体均包在一段 `""" … """` 中（与 8.1.4 同式），对应 8.4.1–8.4.8：
-# 8.4.1–2：q 分量、F_Z2 与逆；8.4.3：ℝ^2 上和差对、ℤ^2 上非满射；8.4.5–8.4.8：投影和、5m+8n、swap。
+# litex_statement：积用 `cart(A,B)` 表示笛卡尔积；有序对写作 `(a, b)`，可用 `u[1]`、`u[2]` 取分量（见 `ByTupleStmt` / `cart` 示例）。
+# 下列 `know` 把「逐分量相等」与「有序对相等」对齐，供 `cart` 上的单射、满射证明引用。
+
+
+know:
+    forall u cart(Z, Z), v cart(Z, Z):
+        u = v
+        =>:
+            u[1] = v[1]
+            u[2] = v[2]
+    forall u cart(R, R), v cart(R, R):
+        u = v
+        =>:
+            u[1] = v[1]
+            u[2] = v[2]
+
+# --- 8.4.1 例：定义 q(m)=(m+1, 2−m)，将 ℤ 映入 ℤ×ℤ（Lean 中记作 `ℤ × ℤ`）。证明 q 单射，并证 q 不满射（例如 (0,1) 不在像中；纸面由两分量解出 m 矛盾）。---
 
 """
-have fn q_Z_lo(m Z) Z = m + 1
-have fn q_Z_hi(m Z) Z = 2 - m
+Consider q : ℤ → ℤ × ℤ defined by q(m) = (m + 1, 2 - m).
+Show q is injective (1) and not surjective (2).
+"""
+
+have fn q_Z(m Z) cart(Z, Z) = (m + 1, 2 - m)
 
 claim:
     prove:
         forall m1 Z, m2 Z:
-            q_Z_lo(m1) = q_Z_lo(m2)
-            q_Z_hi(m1) = q_Z_hi(m2)
+            q_Z(m1) = q_Z(m2)
             =>:
                 m1 = m2
-    q_Z_lo(m1) = q_Z_lo(m2)
+    q_Z(m1) = (m1 + 1, 2 - m1)
+    q_Z(m2) = (m2 + 1, 2 - m2)
+    q_Z(m1) = q_Z(m2)
+    (m1 + 1, 2 - m1) = (m2 + 1, 2 - m2)
     m1 + 1 = m2 + 1
     m1 = m2
 
+"""
+prop img_q_avoid(pair cart(Z, Z)):
+    forall m Z:
+        q_Z(m) != pair
+
 claim:
     prove:
-        exist b Z st {
-            forall m Z:
-                not (q_Z_lo(m) = 0 and q_Z_hi(m) = b)
-        }
-    witness exist b Z st {} from 1:
+        exist aim cart(Z, Z) st {$img_q_avoid(aim)}
+    witness exist aim cart(Z, Z) st {$img_q_avoid(aim)} from (0, 1):
         forall m Z:
-            q_Z_lo(m) = 0
+            q_Z(m) = (0, 1)
             =>:
-                m = -1
-            q_Z_hi(-1) = 3 != 1
+                m + 1 = 0
+                2 - m = 1
+                impossible -1 != 2
+"""
+# --- 8.4.2 例：ℤ²→ℤ²，(m,n)↦(m+n, m+2n)。求证为双射；逆映射 (a,b)↦(2a−b, b−a)（Rough work：解二元一次方程）。---
 
-have fn F_Z2_lo(m Z, n Z) Z = m + n
-have fn F_Z2_hi(m Z, n Z) Z = m + 2 * n
-have fn Finv_Z2_lo(a Z, b Z) Z = 2 * a - b
-have fn Finv_Z2_hi(a Z, b Z) Z = b - a
-
-claim:
-    prove:
-        forall m Z, n Z:
-            Finv_Z2_lo(F_Z2_lo(m, n), F_Z2_hi(m, n)) = m
-            Finv_Z2_hi(F_Z2_lo(m, n), F_Z2_hi(m, n)) = n
-    forall a Z, b Z:
-            F_Z2_lo(Finv_Z2_lo(a, b), Finv_Z2_hi(a, b)) = a
-            F_Z2_hi(Finv_Z2_lo(a, b), Finv_Z2_hi(a, b)) = b
-
-have fn F_R2_sd_lo(m R, n R) R = m + n
-have fn F_R2_sd_hi(m R, n R) R = m - n
-
-have fn Finv_R2_sd_lo(a R, b R) R = (a + b) / 2
-have fn Finv_R2_sd_hi(a R, b R) R = (a - b) / 2
+"""
+Show that (m, n) ↦ (m + n, m + 2*n) from ℤ² to ℤ² is bijective; inverse (a,b) ↦ (2a−b, b−a).
+"""
+"""
+have fn F_Z2(t cart(Z, Z)) cart(Z, Z) = (t[1] + t[2], t[1] + 2 * t[2])
+have fn Finv_Z2(s cart(Z, Z)) cart(Z, Z) = (2 * s[1] - s[2], s[2] - s[1])
 
 claim:
     prove:
-        forall m R, n R:
-            Finv_R2_sd_lo(F_R2_sd_lo(m, n), F_R2_sd_hi(m, n)) = m
-            Finv_R2_sd_hi(F_R2_sd_lo(m, n), F_R2_sd_hi(m, n)) = n
+        forall t cart(Z, Z):
+            Finv_Z2(F_Z2(t)) = t
+        forall s cart(Z, Z):
+            F_Z2(Finv_Z2(s)) = s
+"""
+# --- 8.4.3 例：ℝ²→ℝ²，(m,n)↦(m+n, m−n)。在 ℝ 上可逆，逆为 ((a+b)/2, (a−b)/2)。同一公式限制在 ℤ²→ℤ² 则非双射：例如 (0,1) 无原像（奇偶/整数约束）。---
 
-have fn F_Z_sd_lo(m Z, n Z) Z = m + n
-have fn F_Z_sd_hi(m Z, n Z) Z = m - n
+"""
+Real case: bijective ℤ case: ¬ bijective onto (0,1).
+"""
+"""
+have fn F_R2_sd(t cart(R, R)) cart(R, R) = (t[1] + t[2], t[1] - t[2])
+
+have fn Finv_R2_sd(s cart(R, R)) cart(R, R) = ((s[1] + s[2]) / 2, (s[1] - s[2]) / 2)
 
 claim:
     prove:
-        exist a Z, b Z st {
-            forall m Z, n Z:
-                not (F_Z_sd_lo(m, n) = a and F_Z_sd_hi(m, n) = b)
-        }
-    witness exist a Z, b Z st {} from 0, 1:
-        forall m Z, n Z:
-            F_Z_sd_lo(m, n) = 0
-            F_Z_sd_hi(m, n) = 1
+        forall t cart(R, R):
+            Finv_R2_sd(F_R2_sd(t)) = t
+
+have fn F_Z_sd(t cart(Z, Z)) cart(Z, Z) = (t[1] + t[2], t[1] - t[2])
+
+prop img_FZsd_miss(target cart(Z, Z)):
+    forall t cart(Z, Z):
+        F_Z_sd(t) != target
+
+claim:
+    prove:
+        exist tgt cart(Z, Z) st {$img_FZsd_miss(tgt)}
+    witness exist tgt cart(Z, Z) st {$img_FZsd_miss(tgt)} from (0, 1):
+        forall t cart(Z, Z):
+            t[1] + t[2] = 0
+            t[1] - t[2] = 1
             =>:
-                impossible 2 * n = -1
+                impossible 2 * t[2] = -1
+"""
+# --- 8.4.4 例：ℝ²→ℝ³，(x,y)↦(x+y, x−y, y)。用分量相等即得多项式相等，故单射（课本用 `constructor`/`obtain`）。---
 
-have fn proj_sum_R(x R, y R) R = x + y
+"""
+Injective ℝ²→ℝ³: (x, y) ↦ (x+y, x-y, y).
+"""
+"""
+have fn rho_R3(t cart(R, R)) cart(R, cart(R, R)) =
+    (t[1] + t[2], (t[1] - t[2], t[2]))
 
 claim:
     prove:
-        exist x1 R, y1 R, x2 R, y2 R st {
-            proj_sum_R(x1, y1) = proj_sum_R(x2, y2)
-            not (x1 = x2 and y1 = y2)
+        forall p cart(R, R), q cart(R, R):
+            rho_R3(p) = rho_R3(q)
+            =>:
+                p = q
+"""
+# --- 8.4.5 例：(x,y)↦x+y（ℝ²→ℝ）不单射——例如 (0,0) 与 (1,−1) 和相同；但对任意实数 a，取 (a,0) 即满射至 ℝ。---
+
+"""
+¬ Injective (proj sum ℝ²→ℝ); Surjective.
+"""
+"""
+have fn proj_sum_R(p cart(R, R)) R = p[1] + p[2]
+
+claim:
+    prove:
+        exist x cart(R, R), y cart(R, R) st {
+            proj_sum_R(x) = proj_sum_R(y)
+            x != y
         }
-    witness exist x1 R, y1 R, x2 R, y2 R st {} from 0, 0, 1, -1:
-        proj_sum_R(0, 0) = proj_sum_R(1, -1)
+    witness exist x cart(R, R), y cart(R, R) st {} from (0, 0), (1, -1):
+        proj_sum_R((0, 0)) = proj_sum_R((1, -1))
 
 claim:
     prove:
         forall a R:
-            exist u R, v R st {proj_sum_R(u, v) = a}
-    witness exist u R, v R st {proj_sum_R(u, v) = a} from a, 0:
+            exist p cart(R, R) st {proj_sum_R(p) = a}
+    witness exist p cart(R, R) st {proj_sum_R(p) = a} from (a, 0):
         a + 0 = a
+"""
+# --- 8.4.6 例：ℤ²→ℤ，(m,n)↦5m+8n。否单射：(0,0) 与 (8,−5) 同像；满射——对任意整数 a，(−3a, 2a) 为其原像（与 3.5.1/3 表法一致）。---
 
-have fn Z_lin58(m Z, n Z) Z = 5 * m + 8 * n
+"""
+5m+8n: ¬ injective ℤ²→ℤ; surjective ℤ²→ℤ with (−3a, 2a).
+"""
+"""
+have fn Z_lin58(u cart(Z, Z)) Z = 5 * u[1] + 8 * u[2]
 
 claim:
     prove:
-        exist m1 Z, n1 Z, m2 Z, n2 Z st {
-            Z_lin58(m1, n1) = Z_lin58(m2, n2)
-            not (m1 = m2 and n1 = n2)
+        exist u cart(Z, Z), v cart(Z, Z) st {
+            Z_lin58(u) = Z_lin58(v)
+            u != v
         }
-    witness exist m1 Z, n1 Z, m2 Z, n2 Z st {} from 0, 0, 8, -5:
-        Z_lin58(0, 0) = Z_lin58(8, -5)
+    witness exist u cart(Z, Z), v cart(Z, Z) st {} from (0, 0), (8, -5):
+        Z_lin58((0, 0)) = Z_lin58((8, -5))
 
 claim:
     prove:
         forall a Z:
-            exist m Z, n Z st {Z_lin58(m, n) = a}
-    witness exist m Z, n Z st {Z_lin58(m, n) = a} from -3 * a, 2 * a:
+            exist u cart(Z, Z) st {Z_lin58(u) = a}
+    witness exist u cart(Z, Z) st {Z_lin58(u) = a} from (-3 * a, 2 * a):
         5 * (-3 * a) + 8 * (2 * a) = a
+"""
+# --- 8.4.7 例：ℤ²→ℤ，(m,n)↦5m+10n。非满射——1 不能做像（两端 mod 5 矛盾）；非单射与上节类似留给习题 sorry。---
 
-have fn swap_R_lo(x R, y R) R = y
-have fn swap_R_hi(x R, y R) R = x
+"""
+¬ Surjective ℤ²→ℤ for 5m+10n onto 1 mod argument.
+"""
+"""
+prop not_sur_Z510(goal Z):
+    forall u cart(Z, Z):
+        5 * u[1] + 10 * u[2] != goal
 
 claim:
     prove:
-        forall x R, y R:
-            swap_R_lo(swap_R_lo(x, y), swap_R_hi(x, y)) = x
-            swap_R_hi(swap_R_lo(x, y), swap_R_hi(x, y)) = y
+        exist goal Z st {$not_sur_Z510(goal)}
+    witness exist goal Z st {$not_sur_Z510(goal)} from 1:
+        forall u cart(Z, Z):
+            5 * u[1] + 10 * u[2] = 5 * (u[1] + 2 * u[2])
+            5 * (u[1] + 2 * u[2]) != 1
 """
+# --- 8.4.8 例：ℝ²→ℝ²，g(x,y)=(y,x)。证明 g∘g=Id_{ℝ²}（逐点：`ext`）；即对换为对合。---
 
+"""
+g ∘ g = id on ℝ × ℝ via swap coordinates.
+"""
+"""
+have fn swap_R(p cart(R, R)) cart(R, R) = (p[2], p[1])
+
+claim:
+    prove:
+        forall p cart(R, R):
+            swap_R(swap_R(p)) = p
+"""
+# --- 8.4.9 例：构造 ℕ²→ℕ 的双射（Cantor 配对、p(a,b)=A_{a+b}+b、 intertwining map i、引理 `A_mono`、`surjective_of_intertwining`）——篇幅长，仅存课本与 Lean；此处从略。---
