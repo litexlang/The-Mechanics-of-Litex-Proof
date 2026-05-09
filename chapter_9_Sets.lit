@@ -356,6 +356,7 @@ claim:
 # --- 9.2.3 例：{ −2, 3 } ∩ { x : ℚ | x^2 = 9 } ⊆ { a : ℚ | 0<a }---
 # t = −2 与 t^2 = 9 矛盾；t = 3 则 0 < t。
 
+#好像无法验证一个元素在集合中
 """
 claim:
     prove:
@@ -370,7 +371,7 @@ claim:
         prove:
             t $in {a Q : 0 < a}
         case t=-2:
-            (-2)^2 = 4
+            t^2=(-2)^2 = 4
             t^2 = 9
             impossible 4 = 9
         case t=3:
@@ -381,21 +382,24 @@ claim:
 
 # --- 9.2.4 例：{ n : ℕ | 4≤n } ∩ { n : ℕ | n<7 } ⊆ {4,5,6}---
 
-"""
+
 claim:
     prove:
         forall n N:
             n $in {m N : 4 <= m} and n $in {m N : m < 7}
             =>:
                 n $in {4, 5, 6}
+    n $in {m N : 4 <= m} 
+    n $in {m N : m < 7}
     4 <= n
     n < 7
+    n<=6
     by for:
         prove:
-            forall n N:
-                4<=n and n<7
-                =>:
-                    n=4 or n=5 or n=6
+            forall m closed_range(4, 6):   
+                =>:                     
+                    m=4 or m=5 or m=6
+                
     by cases:
         prove:
             n $in {4, 5, 6}
@@ -405,7 +409,7 @@ claim:
             5 $in {4, 5, 6}
         case n=6:
             6 $in {4, 5, 6}
-"""
+
 
 
 # --- 9.2.5 例：{ n : ℤ | Even n }ᶜ = { n : ℤ | Odd n }---
@@ -416,39 +420,47 @@ claim:
     prove:
         forall n Z:
             not n $in {m Z : $even(m)}
-            <=>:
+            =>:
                 $odd(n)
+    not n $in {m Z : $even(m)}
+    not $even(n)
+    n%2=1 or n%2=0
+    not n%2=0
+    n%2=1
+    (n-1)%2=(n%2-1%2)%2=(1-1)%2=0%2=0
     $odd(n)
-    <=>:
-        not $even(n)
+claim:
+    prove:
+        forall n Z:
+            $odd(n)
+            =>:
+                not n $in {m Z : $even(m)}
+    $odd(n)
+    (n-1)%2=0
+    n%2=(n-1+1)%2=((n-1)%2+1%2)%2=(0+1)%2=1%2=1
+    1!=0
+    not n%2=0
+    not $even(n)
+    not n $in {m Z : $even(m)}
 """
 
 # --- 9.2.6 例：互斥同余类的交为空 ---
 # 课本题面一处与 Lean 不符；此处对齐 Lean：同时满足 n≡1 (mod 5) 与 n≡2 (mod 5) 不可能。
-
+#not exist 怎么写
 """
 claim:
     prove:
-        not exist x Z st {
-            x $in {n Z : $mod_eq(n, 1, 5)}
-            and x $in {n Z : $mod_eq(n, 2, 5)}
-        }
+        not exist x Z st {x $in {n Z : $mod_eq(n, 1, 5)}and x $in {n Z : $mod_eq(n, 2, 5)}}
     by contra:
         prove:
-            not exist x Z st {
-                x $in {n Z : $mod_eq(n, 1, 5)}
-                and x $in {n Z : $mod_eq(n, 2, 5)}
-            }
-        exist x Z st {
-            x $in {n Z : $mod_eq(n, 1, 5)}
-            and x $in {n Z : $mod_eq(n, 2, 5)}
-        }
+            not exist x Z st {x $in {n Z : $mod_eq(n, 1, 5)} and x $in {n Z : $mod_eq(n, 2, 5)}}
+        exist x Z st {x $in {n Z : $mod_eq(n, 1, 5)} and x $in {n Z : $mod_eq(n, 2, 5)}}
         $mod_eq(x, 1, 5)
         $mod_eq(x, 2, 5)
         (x-1)%5 = 0
         (x-2)%5 = 0
-        (x-1)-(x-2) = 1
-        impossible 1%5 = 0
+        (x-1)%5=(x-2+1)%5=((x-2)%5+1%5)%5=(0+1)%5=1%5=1
+        impossible 1=0
 """
 
 # --- 9.2.7 例：全集 —— { x : ℝ | −1<x } ∪ { x : ℝ | x<1 } = ℝ（Lean 记作 `univ`）---
