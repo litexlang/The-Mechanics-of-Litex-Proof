@@ -1,4 +1,4 @@
-# Chapter 1 — Proofs by calculation
+# Chapter 1 — Proofs By Calculation
 
 Litex proofs are meant to look close to the mathematical sentence they justify.
 In this first chapter the objects are only the usual number systems, `N`, `Z`,
@@ -190,20 +190,6 @@ You may see a message like this:
 
 ## 1.3 Tips and tricks (examples)
 
-The equality rules you meet most often in this chapter are:
-
-- **Citation.** If the same equality is already among the assumptions or known
-  facts, Litex can cite it directly.
-- **Calculation.** If both sides reduce to the same number or the same
-  normalized algebraic expression, Litex proves the equality by calculation.
-- **Substitution from known equalities.** If a subexpression has a known value,
-  Litex may replace it before calculating the rest of the expression.
-- **Simple equation solving.** Equalities such as `x + 4 = 2`, `4 + x = 2`, or
-  similar one-variable forms using `+`, `-`, `*`, and `/` can give Litex a
-  stored value for the variable.
-- **Equality chains.** A chain `A = B = C` is checked one link at a time, and
-  the whole chain proves the equality from the first expression to the last.
-
 ### 1.3.1
 
 Let a and b be integers and suppose that a = 2b + 5 and b = 3. Show that a = 11.
@@ -345,8 +331,41 @@ forall x, y Z:
     x + 3 <= 2
     y + 2 * x >= 3
     =>:
-        y = y + 2 * x - 2 * x >= 3 - 2 * x = 9 - 2 * (x + 3) >= 9 - 2 * 2 > 3
+        y = (y + 2 * x) - 2 * x >= 3 - 2 * x = 9 - 2 * (x + 3) >= 9 - 2 * 2 > 3
 ```
+
+Two common built-in rule families appear in this proof.
+
+1. `calculation and rational expression simplification`: this verifies algebraic
+   rearrangements such as `y = (y + 2 * x) - 2 * x` and
+   `3 - 2 * x = 9 - 2 * (x + 3)`.
+
+2. Order-preserving transformations: Litex can transform known inequalities
+   through addition, subtraction, and multiplication by a nonnegative number.
+   In the printed proof you may see rules such as
+   `a - d <= b - c from a <= b and c <= d` and
+   `k * a <= k * b from 0 <= k and a <= b`.
+
+Read the chain one link at a time.
+
+1. `y = (y + 2 * x) - 2 * x`: this is algebraic simplification. The added
+   `2 * x` and the subtracted `2 * x` cancel.
+
+2. `(y + 2 * x) - 2 * x >= 3 - 2 * x`: this uses the assumption
+   `y + 2 * x >= 3`. Subtracting the same expression `2 * x` from both sides
+   preserves the inequality.
+
+3. `3 - 2 * x = 9 - 2 * (x + 3)`: this is another algebraic rearrangement.
+   Expanding the right-hand side gives `9 - 2 * x - 6`, which simplifies to
+   `3 - 2 * x`.
+
+4. `9 - 2 * (x + 3) >= 9 - 2 * 2`: this uses the assumption `x + 3 <= 2`.
+   Since `2` is nonnegative, Litex can multiply both sides by `2`, and then
+   subtract from `9`; subtracting a larger value gives a smaller result, so the
+   direction is `>=`.
+
+5. `9 - 2 * 2 > 3`: this is ordinary number comparison.
+
 ### 1.4.2
 
 Let r and s be rational numbers, and suppose that s + 3 >= r and s + r <= 3. Show that r <= 3.
@@ -358,6 +377,31 @@ forall r, s Q:
     =>:
         r = (s + r + r - s) / 2 <= (3 + (s + 3) - s) / 2 = 3
 ```
+
+This example adds two useful order rules to the previous pattern.
+
+1. `a / c <= b / c from 0 < c and a <= b`: dividing both sides of an
+   inequality by the same positive number preserves the direction. Here the
+   denominator is `2`, and Litex verifies `0 < 2` by number comparison.
+
+2. `a + c <= b + d from a <= b and c <= d`: inequalities can be added
+   componentwise. In this proof, Litex combines the assumptions
+   `s + r <= 3` and `r <= s + 3` to get
+   `s + r + r <= 3 + (s + 3)`.
+
+Read the chain one link at a time.
+
+1. `r = (s + r + r - s) / 2`: this is algebraic simplification. The numerator
+   simplifies to `2 * r`, so dividing by `2` gives `r`.
+
+2. `(s + r + r - s) / 2 <= (3 + (s + 3) - s) / 2`: this is the main order
+   step. Litex first shows the numerator inequality by combining
+   `s + r <= 3`, `r <= s + 3`, and `s <= s`; then it divides both sides by the
+   positive number `2`.
+
+3. `(3 + (s + 3) - s) / 2 = 3`: this is calculation and rational expression
+   simplification. The numerator simplifies to `6`, and `6 / 2 = 3`.
+
 ### 1.4.3
 
 Let x and y be real numbers and suppose that y <= x + 5 and x <= -2. Show that x + y < 2.
@@ -389,10 +433,22 @@ forall u, v, x, y, A, B R:
         u * y + v * x + u * v <= u * B + v * B + u * v <= A * B + A * B + A * v <= A * B + A * B + 1 * v <= A * B + A * B + B * v < A * B + A * B + B * A = 3 * A * B
 ```
 
+New rules worth noticing here:
+
+1. `x1 * x2 <= y1 * y2 from 0 <= factors and componentwise <=`: Litex can
+   compare products when the factors are nonnegative and each factor on the
+   left is bounded by the corresponding factor on the right.
+
+2. `a + c < b + d from a <= b and c < d`: one strict inequality is enough to
+   make the sum strict, as long as the other part is non-strict in the same
+   direction.
+
+3. `k * a < k * b from 0 < k and a < b`: multiplying by the same positive
+   number preserves a strict inequality.
+
 ### 1.4.5
 
 Show that if t is a real number and t >= 10 then t^2 - 3t + 17 >= 5.
-(书本笔算证明；多项式为 t^2 - 3t + 17。)
 
 ```litex
 forall t R:
@@ -400,6 +456,16 @@ forall t R:
     =>:
         t^2 - 3 * t + 17 = t * t - 3 * t + 17 >= 10 * t - 3 * t + 17 = 7 * t + 17 >= 7 * 10 + 17 >= 5
 ```
+
+New rules worth noticing here:
+
+1. `equality: same algebraic context with equal arguments`: Litex can recognize
+   that replacing equal subexpressions inside the same surrounding expression
+   preserves equality.
+
+2. `a <= b + c from a <= b and 0 <= c`: if `a <= b` and `c` is nonnegative,
+   then `a <= b + c`. This is how Litex can finish a bound by adding a known
+   nonnegative margin.
 
 ### 1.4.6
 
@@ -412,6 +478,11 @@ forall n Z:
         n^2 = n * n >= 5 * n = 2 * n + 3 * n >= 2 * n + 3 * 5 = 2 * n + 11 + 4 > 2 * n + 11
 ```
 
+New rule worth noticing here:
+
+1. `a < a + b from 0 < b`: adding a strictly positive term makes an expression
+   strictly larger.
+
 ### 1.4.7
 
 Let m and n be integers, and suppose that m^2 + n <= 2. Show that n <= 2.
@@ -422,6 +493,13 @@ forall m, n Z:
     =>:
         n <= m^2 + n <= 2
 ```
+
+New rules worth noticing here:
+
+1. `0 <= a^n for even integer n`: even powers are nonnegative.
+
+2. `a <= a + b from 0 <= b`: adding a nonnegative term makes an expression no
+   smaller.
 
 ### 1.4.8
 
@@ -448,6 +526,12 @@ forall a, b Q:
         3 * a * b + a <= 2 * b^2 + a^2 + (3 * a * b + a) = 2 * ((a + b) * b) + (a + b) * a + a <= 2 * (8 * b) + 8 * a + a = 7 * b + 9 * (a + b) <= 7 * b + 9 * 8 = 7 * b + 72
 ```
 
+New rule worth noticing here:
+
+1. `0 <= a * b from 0 <= a and 0 <= b`: the product of two nonnegative
+   quantities is nonnegative. Litex uses this together with nonnegative powers
+   to justify adding terms such as `2 * b^2 + a^2`.
+
 ### 1.4.10
 
 Let a, b and c be real numbers. Show that a^2 * (a^6 + 8*b^3*c^3) <= (a^4 + b^4 + c^4)^2.
@@ -458,11 +542,37 @@ forall a, b, c R:
         a^2 * (a^6 + 8 * b^3 * c^3) <= 2 * (a^2 * (b^2 - c^2))^2 + (b^4 - c^4)^2 + 4 * (a^2 * b * c - b^2 * c^2)^2 + a^2 * (a^6 + 8 * b^3 * c^3) = (a^4 + b^4 + c^4)^2
 ```
 
-## 1.5 A shortcut (书本说明：仅加减项的变形可用 addarith；此处仅作陈述示例)
+## 1.5 Chapter summary: common shortcuts and built-in rules
 
-1.5 — 与例 1.3.2 相同结论，可用一步“加减整理”看待（正式 Litex 中若实现 addarith 则单独写）
+The examples in this chapter are short, but they already show the main style of
+Litex calculation proofs: write the mathematical chain, and let the checker try
+the rules suggested by each link. The most common built-in rules used here are
+the following.
 
-Let x be an integer and suppose that x + 4 = 2. Show that x = -2.
+### Equality rules
+
+1. **Citation.** If the same equality is already among the assumptions or known
+   facts, Litex can cite it directly.
+
+2. **Calculation and normalization.** If two sides reduce to the same number or
+   the same normalized algebraic expression, Litex proves the equality by
+   calculation.
+
+3. **Substitution from known equalities.** If a subexpression has a known value,
+   Litex may replace it before calculating the rest. For example, from
+   `r + 2 * s = -1` and `s = 3`, the step
+   `(r + 2 * s) - 2 * s = -7` can be checked without explicitly writing
+   `= -1 - 2 * 3`.
+
+4. **Simple equation solving.** Equalities such as `x + 4 = 2`, `4 + x = 2`,
+   and similar one-variable forms using `+`, `-`, `*`, and `/` can give Litex a
+   stored value for the variable.
+
+5. **Equality chains.** A chain such as `A = B = C` is checked one link at a
+   time, and the whole chain proves the equality from the first expression to
+   the last.
+
+For example:
 
 ```litex
 forall x Z:
@@ -470,3 +580,29 @@ forall x Z:
     =>:
         x = -2
 ```
+
+### Comparison rules
+
+1. **Reflexivity and numeric comparison.** Litex can use facts such as `x <= x`,
+   `0 <= 2`, `0 < 2`, and direct number comparisons.
+
+2. **Addition and subtraction preserve order.** From `a <= b` and `c <= d`,
+   Litex can derive `a + c <= b + d`; it can also reason with subtractions such
+   as `a - d <= b - c`.
+
+3. **Nonnegative and positive multiplication preserve order.** Multiplying both
+   sides by a nonnegative factor preserves `<=`; multiplying by a positive
+   factor preserves `<`.
+
+4. **Positive division preserves order.** From `0 < c` and `a <= b`, Litex can
+   derive `a / c <= b / c`.
+
+5. **Products of nonnegative terms are nonnegative.** Litex can also compare
+   products when the factors are bounded componentwise and nonnegative.
+
+6. **Even powers are nonnegative.** Terms like `m^2` or `(x - y)^2` can be used
+   as nonnegative quantities, for example when adding a square to make an
+   expression larger.
+
+7. **Adding a nonnegative or positive term.** Adding a nonnegative term gives
+   `a <= a + b`; adding a strictly positive term gives `a < a + b`.
