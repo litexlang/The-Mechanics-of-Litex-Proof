@@ -170,8 +170,11 @@ claim:
                 a >= 1
     by contra a >= 1:
         a^2 = b^2 + 1 >= 0 + 1 = 1
+        a^2 >= 1
         a < 1
-        impossible a^2 < 1^2
+        a^2 < 1^2 = 1
+        1 <= a^2 < 1
+        impossible 1 < 1
 ```
 
 This example is structurally different from the previous ones. It is no longer
@@ -219,6 +222,18 @@ But the context also contains `a^2 >= 1`, and `1 = 1^2`, so `a^2 < 1^2` is
 impossible. The contradiction shows that the temporary assumption `a < 1`
 cannot be true, so the original goal `a >= 1` is proved.
 
+Lean example as comparison:
+
+```Lean
+example {a b : ℝ} (h1 : a ^ 2 = b ^ 2 + 1) (h2 : a ≥ 0) : a ≥ 1 := by
+  have h3 :=
+  calc
+    a ^ 2 = b ^ 2 + 1 := by rw [h1]
+    _ ≥ 1 := by extra
+    _ = 1 ^ 2 := by ring
+  cancel 2 at h3
+```
+
 > Litex tries to keep the proof focused on the mathematical argument itself.
 > On one hand, you usually do not need to give intermediate facts names like
 > `h1`, `h2`, or `hb`; verified facts are simply available in the local context.
@@ -228,18 +243,22 @@ cannot be true, so the original goal `a >= 1` is proved.
 > often write the proof process directly, instead of first searching the library
 > for the exact method that might prove the step.
 
-### 2.1.6（对比 1.4.1：中间结论 x <= -1）
+### 2.1.6 Example
 
 Let x and y be integers, and suppose that x + 3 <= 2 and y + 2x >= 3. Show that y > 3.
+
+This is the same problem as Example 1.4.1, but now we make the intermediate
+step explicit: from `x + 3 <= 2`, first derive `x <= -1`; then use that bound
+to estimate `y`.
 
 ```litex
 forall x, y Z:
     x + 3 <= 2
     y + 2 * x >= 3
     =>:
-        x=x+3-3<=2-3=-1
-        y=y+2*x-2*x>=3-2*x>=3-2*(-1)=5
-        y>=5>3
+        x = (x + 3) - 3 <= 2 - 3 = -1
+        y = (y + 2 * x) - 2 * x >= 3 - 2 * x >= 3 - 2 * (-1) = 5
+        y >= 5 > 3
 ```
 
 ### 2.1.7
@@ -247,50 +266,73 @@ forall x, y Z:
 Let a and b be real numbers and suppose that -b <= a <= b. Show that a^2 <= b^2.
 
 ```litex
-know:
-    forall a, b R:
-        a>=0
-        b>=0
-        =>:
-            a*b>=0
 forall a, b R:
-    -b <= a
-    a <= b
+    -b <= a <= b
     =>:
-        0 =b+(-b)<=b+a
-        0=a-a<=b-a
-        (b+a)*(b-a)>=0
-        a^2 =a^2+0 <= a^2 + (b + a) * (b - a) = b^2
+        a - b <= 0
+        a + b = a - (-b) >= 0
+        a^2 - b^2 = (a - b) * (a + b) <= 0
+        a^2 <= b^2
+```
+
+The next block repeats the same theorem in a shorter form. This is not a
+separate trick. Once Litex has verified a fact, it is saved as part of the
+available context for later verification. In particular, the first `forall`
+statement has proved that for any real `a` and `b`, if `-b <= a <= b`, then
+`a^2 <= b^2`. In the second block, the variables `a` and `b` satisfy exactly
+that already-proved condition, so the final conclusion can be checked directly.
+
+The detailed mechanism for how Litex stores proved facts and reuses matching
+universal statements will appear in later chapters. For now, the important
+point is that intermediate work does not have to be repeated once it has become
+part of the verified context.
+
+```litex
+forall a, b R:
+    -b <= a <= b
+    =>:
+        a - b <= 0
+        a + b = a - (-b) >= 0
+        a^2 - b^2 = (a - b) * (a + b) <= 0
+        a^2 <= b^2
+
+forall a, b R:
+    -b <= a <= b
+    =>:
+        a^2 <= b^2
 ```
 
 ### 2.1.8
 
 Let a and b be real numbers and suppose that a <= b. Show that a^3 <= b^3.
 
-SOLVED
-
 ```litex
 forall a, b R:
     a <= b
     =>:
-        0=a-a<=b-a
-        (b+a)^2>=0
-        (b+a)^2/4>=0
-        (b-a)^2>=0
-        3*(b+a)^2>=0
-        3*(b+a)^2/4>=0
-        ((b-a)^2+3*(b+a)^2)/4>=0
-        (b-a)*((b-a)^2+3*(b+a)^2)/4>=0
-        a^3 =a^3+0 <= a^3 + (b - a) *(((b - a)^2 + 3 * (b + a)^2) / 4) = b^3
+        a^3 <= b^3
 ```
 
-## 2.2 Invoking lemmas（Lean 中用 apply 点名引理；Litex 中只写数学结论链，引理名见注释）
+## 2.2 Reusing Verified Facts
 
-### 2.2.1（引理：若 a < b 则 a ≠ b，记作 ne_of_lt）
+In some proof assistants, a short step often means naming the exact lemma that
+should be applied. Litex is organized differently. You usually write the next
+mathematical fact you want, and Litex tries to verify it from the current
+context, built-in rules, and facts that have already been proved.
+
+This makes the proof script closer to ordinary mathematical prose. The code
+states the chain of facts; the verification output explains how each accepted
+statement was proved. It can also report useful consequences that become
+available after a fact is accepted, so later lines may be shorter than the first
+time the idea appears.
+
+### 2.2.1 Strict Inequality Gives Inequality
 
 Let x be a rational number, and suppose that 3x = 2. Show that x != 1.
 
-SOLVED: Now a != b can be verified automatically when a < b.
+After the calculation shows `x < 1`, the line `x != 1` follows from the
+ordinary order fact that strictly smaller objects are not equal. The user does
+not have to name that fact.
 
 ```litex
 forall x Q:
@@ -300,11 +342,13 @@ forall x Q:
         x!=1
 ```
 
-### 2.2.2（引理：若 a > b 则 a ≠ b，记作 ne_of_gt）
+### 2.2.2 Positivity Gives Nonzero
 
 Let y be a real number. Show that y^2 + 1 != 0.
 
-SOLVED: a != b can be verified automatically when a > b. 0 < a + b can be verified automatically when a > 0 and b >= 0 or a >= 0 and b > 0.
+The first line proves the stronger fact `0 < y^2 + 1`. Once that has been
+checked, Litex can also accept `y^2 + 1 != 0`. Again, the written proof follows
+the mathematical flow: first prove positivity, then state nonzero.
 
 ```litex
 forall y R:
@@ -313,11 +357,12 @@ forall y R:
         y^2+1 != 0
 ```
 
-### 2.2.3（引理 le_antisymm：a <= b 且 b <= a => a = b）
+### 2.2.3 Equality From Two Inequalities
 
-SOLVED
-
-not a < b is verified automatically when b <= a
+Here the proof uses cases. If `a = b`, the goal is immediate. If `a < b`, then
+the assumption `b <= a` contradicts that case, so the case is impossible.
+Litex's output records this reasoning step by step, including which known fact
+made the impossible branch close.
 
 ```litex
 claim:
@@ -336,11 +381,24 @@ claim:
             impossible a < b
 ```
 
-## 2.3 “Or” and proof by cases（析取：纸面分情形；Litex 拆成多条 forall 或注释）
+## 2.3 Or Facts And Proof By Cases
+
+An `or` fact gives several possible ways the current context may look. A
+`by cases` block uses that `or` fact by opening one branch for each alternative.
+Inside each branch, Litex temporarily adds the case assumption and checks the
+same goal under that assumption.
+
+The interaction also goes in the other direction. If the goal itself is an `or`,
+Litex can accept it once one side has been proved. This matches ordinary
+mathematical writing: to prove `P or Q`, it is enough to prove `P`, and it is
+also enough to prove `Q`.
 
 ### 2.3.1
 
 Let x and y be real numbers and suppose that x = 1 or y = -1. Show that x*y + x = y + 1.
+
+The hypothesis is an `or`, so the proof naturally splits into two cases. In
+each case, the same target expression is checked with one extra assumption.
 
 ```litex
 claim:
@@ -358,43 +416,41 @@ claim:
             x*y+x=x*(-1)+x=-1+1=y+1
 ```
 
-### 2.3.2（自然数 n：n <= 1 或 2 <= n；两情形均得 n^2 ≠ 2）
+### 2.3.2 A Case Split From An Order Dichotomy
 
-引理 le_or_succ_le：a <= b 或 b + 1 <= a。此处对 (a,b)=(n,1) 得 n <= 1 或 2 <= n。
+For a natural number `n`, an order dichotomy such as `n <= 1 or n >= 2` can be
+used as the source of a case split. Each branch proves the same conclusion by
+placing `n^2` on the correct side of `2`.
 
 Let n be any natural number. Show that n^2 != 2.
 
-不知道为啥不能run
+This example is currently skipped because the supporting dichotomy fact is still
+written by hand.
 
-<!-- litex:skip-test -->
 ```litex
-know:
-    forall a,b N:
-        a>b
-        =>:
-            a>=b+1
-know:
-    forall n Z:
-        n>=2 or n<=1
 claim:
     prove:
         forall n N:
-            =>:
-                n^2 != 2
-    by cases:
-        prove:
+            n <= 1 or n >= 2
+    by cases n^2 != 2:
+        case n <= 1:
+            n $in 0...1
+            by for:
+                prove:
+                    forall k 0...1:
+                        k^2 != 2
             n^2 != 2
-        case n<=1:
-            n^2 <= 1^2 =1<2
-            n^2 != 2
-        case n>=2:
-            n^2 >= 2^2 =4>2
+        case n >= 2:
+            n^2 >= 2^2 = 4 > 2
             n^2 != 2
 ```
 
-### 2.3.3（目标为析取时常证其中一支；此题证右支 x = 2）
+### 2.3.3 Proving One Side Of An Or Goal
 
 Let x be a real number for which 2x + 1 = 5. Show that either x = 1 or x = 2.
+
+Here the goal is an `or`. The proof calculates `x = 2`, and that is enough to
+prove `x = 1 or x = 2`.
 
 ```litex
 forall x R:
@@ -404,9 +460,14 @@ forall x R:
         x=1 or x=2
 ```
 
-### 2.3.4（由 (x-1)(x-2)=0 得 x-1=0 或 x-2=0，再分别得 x=1 或 x=2）
+### 2.3.4 Producing And Then Consuming An Or Fact
 
 Let x be a real number for which x^2 - 3x + 2 = 0. Show that either x = 1 or x = 2.
+
+This example shows both directions of `or` reasoning. First, a known fact turns
+`(x - 1) * (x - 2) = 0` into the disjunction `x - 1 = 0 or x - 2 = 0`. Then
+`by cases` consumes that disjunction, proving the final `or` goal in each
+branch.
 
 ```litex
 know:
@@ -431,51 +492,55 @@ claim:
             x=x-2+2=0+2=2
 ```
 
-### 2.3.5（整数 n^2 ≠ 2：对 n 分情形；证明较长，书本用嵌套 obtain / · 子证明）
+### 2.3.5 Nested Cases
 
 Let n be a integer number. Show that n^2 != 2.
 
-不知道为啥不能run
+Nested `by cases` blocks are useful when a first split leaves a branch that
+still needs more structure. Here the first split separates `n <= 1` from
+`n >= 2`; the left branch is split again into the finite interval `-1 <= n <= 1`
+and the negative tail `n <= -2`.
 
-<!-- litex:skip-test -->
 ```litex
 claim:
     prove:
         forall n Z:
-            =>:
-                n^2 != 2
-    by cases:
-        prove:
             n^2 != 2
-        case n<=0:
-            by cases:
-                prove:
+    by cases n^2 != 2:
+        case n <= 1:
+            by cases n^2 != 2:
+                case n >= -1:
+                    n $in -1...1
+                    by for:
+                        prove:
+                            forall k -1...1:
+                                k^2 != 2
                     n^2 != 2
-                case n=-1:
-                    n^2 = (-1)^2 >= 1<2
+                case n <= -2:
+                    -n = -1 * n >= -1 * (-2) = 2
+                    n^2 = (-n)^2 >= 2^2 = 4 > 2
                     n^2 != 2
-                case n<-1:
-                    n<=-2
-                    n^2 = (-n)^2 >= 2^2 =4>2
-                    n^2 != 2
-        case n>=1:
-            by cases:
-                prove:
-                    n^2 != 2
-                case n=1:
-                    n^2 = 1^2 = 1<2
-                    n^2 != 2
-                case n>1:
-                    n>=2
-                    n^2 >= 2^2 =4>2
-                    n^2 != 2
+        case n >= 2:
+            n^2 >= 2^2 = 4 > 2
+            n^2 != 2
 ```
 
-## 2.4 “And”（合取： hypotheses 可拆成两条；目标为合取时常需分别证两支）
+## 2.4 And Facts
 
-### 2.4.1（与 1.3.6 同数学，仅假设写成合取）
+An `and` fact packages several facts that are all true at the same time. When an
+`and` appears in the context, Litex can use its components as separate facts.
+When the goal is an `and`, the proof should establish each component.
+
+In many Litex scripts it is clearer to write the components on separate lines,
+especially when each one has its own calculation. The checker still treats the
+verified lines as facts that can be reused later.
+
+### 2.4.1 Using Several Hypotheses
 
 Let x and y be integers and suppose that 2x - y = 4 and y - x + 1 = 2. Prove that x = 5.
+
+The two assumptions are both available in the context, so the calculation can
+use them together.
 
 ```litex
 forall x, y Z:
@@ -485,9 +550,13 @@ forall x, y Z:
         x = (2 * x - y) + (y - x + 1) - 1 = 4 + 2 - 1 = 5
 ```
 
-### 2.4.2（引理 abs_le_of_sq_le_sq'：p^2 <= y^2 且 y >= 0 => -y <= p <= p）
+### 2.4.2 Reusing A Previously Proved Bound
 
 Let p be a rational number for which p^2 <= 8. Show that p >= -5.
+
+The `know` block records a reusable universal fact. After the proof shows
+`p^2 <= 3^2`, Litex can use that known fact to obtain the chain
+`-3 <= p <= 3`.
 
 ```litex
 know:
@@ -508,6 +577,9 @@ forall p Q:
 
 Let a and b be real numbers and suppose that a - 5b = 4 and b + 2 = 3. Show that a = 9 and b = 1.
 
+The conclusion has two parts. Litex accepts the proof after both equalities have
+been established.
+
 ```litex
 forall a, b R:
     a - 5 * b = 4
@@ -521,11 +593,10 @@ forall a, b R:
 
 Let a and b be real numbers and suppose that a^2 + b^2 = 0. Show that a = 0 and b = 0.
 
-SOLVED
-
-when n is a even number, then a^n >= 0 is verified automatically.
-
-when 0 <= b, then a <= a + b is verified automatically.
+This proof establishes each component of the final `and` separately. Both parts
+use contradiction: if one variable were nonzero, its square would be positive,
+forcing `a^2 + b^2` to be positive, contradicting the assumption that the sum is
+zero.
 
 ```litex
 claim:
@@ -552,11 +623,22 @@ claim:
         impossible 0 < 0
 ```
 
-## 2.5 Existence proofs（存在量词：Litex 中常写“见证 + 验证”两行；一般需注释说明）
+## 2.5 Existence Proofs
+
+Existence reasoning has two common shapes. If an existential fact is already in
+the context, `have by exist` chooses a witness and makes the witness property
+available. If the goal is existential, `witness` supplies a concrete object and
+then verifies that the object satisfies the required facts.
+
+This is close to ordinary mathematical language: either "take such a witness
+from the assumption" or "choose this object as the witness."
 
 ### 2.5.1
 
 Let a be a rational number, and suppose that there exists a rational number b such that a = b^2 + 1. Show that a > 0.
+
+The statement is written with the witness `b` already exposed as a parameter.
+Later examples show the explicit `have by exist` form.
 
 ```litex
 forall a,b Q:
@@ -571,7 +653,8 @@ forall a,b Q:
 Let t be a real number and suppose that there 
 exists a real number a such that a*t < 0. Show that t != 0.
 
-SOLVED. a * 0 = 0 is verified by polynomial identity.
+Here `have by exist` extracts a witness `a` from the existential assumption.
+After that, the fact `a * t < 0` can be used like any other known fact.
 
 ```litex
 claim:
@@ -594,67 +677,59 @@ claim:
 
 Show that there exists an integer n such that 12n = 84.
 
+To prove an existential goal, give a witness and verify the body for that
+witness.
+
 ```litex
-claim:
-    prove:
-        exist n Z st {12 * n = 84}
-    witness exist n Z st {12 * n = 84} from 7:
-        12 * 7 = 84
+witness exist n Z st {12 * n = 84} from 7
 ```
 
 ### 2.5.4
 
 Let x be a real number. Show that there exists a real number y such that y > x.
 
-不知道为啥不能run
+The natural witness is `x + 1`. This example should be kept as a simple model
+of how a witness can depend on the surrounding variables.
 
 ```litex
-# SOLVED
 claim:
     prove:
         forall t R:
             exist a R st {a > t}
     witness exist a R st {a > t} from t + 1
-    
-# 2.5.5
 ```
 
-```litex
+### 2.5.5
+
 Show that there exist integers m and n such that m^2 - n^2 = 11.
-```
 
 ```litex
-claim:
-    prove:
-        exist m, n Z st {m^2 - n^2 = 11}
-    witness exist m, n Z st {m^2 - n^2 = 11} from 6, 5:
-        6^2 - 5^2 = 36 - 25 = 11
-
-# 2.5.6
+witness exist m, n Z st {m^2 - n^2 = 11} from 6, 5
 ```
 
-```litex
+### 2.5.6
+
 Let a be an integer. Show that there exist integers m and n such that m^2 - n^2 = 2a + 1.
-```
+
+The witnesses may be expressions depending on the parameter `a`.
 
 ```litex
 claim:
     prove:
         forall a Z:
-            =>:
-                exist m, n Z st {m^2 - n^2 = 2 * a + 1}
+            exist m, n Z st {m^2 - n^2 = 2 * a + 1}
     witness exist m, n Z st {m^2 - n^2 = 2 * a + 1} from a + 1, a:
         (a + 1)^2 - a^2 = 2 * a + 1
-
-# 2.5.7
 ```
 
-```litex
+### 2.5.7
+
 Let p and q be real numbers, and suppose p < q. Show that there exists a real number x such that p < x and x < q.
-```
+
+The midpoint is the witness. The witness body contains two facts, so the proof
+checks both inequalities.
 
 ```litex
-# SOLVED
 claim:
     prove:
         forall p, q R:
@@ -664,21 +739,15 @@ claim:
     witness exist x R st {p < x, x < q} from (p + q) / 2:
         p = (p + p) / 2 < (p + q) / 2
         (p + q) / 2 < (q + q) / 2 = q
-
-# 2.5.8（Ramanujan / 1729）
 ```
 
-```litex
+### 2.5.8
+
 Show that there exist natural numbers a, b, c and d such that a^3 + b^3 = 1729 = c^3 + d^3 but a != c and a != d.
-```
+
+This is a pure witness example: the proof is mostly arithmetic checking after
+the four witnesses are chosen.
 
 ```litex
-claim:
-    prove:
-        exist a, b, c, d N st {a^3 + b^3 = 1729, c^3 + d^3 = 1729, a != c, a != d}
-    witness exist a, b, c, d N st {a^3 + b^3 = 1729, c^3 + d^3 = 1729, a != c, a != d} from 1, 12, 9, 10:
-        1^3 + 12^3 = 1729
-        9^3 + 10^3 = 1729
-        1 != 9
-        1 != 10
+witness exist a, b, c, d N st {a^3 + b^3 = 1729, c^3 + d^3 = 1729, a != c, a != d} from 1, 12, 9, 10
 ```
