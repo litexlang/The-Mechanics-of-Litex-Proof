@@ -1,5 +1,6 @@
-# SOLVED: All these rules can be verified automatically
+SOLVED: All these rules can be verified automatically
 
+```litex
 know:
     forall a R b R:
         a>0
@@ -24,4 +25,4 @@ know:
         a*b!=0
         =>:
             a!=0 and b!=0
-    
+```

@@ -1,31 +1,34 @@
 # Chapter 8 — 函数（Functions）
-# 本章在 Litex 中形式化单射、满射、双射、复合、恒等、逆映射，以及部分积类型上的例子。
-# 约定：与原书「例」对应的 `have fn` / `claim` / `prove` 块多已用三段引号 """ … """ 包起，作为「例题 Litex」保留字串（不参与当前文件求解）；题面英文仍可保留在未包起的上一层 `"""` 中。
-# ---------------------------------------------------------------------------
-# 8.1 单射与满射（Injectivity and surjectivity）
-# ---------------------------------------------------------------------------
 
-# 8.1.1（例）域（domain）、陪域（codomain）；函数类型 X→Y；闭式定义、匿名函数 x↦x^2（Lean：`fun (x:ℝ) ↦ x^2`）。
-# Fibonacci：F : ℕ→ℤ（见 6.3.3）；闭式 q(x)=x+3；`#check` 类型为 `ℝ→ℝ`。
+本章在 Litex 中形式化单射、满射、双射、复合、恒等、逆映射，以及部分积类型上的例子。
 
-# --- 8.1.2 定义：单射 ---
-# f:X→Y 为单射，当且仅当 ∀x1,x2:X, f(x1)=f(x2) ⇒ x1=x2。
-# Lean：`Injective (f)` := `∀ {x1 x2}, f x1 = f x2 → x1 = x2`。
+约定：与原书「例」对应的 `have fn` / `claim` / `prove` 块多已用三段引号 """ … """ 包起，作为「例题 Litex」保留字串（不参与当前文件求解）；题面英文仍可保留在未包起的上一层 `"""` 中。
 
+## 8.1 单射与满射（Injectivity and surjectivity）
 
+### 8.1.1（例）域（domain）、陪域（codomain）；函数类型 X→Y；闭式定义、匿名函数 x↦x^2（Lean：`fun (x:ℝ) ↦ x^2`）。
+
+Fibonacci：F : ℕ→ℤ（见 6.3.3）；闭式 q(x)=x+3；`#check` 类型为 `ℝ→ℝ`。
+
+--- 8.1.2 定义：单射 ---
+
+f:X→Y 为单射，当且仅当 ∀x1,x2:X, f(x1)=f(x2) ⇒ x1=x2。
+
+Lean：`Injective (f)` := `∀ {x1 x2}, f x1 = f x2 → x1 = x2`。
+
+```litex
 prop injective(f fn(x R) R):
     forall x1 R, x2 R:
         f(x1) = f(x2)
         =>:
             x1 = x2
+```
 
+--- 8.1.3 例：q(x)=x+3（书本与网页一处写 x+1，定义应为 x+3）在 ℝ 上单射 ---
 
-# --- 8.1.3 例：q(x)=x+3（书本与网页一处写 x+1，定义应为 x+3）在 ℝ 上单射 ---
-"""
 Show that q : ℝ → ℝ, q(x) = x + 3 is injective.
-"""
 
-
+```litex
 have fn q(x R) R = x + 3
 
 claim:
@@ -39,33 +42,38 @@ claim:
     q(x2) = x2 + 3
     x1 + 3 = x2 + 3
     x1 = x1+3-3 = x2+3-3 = x2
+```
 
+--- 8.1.4 例：x↦x^2（ℝ→ℝ）不单射 ---
 
-# --- 8.1.4 例：x↦x^2（ℝ→ℝ）不单射 ---
-"""
 Show that f(x) = x^2 from ℝ → ℝ is not injective.
-"""
 
+```litex
 claim:
     prove:
         exist x1 R, x2 R st {x1 != x2,x1^2 = x2^2}
     witness exist x1 R, x2 R st {x1 != x2,x1^2 = x2^2} from -1, 1:
         -1 != 1
         (-1)^2 = 1^2
+```
 
-# --- 8.1.5 定义：满射 ---
-# f 满射 ⇔ ∀y:Y, ∃x:X, f(x)=y。
-# Lean：`Surjective f` := `∀ y, ∃ x, f x = y`。否定用 `push_neg` 化成 ∃y∀x, f(x)≠y 等形式。
+--- 8.1.5 定义：满射 ---
+
+f 满射 ⇔ ∀y:Y, ∃x:X, f(x)=y。
+
+Lean：`Surjective f` := `∀ y, ∃ x, f x = y`。否定用 `push_neg` 化成 ∃y∀x, f(x)≠y 等形式。
+
+```litex
 prop surjective(f fn(x R) R):
     forall y R:
         exist x R st {f(x) = y}
+```
 
-# --- 8.1.6 例：s(a)=3a+2 在 ℚ 上满射 ---
-"""
+--- 8.1.6 例：s(a)=3a+2 在 ℚ 上满射 ---
+
 Let s : ℚ → ℚ be s(a) = 3*a + 2. Show s is surjective.
-"""
 
-
+```litex
 have fn s_Q(a Q) Q = 3 * a + 2
 
 claim:
@@ -74,12 +82,13 @@ claim:
             exist x Q st {s_Q(x) = y}
     witness exist x Q st {s_Q(x) = y} from (y - 2) / 3:
         s_Q((y - 2) / 3) = 3 * ((y - 2) / 3) + 2 = y
+```
 
+--- 8.1.7 例：x↦x^2（ℝ→ℝ）不满射 ---
 
-# --- 8.1.7 例：x↦x^2（ℝ→ℝ）不满射 ---
-"""
 Show that fun x:ℝ ↦ x^2 is not surjective.
-"""
+
+```litex
 prop x2noty(y R):
     forall x R:
         x^2 != y
@@ -93,20 +102,23 @@ claim:
             0 <= x^2
             -1<0<=x^2
             x^2 != -1
+```
 
+--- 8.1.8–8.1.11 有限归纳类型 Musketeer 与映射 f、g ---
 
-# --- 8.1.8–8.1.11 有限归纳类型 Musketeer 与映射 f、g ---
-# Lean：`inductive Musketeer | athos | porthos | aramis`。`exhaust`、`cases`。此处不引入 Litex 枚举类型枚举子，仅用注释保留证明要点。
-# • f：athos ↦ aramis, porthos ↦ aramis, aramis ↦ athos — 不单射也不满射（反例与 `cases <;> exhaust` 见课本）。
-# • g：三相循环置换 — 单射且满射。
-# （习题 8.1.13(8)-(11)：White、h、l 同理，在 Lean 中完成。）
+Lean：`inductive Musketeer | athos | porthos | aramis`。`exhaust`、`cases`。此处不引入 Litex 枚举类型枚举子，仅用注释保留证明要点。
 
-# --- 8.1.12 例：x↦x^3 在 ℝ 上单射（代数分解与分情形）---
-"""
+• f：athos ↦ aramis, porthos ↦ aramis, aramis ↦ athos — 不单射也不满射（反例与 `cases <;> exhaust` 见课本）。
+
+• g：三相循环置换 — 单射且满射。
+
+（习题 8.1.13(8)-(11)：White、h、l 同理，在 Lean 中完成。）
+
+--- 8.1.12 例：x↦x^3 在 ℝ 上单射（代数分解与分情形）---
+
 Show Injective (fun (x:ℝ) ↦ x^3).
-"""
 
-
+```litex
 have fn cube_R(x R) R = x^3
 
 claim:
@@ -156,21 +168,21 @@ claim:
                     x1^2+x2^2+(x1+x2)^2>0+0+0=0
                     impossible x1^2+x2^2+(x1+x2)^2>0
             x1=x2=0
+```
 
+## 8.2 双射（Bijectivity）
 
-
-
-# ---------------------------------------------------------------------------
-# 8.2 双射（Bijectivity）
-# ---------------------------------------------------------------------------
+```litex
 prop bijective(f fn(x R) R):
     $injective(f) 
     $surjective(f)
-# 8.2.1 定义：双射 ⇔ 单射 ∧ 满射。Lean：`Bijective f` := `Injective f ∧ Surjective f`。
+```
 
-# --- 8.2.2 例：p(x)=2x−5 在 ℝ 上双射 ---
+### 8.2.1 定义：双射 ⇔ 单射 ∧ 满射。Lean：`Bijective f` := `Injective f ∧ Surjective f`。
 
+--- 8.2.2 例：p(x)=2x−5 在 ℝ 上双射 ---
 
+```litex
 have fn p_R(x R) R = 2 * x - 5
 
 claim:
@@ -190,11 +202,11 @@ claim:
             exist x R st {p_R(x) = y}
     witness exist x R st {p_R(x) = y} from (y + 5) / 2:
         p_R((y + 5) / 2) = 2 * ((y + 5) / 2) - 5 = y
+```
 
+--- 8.2.3 例：a(t)=t^3−t 非双射（0≠1 但 a(0)=a(1)）---
 
-# --- 8.2.3 例：a(t)=t^3−t 非双射（0≠1 但 a(0)=a(1)）---
-
-
+```litex
 have fn a_cubic(t R) R = t^3 - t
 
 claim:
@@ -205,14 +217,15 @@ claim:
         a_cubic(0) = 0^3 - 0 = 0
         a_cubic(1) = 1^3 - 1 = 0
         a_cubic(0) = a_cubic(1)
+```
 
+--- 8.2.4–8.2.5 有限类型 Celestial/Subatomic；f 不满射故非双射；双射 ⟺ ∀y∃!x, f(x)=y（8.2.5 定理，Lean 中 `↔` 证明）---
 
-# --- 8.2.4–8.2.5 有限类型 Celestial/Subatomic；f 不满射故非双射；双射 ⟺ ∀y∃!x, f(x)=y（8.2.5 定理，Lean 中 `↔` 证明）---
-# --- 8.2.6：|Celestial|=2 时自映射单射 ⇒ 双射（穷举四种函数）---
+--- 8.2.6：|Celestial|=2 时自映射单射 ⇒ 双射（穷举四种函数）---
 
-# --- 8.2.7：∃f:ℕ→ℕ 单射但非双射（例 f(n)=n+1，0 无原象）---
+--- 8.2.7：∃f:ℕ→ℕ 单射但非双射（例 f(n)=n+1，0 无原象）---
 
-
+```litex
 have fn succ_N(n N) N = n + 1
 prop not_bi_N(y N):
     forall n N:
@@ -237,17 +250,15 @@ claim:
             n + 1 >= 0+1=1>0
             succ_N(n) = n + 1>0
             succ_N(n) != 0
+```
 
+## 8.3 复合、恒等与逆（Composition, identity, inverse）
 
+### 8.3.1 定义：(g∘f)(x)=g(f(x))（Lean：`comp` / `g ∘ f`，注意记号顺序与部份教材相反：此处 g 外层与课本一致）。
 
-# ---------------------------------------------------------------------------
-# 8.3 复合、恒等与逆（Composition, identity, inverse）
-# ---------------------------------------------------------------------------
+litex：`have fn` 复合用显式外层函数写出。
 
-# 8.3.1 定义：(g∘f)(x)=g(f(x))（Lean：`comp` / `g ∘ f`，注意记号顺序与部份教材相反：此处 g 外层与课本一致）。
-# litex：`have fn` 复合用显式外层函数写出。
-
-
+```litex
 have fn f_add3_R(a R) R = a + 3
 have fn g_times2_R(b R) R = 2 * b
 have fn h_lin_R(c R) R = 2 * c + 6
@@ -260,9 +271,11 @@ claim:
             gf_R(x) = h_lin_R(x)
     gf_R(x) = 2 * (x + 3) = 2 * x + 6 = h_lin_R(x)
 have fn id_R(t R) R = t
+```
 
-# --- 8.3.4 例：s(x)=5−x 满足 s∘s = id ---
+--- 8.3.4 例：s(x)=5−x 满足 s∘s = id ---
 
+```litex
 have fn s_reflect_R(x R) R = 5 - x
 
 have fn ss_R(x R) R = s_reflect_R(s_reflect_R(x))
@@ -271,20 +284,25 @@ claim:
         forall x R:
             ss_R(x) = id_R(x)
     ss_R(x) = 5 - (5 - x) = x
+```
 
+### 8.3.5 定义：g 为 f 的逆 ⇔ g∘f = Id_X 且 f∘g = Id_Y。Lean：`Inverse f g`。
 
-# 8.3.5 定义：g 为 f 的逆 ⇔ g∘f = Id_X 且 f∘g = Id_Y。Lean：`Inverse f g`。
-# （Humour 四元置换 p、逆 q — 课本 `Inverse p q`，`cases <;> exhaust`。）
-# Litex 可对具体 u,v 写：`forall x, v(u(x))=x` 且 `forall y, u(v(y))=y`（见下 `u_R`/`v_R`）。
+（Humour 四元置换 p、逆 q — 课本 `Inverse p q`，`cases <;> exhaust`。）
+
+Litex 可对具体 u,v 写：`forall x, v(u(x))=x` 且 `forall y, u(v(y))=y`（见下 `u_R`/`v_R`）。
+
+```litex
 prop inverse_R(f fn(x R) R, g fn(x R) R):
     forall x R:
         g(f(x)) = x
     forall y R:
         f(g(y)) = y
+```
 
+--- 8.3.7：双射 ⇒ 存在逆（选择公理 / Lean `choose`）---
 
-# --- 8.3.7：双射 ⇒ 存在逆（选择公理 / Lean `choose`）---
-"""
+```litex
 claim:
     prove:
         forall f fn(x R) R:
@@ -295,19 +313,21 @@ claim:
         forall x R:
             g(f(x)) = x
             f(g(x)) = x
-"""
-# --- 8.3.8：存在逆 ⇒ 双射（用 g∘f=id 证单射，f∘g=id 证满射）---
-# --- 8.3.9：Bijective f ↔ ∃g, Inverse f g（课本 `bijective_iff_exists_inverse`）---
-# （二阶「存在函数 g」在 Litex 中不单独写法；在 Lean 用 `bijective_iff_exists_inverse` 整条定理。）
+```
 
-# ---------------------------------------------------------------------------
-# 8.4 积类型（Product types）
-# ---------------------------------------------------------------------------
+--- 8.3.8：存在逆 ⇒ 双射（用 g∘f=id 证单射，f∘g=id 证满射）---
 
-# litex_statement：积用 `cart(A,B)` 表示笛卡尔积；有序对写作 `(a, b)`，可用 `u[1]`、`u[2]` 取分量（见 `ByTupleStmt` / `cart` 示例）。
-# 下列 `know` 把「逐分量相等」与「有序对相等」对齐，供 `cart` 上的单射、满射证明引用。
+--- 8.3.9：Bijective f ↔ ∃g, Inverse f g（课本 `bijective_iff_exists_inverse`）---
 
-"""
+（二阶「存在函数 g」在 Litex 中不单独写法；在 Lean 用 `bijective_iff_exists_inverse` 整条定理。）
+
+## 8.4 积类型（Product types）
+
+litex_statement：积用 `cart(A,B)` 表示笛卡尔积；有序对写作 `(a, b)`，可用 `u[1]`、`u[2]` 取分量（见 `ByTupleStmt` / `cart` 示例）。
+
+下列 `know` 把「逐分量相等」与「有序对相等」对齐，供 `cart` 上的单射、满射证明引用。
+
+```litex
 know:
     forall u cart(Z, Z), v cart(Z, Z):
         u = v
@@ -319,14 +339,14 @@ know:
         =>:
             u[1] = v[1]
             u[2] = v[2]
-"""
-# --- 8.4.1 例：定义 q(m)=(m+1, 2−m)，将 ℤ 映入 ℤ×ℤ（Lean 中记作 `ℤ × ℤ`）。证明 q 单射，并证 q 不满射（例如 (0,1) 不在像中；纸面由两分量解出 m 矛盾）。---
+```
 
-"""
+--- 8.4.1 例：定义 q(m)=(m+1, 2−m)，将 ℤ 映入 ℤ×ℤ（Lean 中记作 `ℤ × ℤ`）。证明 q 单射，并证 q 不满射（例如 (0,1) 不在像中；纸面由两分量解出 m 矛盾）。---
+
 Consider q : ℤ → ℤ × ℤ defined by q(m) = (m + 1, 2 - m).
 Show q is injective (1) and not surjective (2).
-"""
-"""
+
+```litex
 have fn q_Z(m Z) cart(Z, Z) = (m + 1, 2 - m)
 
 claim:
@@ -341,8 +361,9 @@ claim:
     (m1 + 1, 2 - m1) = (m2 + 1, 2 - m2)
     m1 + 1 = m2 + 1
     m1 = m2
-"""
-"""
+```
+
+```litex
 prop img_q_avoid(pair cart(Z, Z)):
     forall m Z:
         q_Z(m) != pair
@@ -357,13 +378,13 @@ claim:
                 m + 1 = 0
                 2 - m = 1
                 impossible -1 != 2
-"""
-# --- 8.4.2 例：ℤ²→ℤ²，(m,n)↦(m+n, m+2n)。求证为双射；逆映射 (a,b)↦(2a−b, b−a)（Rough work：解二元一次方程）。---
+```
 
-"""
+--- 8.4.2 例：ℤ²→ℤ²，(m,n)↦(m+n, m+2n)。求证为双射；逆映射 (a,b)↦(2a−b, b−a)（Rough work：解二元一次方程）。---
+
 Show that (m, n) ↦ (m + n, m + 2*n) from ℤ² to ℤ² is bijective; inverse (a,b) ↦ (2a−b, b−a).
-"""
-"""
+
+```litex
 have fn F_Z2(t cart(Z, Z)) cart(Z, Z) = (t[1] + t[2], t[1] + 2 * t[2])
 have fn Finv_Z2(s cart(Z, Z)) cart(Z, Z) = (2 * s[1] - s[2], s[2] - s[1])
 
@@ -373,13 +394,13 @@ claim:
             Finv_Z2(F_Z2(t)) = t
         forall s cart(Z, Z):
             F_Z2(Finv_Z2(s)) = s
-"""
-# --- 8.4.3 例：ℝ²→ℝ²，(m,n)↦(m+n, m−n)。在 ℝ 上可逆，逆为 ((a+b)/2, (a−b)/2)。同一公式限制在 ℤ²→ℤ² 则非双射：例如 (0,1) 无原像（奇偶/整数约束）。---
+```
 
-"""
+--- 8.4.3 例：ℝ²→ℝ²，(m,n)↦(m+n, m−n)。在 ℝ 上可逆，逆为 ((a+b)/2, (a−b)/2)。同一公式限制在 ℤ²→ℤ² 则非双射：例如 (0,1) 无原像（奇偶/整数约束）。---
+
 Real case: bijective ℤ case: ¬ bijective onto (0,1).
-"""
-"""
+
+```litex
 have fn F_R2_sd(t cart(R, R)) cart(R, R) = (t[1] + t[2], t[1] - t[2])
 
 have fn Finv_R2_sd(s cart(R, R)) cart(R, R) = ((s[1] + s[2]) / 2, (s[1] - s[2]) / 2)
@@ -404,13 +425,13 @@ claim:
             t[1] - t[2] = 1
             =>:
                 impossible 2 * t[2] = -1
-"""
-# --- 8.4.4 例：ℝ²→ℝ³，(x,y)↦(x+y, x−y, y)。用分量相等即得多项式相等，故单射（课本用 `constructor`/`obtain`）。---
+```
 
-"""
+--- 8.4.4 例：ℝ²→ℝ³，(x,y)↦(x+y, x−y, y)。用分量相等即得多项式相等，故单射（课本用 `constructor`/`obtain`）。---
+
 Injective ℝ²→ℝ³: (x, y) ↦ (x+y, x-y, y).
-"""
-"""
+
+```litex
 have fn rho_R3(t cart(R, R)) cart(R, cart(R, R)) =
     (t[1] + t[2], (t[1] - t[2], t[2]))
 
@@ -420,13 +441,13 @@ claim:
             rho_R3(p) = rho_R3(q)
             =>:
                 p = q
-"""
-# --- 8.4.5 例：(x,y)↦x+y（ℝ²→ℝ）不单射——例如 (0,0) 与 (1,−1) 和相同；但对任意实数 a，取 (a,0) 即满射至 ℝ。---
+```
 
-"""
+--- 8.4.5 例：(x,y)↦x+y（ℝ²→ℝ）不单射——例如 (0,0) 与 (1,−1) 和相同；但对任意实数 a，取 (a,0) 即满射至 ℝ。---
+
 ¬ Injective (proj sum ℝ²→ℝ); Surjective.
-"""
-"""
+
+```litex
 have fn proj_sum_R(p cart(R, R)) R = p[1] + p[2]
 
 claim:
@@ -444,13 +465,13 @@ claim:
             exist p cart(R, R) st {proj_sum_R(p) = a}
     witness exist p cart(R, R) st {proj_sum_R(p) = a} from (a, 0):
         a + 0 = a
-"""
-# --- 8.4.6 例：ℤ²→ℤ，(m,n)↦5m+8n。否单射：(0,0) 与 (8,−5) 同像；满射——对任意整数 a，(−3a, 2a) 为其原像（与 3.5.1/3 表法一致）。---
+```
 
-"""
+--- 8.4.6 例：ℤ²→ℤ，(m,n)↦5m+8n。否单射：(0,0) 与 (8,−5) 同像；满射——对任意整数 a，(−3a, 2a) 为其原像（与 3.5.1/3 表法一致）。---
+
 5m+8n: ¬ injective ℤ²→ℤ; surjective ℤ²→ℤ with (−3a, 2a).
-"""
-"""
+
+```litex
 have fn Z_lin58(u cart(Z, Z)) Z = 5 * u[1] + 8 * u[2]
 
 claim:
@@ -468,13 +489,13 @@ claim:
             exist u cart(Z, Z) st {Z_lin58(u) = a}
     witness exist u cart(Z, Z) st {Z_lin58(u) = a} from (-3 * a, 2 * a):
         5 * (-3 * a) + 8 * (2 * a) = a
-"""
-# --- 8.4.7 例：ℤ²→ℤ，(m,n)↦5m+10n。非满射——1 不能做像（两端 mod 5 矛盾）；非单射与上节类似留给习题 sorry。---
+```
 
-"""
+--- 8.4.7 例：ℤ²→ℤ，(m,n)↦5m+10n。非满射——1 不能做像（两端 mod 5 矛盾）；非单射与上节类似留给习题 sorry。---
+
 ¬ Surjective ℤ²→ℤ for 5m+10n onto 1 mod argument.
-"""
-"""
+
+```litex
 prop not_sur_Z510(goal Z):
     forall u cart(Z, Z):
         5 * u[1] + 10 * u[2] != goal
@@ -486,18 +507,19 @@ claim:
         forall u cart(Z, Z):
             5 * u[1] + 10 * u[2] = 5 * (u[1] + 2 * u[2])
             5 * (u[1] + 2 * u[2]) != 1
-"""
-# --- 8.4.8 例：ℝ²→ℝ²，g(x,y)=(y,x)。证明 g∘g=Id_{ℝ²}（逐点：`ext`）；即对换为对合。---
+```
 
-"""
+--- 8.4.8 例：ℝ²→ℝ²，g(x,y)=(y,x)。证明 g∘g=Id_{ℝ²}（逐点：`ext`）；即对换为对合。---
+
 g ∘ g = id on ℝ × ℝ via swap coordinates.
-"""
-"""
+
+```litex
 have fn swap_R(p cart(R, R)) cart(R, R) = (p[2], p[1])
 
 claim:
     prove:
         forall p cart(R, R):
             swap_R(swap_R(p)) = p
-"""
-# --- 8.4.9 例：构造 ℕ²→ℕ 的双射（Cantor 配对、p(a,b)=A_{a+b}+b、 intertwining map i、引理 `A_mono`、`surjective_of_intertwining`）——篇幅长，仅存课本与 Lean；此处从略。---
+```
+
+--- 8.4.9 例：构造 ℕ²→ℕ 的双射（Cantor 配对、p(a,b)=A_{a+b}+b、 intertwining map i、引理 `A_mono`、`surjective_of_intertwining`）——篇幅长，仅存课本与 Lean；此处从略。---

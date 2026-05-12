@@ -1,9 +1,10 @@
 # Chapter 4 — 结构化证明 II
 
-# 第二章学过 ∨、∧、∃，以及假设/目标中各联结词的 natural deduction 用法。
-# 本章补全其余逻辑符号：∀、→、¬；以及可由它们定义的 ↔ 与 ∃!。
+第二章学过 ∨、∧、∃，以及假设/目标中各联结词的 natural deduction 用法。
 
+本章补全其余逻辑符号：∀、→、¬；以及可由它们定义的 ↔ 与 ∃!。
 
+```litex
 prop odd(a Z):
     exist k Z st {a = 2 * k + 1}
 prop even(a Z):
@@ -48,7 +49,6 @@ know:
         =>:
             b = a * dvd_num_n(a, b)
 
-
 know:
     forall a, b N:
         $dvdN(a, b)
@@ -60,33 +60,35 @@ know:
         b > 0
         =>:
             a >= 1
+```
 
-# ---------------------------------------------------------------------------
-# 4.1 「对所有」与蕴含（∀ 与 →）
-# ---------------------------------------------------------------------------
+## 4.1 「对所有」与蕴含（∀ 与 →）
 
-# 4.1.1
-# 把公式或谓词说成「对所有 x 成立」，称为对 x 的全称量化，符号写作 ∀。
-# 使用带 ∀ 的假设时，常把其中的 x 代成某个具体值（特例化）；纸面下例取 x=1。
-# （Lean：对假设用 apply 特例化。）
-"""
+### 4.1.1
+
+把公式或谓词说成「对所有 x 成立」，称为对 x 的全称量化，符号写作 ∀。
+
+使用带 ∀ 的假设时，常把其中的 x 代成某个具体值（特例化）；纸面下例取 x=1。
+
+（Lean：对假设用 apply 特例化。）
+
 Let a be a real number and suppose that for all real numbers x, a <= x^2 - 2x. Show that a <= -1.
-"""
 
+```litex
 forall a R:
     forall x R:
         a <= x^2 - 2 * x
     =>:
         a <= 1^2 - 2 * 1 = -1
+```
 
+### 4.1.2
 
+n 整除每个自然数 ⇒ n 整除 1；又 1>0，由因子大小界（第三章例 3.2.7、3.2.8）得 n<=1 且 1<=n，故 n=1。
 
-# 4.1.2
-# n 整除每个自然数 ⇒ n 整除 1；又 1>0，由因子大小界（第三章例 3.2.7、3.2.8）得 n<=1 且 1<=n，故 n=1。
-"""
 Let n be a natural number which is a factor of every natural number m. Show that n = 1.
-"""
 
+```litex
 know:   
     forall n,m N:
         $dvdN(n, m)
@@ -101,14 +103,17 @@ forall n N:
         0 < 1
         n <= 1
         1 <= n
+```
 
-# 4.1.3
-# 考虑 (a+b)/2：它要么 >= a，要么 <= b；两种情形分别推出 b>=a 或 a<=b。
-# （Lean：对析取假设分情形；此处 Litex 用 by cases。）
-"""
+### 4.1.3
+
+考虑 (a+b)/2：它要么 >= a，要么 <= b；两种情形分别推出 b>=a 或 a<=b。
+
+（Lean：对析取假设分情形；此处 Litex 用 by cases。）
+
 Let a and b be real numbers and suppose that every real number x is either at least a or at most b. Show that a <= b.
-"""
 
+```litex
 claim:
     prove:
         forall a, b R:
@@ -126,15 +131,20 @@ claim:
         case (a+b)/2 <= b:
             a = 2 * ((a + b) / 2) - b <= 2 * b - b = b
             a <= b
+```
 
-# 4.1.4
-# 假设里「a 大于等于每个平方不超过 2 的实数」= ∀y∈R, y^2<=2 → y<=a（前件 y^2<=2 可特例化）。
-# 由 a^2<=2 得 a<=b；由 b^2<=2 得 b<=a；故 a=b。
-# 脚注：即 a 在集合 {y | y^2<=2} 中是极大的。
-"""
+### 4.1.4
+
+假设里「a 大于等于每个平方不超过 2 的实数」= ∀y∈R, y^2<=2 → y<=a（前件 y^2<=2 可特例化）。
+
+由 a^2<=2 得 a<=b；由 b^2<=2 得 b<=a；故 a=b。
+
+脚注：即 a 在集合 {y | y^2<=2} 中是极大的。
+
 Let a be real number whose square is at most 2, and which is greater than or equal to any real number whose square is at most 2.
 Let b be another real number with the same two properties. Prove that a = b.
-"""
+
+```litex
 know:
     forall a, b R:
         a<=b
@@ -157,13 +167,17 @@ forall a, b R:
         b^2 <= 2
         b <= a
         a = b
+```
 
-# 4.1.5
-# 目标含 ∀x：先「设 x 为任意实数」再证不等式。（Lean：intro x 后 calc。）
-"""
+### 4.1.5
+
+目标含 ∀x：先「设 x 为任意实数」再证不等式。（Lean：intro x 后 calc。）
+
 Show that there exists a real number b such that for every real number x, b <= x^2 - 2x.
-"""
-#exists 里面是否要加入forall
+
+exists 里面是否要加入forall
+
+```litex
 prop b_le_x_sq_minus_2_x(b R):
     forall x R:
         b <= x^2 - 2 * x
@@ -175,13 +189,17 @@ claim:
         forall x R:
             -1 <= -1 + (x - 1)^2 = x^2 - 2 * x
             -1 <= x^2 - 2 * x
+```
 
-# 4.1.6
-# 目标：∃c, ∀x,y, (x^2+y^2<=4 → x+y>=c)。先引入 x,y 与假设 x^2+y^2<=4，再估 (x+y)^2。
-# 引理 abs_le_of_sq_le_sq'：见第二章例 2.4.2（书本）。
-"""
+### 4.1.6
+
+目标：∃c, ∀x,y, (x^2+y^2<=4 → x+y>=c)。先引入 x,y 与假设 x^2+y^2<=4，再估 (x+y)^2。
+
+引理 abs_le_of_sq_le_sq'：见第二章例 2.4.2（书本）。
+
 Show that there exists a real number c such that for all real numbers x and y, if x^2 + y^2 <= 4 then x + y >= c.
-"""
+
+```litex
 prop x_sq_plus_y_sq_le_4(c R):
     forall x, y R:
         x^2 + y^2 <= 4
@@ -203,20 +221,27 @@ claim:
             =>:
                 (x + y)^2 <= (x + y)^2 + (x - y)^2 = 2 * (x^2 + y^2) <= 2 * 4 = 8 <= 9 = 3^2
                 x + y >= -3
+```
 
-# 4.1.7
-# 定义：性质对「所有充分大的整数 n」成立，指存在整数 N，使得对所有 n>=N 该性质成立（有理数、实数同理）。
-# （Lean：记号 forall_sufficiently_large；先用 use 给出阈值再 intro n hn。）
-"""
+### 4.1.7
+
+定义：性质对「所有充分大的整数 n」成立，指存在整数 N，使得对所有 n>=N 该性质成立（有理数、实数同理）。
+
+（Lean：记号 forall_sufficiently_large；先用 use 给出阈值再 intro n hn。）
+
 Show that for all sufficiently large integers n, n^3 >= 4 n^2 + 7.
-"""
+
+```litex
 prop n_ge_n_sq_plus_7(M Z):
     forall n Z:
         n >= M
         =>:
             n^3 >= 4 * n^2 + 7
-# 对 n >= 5：n^3 = n*n^2 >= 5 n^2 = 4 n^2 + n^2 >= 4 n^2 + 25 > 4 n^2 + 7
-"""
+```
+
+对 n >= 5：n^3 = n*n^2 >= 5 n^2 = 4 n^2 + n^2 >= 4 n^2 + 25 > 4 n^2 + 7
+
+```litex
 claim:
     prove:
         exist M Z st {$n_ge_n_sq_plus_7(M)}
@@ -227,22 +252,26 @@ claim:
                 n^3=n*(n^2) >= 5 *(n^2)=4 * (n^2) + (n^2) >= 4 * (n^2) + 5^2 = 4 * (n^2) + 7 + 18
                 n^3 >= 4 * (n^2) + 7 + 18>4 * (n^2) + 7
                 n^3 >= 4 * (n^2) + 7
-"""
-# 4.1.8
-# 定义：自然数 p 为素数，当且仅当 p>=2 且 p 的正因子只有 1 与 p。
-# 证 2 为素数：2<=2；设 m|2，则由大小界 m<=2 且 1<=m，枚举 m∈{1,2}。（Lean：interval_cases。）
+```
 
+### 4.1.8
+
+定义：自然数 p 为素数，当且仅当 p>=2 且 p 的正因子只有 1 与 p。
+
+证 2 为素数：2<=2；设 m|2，则由大小界 m<=2 且 1<=m，枚举 m∈{1,2}。（Lean：interval_cases。）
+
+```litex
 prop Prime(p N):
     2 <= p
     forall m N:
         $dvdN(m, p)
         =>:
             m = 1 or m = p
+```
 
-"""
 Show that 2 is prime.
-"""
 
+```litex
 claim:
     prove:
         $Prime(2)
@@ -254,27 +283,31 @@ claim:
             m <= 2
             1 <= m
             m = 1 or m = 2
+```
 
-# 4.1.9
-# 证「非素数」：给出一个非平凡分解 p=k*l 且 k≠1、k≠p。（完整论证见 4.5.7；Lean 引理 not_prime。）
-"""
+### 4.1.9
+
+证「非素数」：给出一个非平凡分解 p=k*l 且 k≠1、k≠p。（完整论证见 4.5.7；Lean 引理 not_prime。）
+
 Show that 6 is not prime.
-"""
-# 因子 2 满足 2|6 且 2≠1、2≠6，与素数定义矛盾（亦见 4.5.7 引理 not_prime）。
-#we will prove in 4.5.7
 
+因子 2 满足 2|6 且 2≠1、2≠6，与素数定义矛盾（亦见 4.5.7 引理 not_prime）。
 
-# ---------------------------------------------------------------------------
-# 4.2 当且仅当（↔）
-# ---------------------------------------------------------------------------
+we will prove in 4.5.7
 
-# 4.2.1
-# 「当且仅当」须证两个方向。（纸面常用 ⇒ 与 ⇐ 标注；正式书写可用「首先」「反之」。）
-# （Lean：↔ 目标用 constructor 拆成两个蕴含。）
-"""
+## 4.2 当且仅当（↔）
+
+### 4.2.1
+
+「当且仅当」须证两个方向。（纸面常用 ⇒ 与 ⇐ 标注；正式书写可用「首先」「反之」。）
+
+（Lean：↔ 目标用 constructor 拆成两个蕴含。）
+
 Let a be a rational number. Show that 3a+1 <= 7 if and only if a <= 2.
-"""
-# 正向：3a+1<=7 ⇒ a<=2；反向：a<=2 ⇒ 3a+1<=7。
+
+正向：3a+1<=7 ⇒ a<=2；反向：a<=2 ⇒ 3a+1<=7。
+
+```litex
 forall a Q:
     3 * a + 1 <= 7
     =>:
@@ -283,14 +316,17 @@ forall a Q:
     a <= 2
     =>:
         3 * a + 1 <= 3 * 2 + 1 = 7
+```
 
-# 4.2.2
-# 8|5n ⇒ 8|n：由 5n=8a 得 n = -3(5n)+16n = 8(-3a+2n)。反之 8|n ⇒ 8|5n 显然。
-"""
+### 4.2.2
+
+8|5n ⇒ 8|n：由 5n=8a 得 n = -3(5n)+16n = 8(-3a+2n)。反之 8|n ⇒ 8|5n 显然。
+
 Let n be an integer. Show that 5n is a multiple of 8 if and only if n is.
-"""
-#n =-3*(5*n)+16*n= -3*(8*dvd_num_z(8, 5 * n))+16*n= 8*(-3*dvd_num_z(8, 5 * n)+2*n)这一串不能verify
-"""
+
+n =-3*(5*n)+16*n= -3*(8*dvd_num_z(8, 5 * n))+16*n= 8*(-3*dvd_num_z(8, 5 * n)+2*n)这一串不能verify
+
+```litex
 # ⇒：8∣5n ⇒ 8∣n；⇐：8∣n ⇒ 8∣5n。
 claim:
     prove:
@@ -308,14 +344,16 @@ claim:
                 $dvdZ(8, 5 * n)
     witness exist c Z st {5 * n = 8 * c} from 5*dvd_num_z(8, n):
         5 * n = 5 * n= 5*(8 * dvd_num_z(8, n) )= 8 * (5 * dvd_num_z(8, n))
-"""
+```
 
-# 4.2.3 / 4.2.4
-# 奇数 ⇔ n ≡ 1 (mod 2)；偶数 ⇔ n ≡ 0 (mod 2)。（书本定理 odd_iff_modEq、even_iff_modEq；反向分支 Lean 留作 sorry。）
-"""
+### 4.2.3 / 4.2.4
+
+奇数 ⇔ n ≡ 1 (mod 2)；偶数 ⇔ n ≡ 0 (mod 2)。（书本定理 odd_iff_modEq、even_iff_modEq；反向分支 Lean 留作 sorry。）
+
 Show that an integer n is odd, if and only if it is congruent to 1 modulo 2.
 Show that an integer n is even, if and only if it is congruent to 0 modulo 2.
-"""
+
+```litex
 claim:
     prove:
         forall n Z:
@@ -352,13 +390,15 @@ claim:
     $dvdZ(2,n-0)
     witness exist c Z st {n = 2 * c} from dvd_num_z(2,n-0):
         n=n-0= 2 * dvd_num_z(2,n-0)    
+```
 
+### 4.2.5
 
-# 4.2.5
-# 解方程型 ↔：左边因式分解 (x+3)(x-2)=0 ⇒ x=-3 或 x=2；反向代入验证。
-"""
+解方程型 ↔：左边因式分解 (x+3)(x-2)=0 ⇒ x=-3 或 x=2；反向代入验证。
+
 Let x be a real number. Show that x^2 + x - 6 = 0 if and only if x = -3 or x = 2.
-"""
+
+```litex
 forall x R:
     x^2 + x - 6 = 0
     =>:
@@ -373,12 +413,15 @@ forall x R:
         x-2=2-2=0
         x^2 + x - 6 = (x + 3) * (x - 2) = 0 * 0 = 0
         x^2 + x - 6 = 0
+```
 
-# 4.2.6
-# 配方 (2a-5)^2 = 4(a^2-5a+5)+5，由左边<=-1 得 |2a-5|<=1 ⇒ 2<=a<=3，整数 a∈{2,3}。
-"""
+### 4.2.6
+
+配方 (2a-5)^2 = 4(a^2-5a+5)+5，由左边<=-1 得 |2a-5|<=1 ⇒ 2<=a<=3，整数 a∈{2,3}。
+
 Let a be an integer. Show that a^2 - 5a + 5 <= -1 if and only if a is 2 or 3.
-"""
+
+```litex
 know:
     forall a,b R:
         a^2<=b^2
@@ -412,12 +455,13 @@ claim:
         case a = 3:
             a^2 - 5 * a + 5 = 3^2 - 5 * 3 + 5 = 9 - 15 + 5 = -1
             a^2 - 5 * a + 5 <= -1
-        
-# 4.2.7
+```
 
-"""
+### 4.2.7
+
 Let n be an integer and suppose n^2 - 10n + 24 = 0. Show that n is even.
-"""
+
+```litex
 claim:
     prove:
         forall n Z:
@@ -437,12 +481,15 @@ claim:
         case n = 6:
             witness exist c Z st {n = 2 * c} from 3:
                 n =6= 2 * 3 
+```
 
-# 4.2.8
-# 用 odd_iff_modEq 把奇偶翻译为同余，在同余下计算。
-"""
+### 4.2.8
+
+用 odd_iff_modEq 把奇偶翻译为同余，在同余下计算。
+
 Prove that if the integers x and y are odd, then x+y+1 is odd.
-"""
+
+```litex
 prop mod_eq_trans(a,b,c,n Z):
     $mod_eq(a,c,n)
 
@@ -470,7 +517,10 @@ know:
             $mod_eq(a, 1, 2)
         <=>:
             $odd(a)
-"""
+```
+
+<!-- litex:skip-test -->
+```litex
 claim:
     prove:
         forall x, y Z:
@@ -492,16 +542,17 @@ claim:
     $mod_eq_trans(x+y+1,3,1,2)
     $mod_eq(x+y+1,1,2)
     $odd(x+y+1)
-"""
+```
 
-# 4.2.9
-# 每个整数偶或奇：按 n mod 2 分情形；若余 0 则偶，若余 1 则奇
+### 4.2.9
 
-"""
+每个整数偶或奇：按 n mod 2 分情形；若余 0 则偶，若余 1 则奇
+
 Every integer is either even or odd.
-"""
-#怎么写归纳
-"""
+
+怎么写归纳
+
+```litex
 claim:
     prove:
         forall n Z:
@@ -509,18 +560,19 @@ claim:
     by induc n from 0:
         prove:
             $even(n) or $odd(n)
-        
-"""
-# ---------------------------------------------------------------------------
-# 4.3 存在唯一（∃!）
-# ---------------------------------------------------------------------------
+```
 
-# 4.3.1
-# 先证见证（此处 2）满足式子，再设 y 为任一解，由 3y+1=7 推出 y=2。
-"""
+## 4.3 存在唯一（∃!）
+
+### 4.3.1
+
+先证见证（此处 2）满足式子，再设 y 为任一解，由 3y+1=7 推出 y=2。
+
 Show that there exists a unique real number a such that 3a+1=7.
-"""
-# 存在唯一（∃!）：先 witness 存在性，再证任意解等于该见证（litex_statement.lit 无单独 ∃! 关键字，拆成 exist + 全称蕴含）。
+
+存在唯一（∃!）：先 witness 存在性，再证任意解等于该见证（litex_statement.lit 无单独 ∃! 关键字，拆成 exist + 全称蕴含）。
+
+```litex
 claim:
     prove:
         exist a R st {3 * a + 1 = 7}
@@ -530,13 +582,15 @@ forall y R:
     3 * y + 1 = 7
     =>:
         y = (3 * y + 1 - 1) / 3 = (7 - 1) / 3 = 2
+```
 
-# 4.3.2
-# 唯一有理数 x：使对所有 a∈[1,3] 有 (a-x)^2<=1 者为 x=2（书本：用端点 1 与 3 夹住）。
-"""
+### 4.3.2
+
+唯一有理数 x：使对所有 a∈[1,3] 有 (a-x)^2<=1 者为 x=2（书本：用端点 1 与 3 夹住）。
+
 Show that there exists a unique rational number x such that for every rational a between 1 and 3, (a-x)^2 <= 1.
-"""
 
+```litex
 know:
     forall a,b R:
         a<=b
@@ -583,32 +637,36 @@ claim:
             x=2
             y=2
             x=y
-            
+```
 
-    
+### 4.3.3
 
-# 4.3.3
-# 若 ∃! a, a^2=x，则 (-a)^2=x ⇒ -a=a ⇒ a=0 ⇒ x=0。
-"""
+若 ∃! a, a^2=x，则 (-a)^2=x ⇒ -a=a ⇒ a=0 ⇒ x=0。
+
 Let x be a rational number, and suppose there exists a unique rational a such that a^2=x. Show that x=0.
-"""
-# 设 a 为满足 a^2=x 的唯一有理数，则 (-a)^2=x，由唯一性 -a=a，故 a=0，x=0（形式化需 have by exist 引入见证；见书本 Lean 的 obtain ⟨a, ha1, ha2⟩）。
-# （目标命题依赖「唯一性」假设，不单写成 forall x: x=0。）
-#不知道怎么写
-"""
+
+设 a 为满足 a^2=x 的唯一有理数，则 (-a)^2=x，由唯一性 -a=a，故 a=0，x=0（形式化需 have by exist 引入见证；见书本 Lean 的 obtain ⟨a, ha1, ha2⟩）。
+
+（目标命题依赖「唯一性」假设，不单写成 forall x: x=0。）
+
+不知道怎么写
+
+```litex
 claim:
     prove:
         forall x Q:
             exist a Q st {a^2 = x}
             =>:
                 x = 0
-"""
+```
 
-# 4.3.4
-# 除法算法：∃! r, 0<=r<b 且 a≡r (mod b)。特例 r=4 为 14 mod 5。（长证明见书本；Lean：Int.existsUnique_modEq_lt。）
-"""
+### 4.3.4
+
+除法算法：∃! r, 0<=r<b 且 a≡r (mod b)。特例 r=4 为 14 mod 5。（长证明见书本；Lean：Int.existsUnique_modEq_lt。）
+
 Show that there exists a unique integer r such that 0 <= r < 5 and 14 ≡ r (mod 5).
-"""
+
+```litex
 let min_pos_remain fn (a Z, b Z) Z
 know:
     forall a, b Z:
@@ -644,18 +702,19 @@ forall r Z:
         0<=r
         r<5
         r=min_pos_remain(14,5)
+```
 
+## 4.4 矛盾的假设
 
-# ---------------------------------------------------------------------------
-# 4.4 矛盾的假设
-# ---------------------------------------------------------------------------
+### 4.4.1
 
-# 4.4.1
-# 若 0<xy 且 0<=x，则 0<y：若 y<=0 则 xy<=0 与 0<xy 矛盾。（Lean：contradiction。）
-"""
+若 0<xy 且 0<=x，则 0<y：若 y<=0 则 xy<=0 与 0<xy 矛盾。（Lean：contradiction。）
+
 Lemma: Let x and y be real numbers, and suppose 0 < x*y and 0 <= x. Show that 0 < y.
-"""
-# 分情形：y≤0 时 0=x·0≥x·y 与 0<x·y 矛盾；故 y>0（Lean：contradiction）。
+
+分情形：y≤0 时 0=x·0≥x·y 与 0<x·y 矛盾；故 y>0（Lean：contradiction）。
+
+```litex
 claim:
     prove:
         forall x, y R:
@@ -669,34 +728,40 @@ claim:
         y<=0
         x*y<=x*0=0
         impossible x*y<=0
-        
+```
 
-# 4.4.2
-# t<3 且 t-1=6 ⇒ t=7<3，假命题 ⇒ 爆炸原理可推出任意结论（含 t=13）。（Lean：numbers at H。）
-"""
+### 4.4.2
+
+t<3 且 t-1=6 ⇒ t=7<3，假命题 ⇒ 爆炸原理可推出任意结论（含 t=13）。（Lean：numbers at H。）
+
 Let t be an integer with t < 3 and t - 1 = 6. Show that t = 13.
-"""
-#不知道如何用litex表述这个事情（爆炸原理）
-"""
+
+不知道如何用litex表述这个事情（爆炸原理）
+
+```litex
 forall t Z:
     t < 3
     t - 1 = 6
     =>:
         t = 13
-        
-"""
-# 4.4.3
-# n mod 3 为 0 或 2 则结论已成立；若 n≡1 (mod 3) 则 n^2+n+1≡3≡0 (mod 3)，与 ≡1 矛盾。（同余须规范到 0..n-1 再判「显然假」。）
-"""
-Show that if n^2+n+1 ≡ 1 (mod 3) then n ≡ 0 or n ≡ 2 (mod 3).
-"""
+```
 
+### 4.4.3
+
+n mod 3 为 0 或 2 则结论已成立；若 n≡1 (mod 3) 则 n^2+n+1≡3≡0 (mod 3)，与 ≡1 矛盾。（同余须规范到 0..n-1 再判「显然假」。）
+
+Show that if n^2+n+1 ≡ 1 (mod 3) then n ≡ 0 or n ≡ 2 (mod 3).
+
+```litex
 know:
     forall n Z:
         $mod_eq(n, 0, 3) or $mod_eq(n, 2, 3) or $mod_eq(n, 1, 3)
-#无法在prop里面做化简计算
+```
 
-"""
+无法在prop里面做化简计算
+
+<!-- litex:skip-test -->
+```litex
 claim:
     prove:
         forall n Z:
@@ -724,14 +789,16 @@ claim:
             n*n=n^2
             $mod_eq(n^2+n+1, 0, 3)
             impossible $mod_eq(n^2+n+1, 0, 3)
-"""
+```
 
-# 4.4.4
-# 素数判定引理：若 2<=p 且所有满足 1<m<p 的 m 都不整除 p，则 p 素数（prime_test）。证 5：枚举 m=2,3,4。
-"""
+### 4.4.4
+
+素数判定引理：若 2<=p 且所有满足 1<m<p 的 m 都不整除 p，则 p 素数（prime_test）。证 5：枚举 m=2,3,4。
+
 Lemma: Let p >= 2. If for all m with 1 < m < p, m does not divide p, then p is prime.
 Show that 5 is prime.
-"""
+
+```litex
 know:
     forall p N:
         p >= 2
@@ -741,10 +808,11 @@ know:
                 not $dvdN(m, p)
         =>:
             $Prime(p)
+```
 
-#不知道怎么写
+不知道怎么写
 
-"""
+```litex
 claim:
     prove:
         $Prime(5)
@@ -753,34 +821,35 @@ claim:
             forall i 2...4:
                 5 % i != 0
                 not $dvdN(i, 5)
-        
-"""    
-    
+```
 
-# 4.4.5
-# 勾股数 a^2+b^2=c^2 且 a,b,c 为正 ⇒ a>=3（最小本原解 3,4,5）。书本对 a<=2 分情形导出矛盾（较长）。
-"""
+### 4.4.5
+
+勾股数 a^2+b^2=c^2 且 a,b,c 为正 ⇒ a>=3（最小本原解 3,4,5）。书本对 a<=2 分情形导出矛盾（较长）。
+
 Let a, b, c be positive natural numbers with a^2 + b^2 = c^2. Show that 3 <= a.
-"""
 
-# ---------------------------------------------------------------------------
-# 4.5 反证法
-# ---------------------------------------------------------------------------
+## 4.5 反证法
 
-# 4.5.1
-# 否定全称：¬∀x, P(x) —— 举反例 x=0.5（使 x^2 < x）。
-"""
+### 4.5.1
+
+否定全称：¬∀x, P(x) —— 举反例 x=0.5（使 x^2 < x）。
+
 Show that it is not true that for all real numbers x, x^2 >= x.
-"""
+
+```litex
 witness exist x R st {x^2 < x} from 0.5:
     0.5^2 < 0.5
+```
 
-# 4.5.2
-# 13 不是 3 的倍数：若 13=3k，则 k<=4 或 k>=5 均矛盾。
-"""
+### 4.5.2
+
+13 不是 3 的倍数：若 13=3k，则 k<=4 或 k>=5 均矛盾。
+
 Show that 13 is not a multiple of 3.
-"""
-"""
+
+<!-- litex:skip-test -->
+```litex
 claim:
     prove:
         not $dvdN(3, 13)
@@ -799,12 +868,15 @@ claim:
             case k >= 5:
                 13 = 3 * k>=3*5=15
                 impossible 13 >=15
-"""
-# 4.5.3
-# x+y=0 时不能同时 x>0 且 y>0（否则 0=x+y>0）。
-"""
+```
+
+### 4.5.3
+
+x+y=0 时不能同时 x>0 且 y>0（否则 0=x+y>0）。
+
 Let x and y be real numbers and suppose x + y = 0. Show it is not possible for both x and y to be positive.
-"""
+
+```litex
 claim:
     prove:
         forall x, y R:
@@ -820,13 +892,15 @@ claim:
         case x>0:
             y=x+y-x=0-x<0
             y<=0
+```
 
+### 4.5.4
 
-# 4.5.4
-# 无自然数 n 满足 n^2=2（与 2.3.2 对照）。
-"""
+无自然数 n 满足 n^2=2（与 2.3.2 对照）。
+
 Show that there does not exist a natural number n such that n^2 = 2.
-"""
+
+```litex
 claim:
     prove:
         forall n N:
@@ -843,22 +917,24 @@ claim:
             n>=2
             n^2>=2^2=4>2
             n^2!=2
+```
 
+### 4.5.5
 
+偶 ⇔ 非奇；奇 ⇔ 非偶（整数；用 mod 2 或分类讨论）。
 
-# 4.5.5
-# 偶 ⇔ 非奇；奇 ⇔ 非偶（整数；用 mod 2 或分类讨论）。
-"""
 Show that an integer n is even if and only if it is not odd; odd if and only if not even.
-"""
 
-# 4.5.6
-# n^2 ≢ 2 (mod 3)：对 n mod 3 枚举 0,1,2。
-"""
+### 4.5.6
+
+n^2 ≢ 2 (mod 3)：对 n mod 3 枚举 0,1,2。
+
 Let n be an integer. Show that n^2 not≡ 2 (mod 3).
-"""
-#得完善剩余类这个事情
-"""
+
+得完善剩余类这个事情
+
+<!-- litex:skip-test -->
+```litex
 claim:
     prove:
         forall n Z:
@@ -880,20 +956,25 @@ claim:
             $mod_eq(n^2, 4, 3)
             $mod_eq(n^2, 1, 3)
             not $mod_eq(n^2, 2, 3)
-"""
+```
 
-# 4.5.7
-# p=k*l 且 k≠1、k≠p ⇒ p 非素数（书本定理）。
-"""
+### 4.5.7
+
+p=k*l 且 k≠1、k≠p ⇒ p 非素数（书本定理）。
+
 Let p, k, l be natural numbers with k != 1, k != p, and p = k*l. Then p is not prime.
-"""
+
+```litex
 know:
     forall a,b R:
         a*b!=0
         =>:
             a!=0
             b!=0
-"""
+```
+
+<!-- litex:skip-test -->
+```litex
 claim:
     prove:
         forall p, k, l N:
@@ -927,20 +1008,21 @@ claim:
             p = k * l
         $dvdN(k, p)
         impossible $dvdN(k, p)
-"""
+```
 
-# 4.5.8
-# 区间 (bq, b(q+1)) 内无 b 的倍数（书本 Int.not_dvd_of_exists_lt_and_lt 的证明骨架）。
-"""
+### 4.5.8
+
+区间 (bq, b(q+1)) 内无 b 的倍数（书本 Int.not_dvd_of_exists_lt_and_lt 的证明骨架）。
+
 If there exists integer q with b*q < a < b*(q+1), then a is not divisible by b.
-"""
 
-# 4.5.9
-# 更好的素性检验：只需验 m < sqrt(p) 量级（better_prime_test）。例：79 为素数。
-"""
+### 4.5.9
+
+更好的素性检验：只需验 m < sqrt(p) 量级（better_prime_test）。例：79 为素数。
+
 Show that 79 is prime.
-"""
+
+```litex
 prove:
     $Prime(79)
-
-
+```

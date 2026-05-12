@@ -147,8 +147,13 @@ From the examples above, you can see that Litex and Lean express proofs very dif
 
 Litex also prints how each line was verified. This makes a proof easier to
 debug and easier to trust: you can see whether a line was proved by citing a
-known fact, by calculation, or by some other built-in rule. For example, run
-this Litex code:
+known fact, by calculation, or by some other built-in rule. This output does
+not depend on an IDE-specific infoview: on the online version of this chapter,
+you can click **Run** next to each example and inspect the output directly:
+<https://litexlang.com/doc/The_Mechanics_of_Litex_Proof/Chapter_1_Proofs_By_Calculation>.
+If you install Litex locally, the command-line runner prints the same kind of
+verification output when you run a file or a snippet.
+For example, run this Litex code:
 
 ```litex
 forall x R:

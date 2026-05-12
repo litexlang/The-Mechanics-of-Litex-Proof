@@ -18,6 +18,13 @@ Litex proofs are built from three main ingredients:
 
 Unlike tactic-heavy proof scripts, Litex often lets the shape of a statement guide verification. An equality chain invites calculation and substitution; an inequality chain invites order reasoning; a membership statement invites set and type rules. The checker has many built-in rules for routine algebra, order, membership, functions, sets, tuples, and finite objects, and it also explains which rule or known fact verified each step.
 
+Litex does not require an IDE-specific output panel to see this feedback. The
+online documentation can run examples directly in the page; for instance,
+[Chapter 1 online](https://litexlang.com/doc/The_Mechanics_of_Litex_Proof/Chapter_1_Proofs_By_Calculation)
+lets you click **Run** on each example and inspect the verification output.
+If you install Litex locally, the command-line runner prints the same kind of
+output when you run a file or a snippet.
+
 For example:
 
 ```litex
@@ -34,7 +41,7 @@ The user states the desired facts directly. Litex handles routine rewriting, ari
 
 ### Chapter 1 — Proofs by calculation
 
-[Chapter 1](./chapter_1_Proofs_by_calculation.md) begins with equalities and inequalities over the familiar number systems `N`, `Z`, `Q`, and `R`.
+[Chapter 1](./Chapter_1_Proofs_By_Calculation.md) begins with equalities and inequalities over the familiar number systems `N`, `Z`, `Q`, and `R`.
 
 It introduces the main Litex style for calculation proofs:
 
