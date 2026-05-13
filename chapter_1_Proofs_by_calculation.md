@@ -643,3 +643,12 @@ forall x Z:
    `a <= a + b`; adding a strictly positive term gives `a < a + b`.
 
 > There is no separate tactic script saying `by rw`, `by ring`, or `by rel [hx]`, which languages like Lean use to tell the proof engine what one-step rule to try.
+
+> In principle, Lean can package many tactics inside one tactic, and a mature
+> library can make special classes of goals feel almost automatic. That is a real
+> strength, and Litex should learn from the breadth of Lean's libraries. The
+> design difference is that Litex tries to rely less on a large tactic library at
+> the basic level. It gives a small proof language first, and then lets users
+> package recurring mathematical ideas as `prop`s. So the same kind of
+> convenience is still possible in principle, but it is built from named
+> mathematical statements rather than from remembering many tactic names.
