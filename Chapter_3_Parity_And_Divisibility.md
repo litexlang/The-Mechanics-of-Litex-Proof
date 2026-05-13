@@ -376,7 +376,7 @@ factor one copy of `a` out of `b^2 + 2b`.
 Let a, b and c be natural numbers and suppose that a | b and b^2 | c. Show that a^2 | c.
 
 ```litex
-prop dvdN(a N, b N):
+prop dvdN(a Z, b Z):
     exist t N st {b = a * t}
 
 claim:
@@ -389,7 +389,7 @@ claim:
     have by exist k N st {b = a * k}: k
     have by exist l N st {c = b^2 * l}: l
     witness exist t N st {c = a^2 * t} from k * k * l:
-        c = b^2 * l = (a * k)^2 * l = a^2 * (k * k * l)
+        c = b^2 * l = b * b * l = (a * k) * (a * k) * l = a^2 * (k * k * l)
 ```
 
 This proof unpacks two divisibility hypotheses. If `b = a * k` and
@@ -733,6 +733,24 @@ One way is to work directly from the definition and supply the quotient.
 prop mod_eq(a Z, b Z, n Z):
     exist k Z st {a - b = n * k}
 
+know:
+    forall a Z:
+        =>:
+            a^2 $in Z
+    forall a, n Z:
+        =>:
+            $mod_eq(a, a, n)
+    forall a, b, c, d, n Z:
+        $mod_eq(a, b, n)
+        $mod_eq(c, d, n)
+        =>:
+            $mod_eq(a + c, b + d, n)
+            $mod_eq(a * c, b * d, n)
+    forall a, b, n Z:
+        $mod_eq(a, b, n)
+        =>:
+            $mod_eq(a^2, b^2, n)
+
 claim:
     prove:
         forall a, b Z:
@@ -751,6 +769,21 @@ act as reusable mathematical facts.
 ```litex
 prop mod_eq(a Z, b Z, n Z):
     exist k Z st {a - b = n * k}
+
+know:
+    forall a, n Z:
+        =>:
+            $mod_eq(a, a, n)
+    forall a, b, c, d, n Z:
+        $mod_eq(a, b, n)
+        $mod_eq(c, d, n)
+        =>:
+            $mod_eq(a + c, b + d, n)
+            $mod_eq(a * c, b * d, n)
+    forall a, b, n Z:
+        $mod_eq(a, b, n)
+        =>:
+            $mod_eq(a^2, b^2, n)
 
 claim:
     prove:
@@ -771,18 +804,16 @@ claim:
 
 ## 3.4 Modular arithmetic: calculations
 
-### 3.4.1
-
-与 3.3.11 同题；书本说明熟练后可用“一眼”验证，Lean 中可用 rel 等。
-
-### 3.4.2
-
-Let a and b be integers, with a ≡ 4 (mod 5) and b ≡ 3 (mod 5). Show that a*b + b^3 + 3 ≡ 2 (mod 5).
-a*b + b^3 + 3 ≡ 4*3 + 3^3 + 3 = 42 = 2 + 5*8 ≡ 2 (mod 5)。）
+From now on, modular arithmetic calculation examples are written together. The
+basic congruence rules are listed once at the top, then the examples use them
+directly.
 
 ```litex
-prop mod_eq_trans(a,b,c,n Z):
-    $mod_eq(a,c,n)
+prop mod_eq(a Z, b Z, n Z):
+    exist k Z st {a - b = n * k}
+
+prop mod_eq_trans(a Z, b Z, c Z, n Z):
+    $mod_eq(a, c, n)
 
 know:
     forall a, b, c, n Z:
@@ -790,17 +821,41 @@ know:
         $mod_eq(b, c, n)
         =>:
             $mod_eq_trans(a, b, c, n)
-    forall a, b, c,d, n Z:
+    forall a, n Z:
+        =>:
+            $mod_eq(a, a, n)
+    forall a, b, c, d, n Z:
         $mod_eq(a, b, n)
         $mod_eq(c, d, n)
         =>:
-            $mod_eq(a * c, b * d, n)
             $mod_eq(a + c, b + d, n)
-```
+            $mod_eq(a * c, b * d, n)
+    forall a, b, n Z:
+        $mod_eq(a, b, n)
+        =>:
+            $mod_eq(a^2, b^2, n)
+            $mod_eq(a^3, b^3, n)
+            $mod_eq(b, a, n)
+    forall x Z:
+        =>:
+            $mod_eq(x, 0, 3) or $mod_eq(x, 1, 3) or $mod_eq(x, 2, 3)
 
-代表元（同余类下结论不变）：先算数值，再对照 3.3 乘法/加法引理
+claim:
+    prove:
+        forall a, b Z:
+            $mod_eq(a, 2, 4)
+            =>:
+                $mod_eq(a * b^2 + a^2 * b + 3 * a, 2 * b^2 + 2^2 * b + 3 * 2, 4)
+    $mod_eq(b^2, b^2, 4)
+    $mod_eq(a * b^2, 2 * b^2, 4)
+    $mod_eq(a^2, 2^2, 4)
+    $mod_eq(b, b, 4)
+    $mod_eq(a^2 * b, 2^2 * b, 4)
+    $mod_eq(a * b^2 + a^2 * b, 2 * b^2 + 2^2 * b, 4)
+    $mod_eq(3, 3, 4)
+    $mod_eq(3 * a, 3 * 2, 4)
+    $mod_eq(a * b^2 + a^2 * b + 3 * a, 2 * b^2 + 2^2 * b + 3 * 2, 4)
 
-```litex
 claim:
     prove:
         forall a, b Z:
@@ -808,47 +863,24 @@ claim:
             $mod_eq(b, 3, 5)
             =>:
                 $mod_eq(a * b + b^3 + 3, 2, 5)
-    $mod_eq(a*b, 4*3, 5)
+    $mod_eq(a * b, 4 * 3, 5)
     $mod_eq(b^3, 3^3, 5)
-    $mod_eq(a*b+b^3, 4*3+3^3, 5)
+    $mod_eq(a * b + b^3, 4 * 3 + 3^3, 5)
     $mod_eq(3, 3, 5)
-    $mod_eq(a * b + b^3 + 3, 4*3 + 3^3 + 3, 5)
-    witness exist k Z st {4*3 + 3^3 + 3 - 2 = 5 * k} from 8:
-        4*3 + 3^3 + 3 - 2 = 5 * 8
-    $mod_eq(4*3 + 3^3 + 3, 2, 5)
-    $mod_eq_trans(a * b + b^3 + 3, 4*3 + 3^3 + 3, 2, 5)
+    $mod_eq(a * b + b^3 + 3, 4 * 3 + 3^3 + 3, 5)
+    witness exist k Z st {4 * 3 + 3^3 + 3 - 2 = 5 * k} from 8:
+        4 * 3 + 3^3 + 3 - 2 = 5 * 8
+    $mod_eq(4 * 3 + 3^3 + 3, 2, 5)
+    $mod_eq_trans(a * b + b^3 + 3, 4 * 3 + 3^3 + 3, 2, 5)
     $mod_eq(a * b + b^3 + 3, 2, 5)
-```
 
-### 3.4.3
-
-Show that there exists an integer a such that 6a ≡ 4 (mod 11).
-
-```litex
 claim:
     prove:
         exist a Z st {$mod_eq(6 * a, 4, 11)}
     witness exist a Z st {$mod_eq(6 * a, 4, 11)} from 8:
-        witness exist c Z st {6 * 8 -4=11 * c} from 4:
-            6 * 8 - 4 = 11 * 4 
+        witness exist k Z st {6 * 8 - 4 = 11 * k} from 4:
+            6 * 8 - 4 = 11 * 4
         $mod_eq(6 * 8, 4, 11)
-```
-
-### 3.4.4
-
-Let x be an integer. Show that x^3 ≡ x (mod 3).
-
-TODO: 应该是先证明了任何数x，它满足 x mod 3 = 0, 1, 2 中的一个。然后用分类讨论来证明
-
-不知道怎么写
-
-```litex
-let min_pos_remain fn (a Z, n Z) Z
-know:
-    forall a,n Z:
-        $mod_eq(a, min_pos_remain(a, n), n)
-        min_pos_remain(a, n) >= 0
-        min_pos_remain(a, n) < n
 
 claim:
     prove:
@@ -858,34 +890,108 @@ claim:
     by cases:
         prove:
             $mod_eq(x^3, x, 3)
-        case min_pos_remain(x, 3) = 0:
-            $mod_eq(x, 0, 3)
+        case $mod_eq(x, 0, 3):
             $mod_eq(x^3, 0^3, 3)
+            witness exist k Z st {0^3 - 0 = 3 * k} from 0:
+                0^3 - 0 = 3 * 0
+            $mod_eq(0^3, 0, 3)
+            $mod_eq_trans(x^3, 0^3, 0, 3)
             $mod_eq(x^3, 0, 3)
+            $mod_eq(0, x, 3)
+            $mod_eq_trans(x^3, 0, x, 3)
             $mod_eq(x^3, x, 3)
-        case min_pos_remain(x, 3) = 1:
-            $mod_eq(x, 1, 3)
+        case $mod_eq(x, 1, 3):
             $mod_eq(x^3, 1^3, 3)
+            witness exist k Z st {1^3 - 1 = 3 * k} from 0:
+                1^3 - 1 = 3 * 0
+            $mod_eq(1^3, 1, 3)
+            $mod_eq_trans(x^3, 1^3, 1, 3)
             $mod_eq(x^3, 1, 3)
+            $mod_eq(1, x, 3)
+            $mod_eq_trans(x^3, 1, x, 3)
             $mod_eq(x^3, x, 3)
-        case min_pos_remain(x, 3) = 2:
-            $mod_eq(x, 2, 3)
+        case $mod_eq(x, 2, 3):
             $mod_eq(x^3, 2^3, 3)
-            $mod_eq(2^3, 8, 3)
-            witness exist k Z st {8 - 2 = 3 * k} from 2:
-                8 - 2 = 3 * 2
-            $mod_eq(8, 2, 3)
+            witness exist k Z st {2^3 - 2 = 3 * k} from 2:
+                2^3 - 2 = 3 * 2
+            $mod_eq(2^3, 2, 3)
+            $mod_eq_trans(x^3, 2^3, 2, 3)
             $mod_eq(x^3, 2, 3)
+            $mod_eq(2, x, 3)
+            $mod_eq_trans(x^3, 2, x, 3)
             $mod_eq(x^3, x, 3)
 ```
 
-## 3.5 Bézout’s identity
+The `know` block above is a compact way to state reusable facts. When a later
+line asks for a fact, Litex tries to match it against the conclusion of a
+`forall` fact and then checks that the matched assumptions are available.
 
-### 3.5.1
-
-Let n be an integer and suppose that 5n is a multiple of 8. Show that n is also a multiple of 8.
+For example, suppose Litex knows the multiplication rule
+`a $in Z, b $in Z, c $in Z, d $in Z, n $in Z, $mod_eq(a, b, n), $mod_eq(c, d, n) => $mod_eq(a * c, b * d, n)`.
+If the current goal is `$mod_eq(a * y, 2 * y, 4)`, Litex can match the rule with
+`b = 2`, `c = y`, `d = y`, and `n = 4`. Then it only needs the assumptions
+: `a $in Z`, `2 $in Z`, `y $in Z`, `4 $in Z`, `$mod_eq(a, 2, 4)`, and `$mod_eq(y, y, 4)`.
 
 ```litex
+prop mod_eq(a Z, b Z, n Z):
+    exist k Z st {a - b = n * k}
+
+know:
+    forall a, n Z:
+        =>:
+            $mod_eq(a, a, n)
+    forall a, b, c, d, n Z:
+        $mod_eq(a, b, n)
+        $mod_eq(c, d, n)
+        =>:
+            $mod_eq(a * c, b * d, n)
+
+claim:
+    prove:
+        forall a, y Z:
+            $mod_eq(a, 2, 4)
+            =>:
+                $mod_eq(a * y, 2 * y, 4)
+    $mod_eq(y, y, 4)
+    $mod_eq(a * y, 2 * y, 4)
+```
+
+The facts in the `know` block are not magic. They are all short consequences of
+the definition of `$mod_eq`, just like the lemmas proved in 3.3. A good exercise
+is to replace each `know` line by a `claim` and prove it directly with witnesses.
+
+### 3.4.1
+
+This is the same problem as 3.3.11. After the rules in 3.3 are known, the
+proof is just a sequence of congruence-preserving rewrites.
+
+### 3.4.2
+
+Let a and b be integers, with a ≡ 4 (mod 5) and b ≡ 3 (mod 5). Show that a*b + b^3 + 3 ≡ 2 (mod 5).
+
+The Litex proof follows the same calculation: first replace `a` and `b` by
+their residues, then check the final integer arithmetic by a witness.
+
+### 3.4.3
+
+Show that there exists an integer a such that 6a ≡ 4 (mod 11).
+
+### 3.4.4
+
+Let x be an integer. Show that x^3 ≡ x (mod 3).
+
+This mirrors `mod_cases`: use the fact that every integer is congruent to
+`0`, `1`, or `2` modulo `3`, then handle the three residues.
+
+## 3.5 Bézout’s identity
+
+The Bézout examples are also grouped together. The divisibility proposition is
+defined once, then each claim supplies the corresponding witness.
+
+```litex
+prop dvdZ(a Z, b Z):
+    exist c Z st {b = a * c}
+
 claim:
     prove:
         forall n, a Z:
@@ -894,13 +1000,16 @@ claim:
                 $dvdZ(8, n)
     witness exist c Z st {n = 8 * c} from -3 * a + 2 * n:
         n = -3 * (5 * n) + 16 * n = -3 * (8 * a) + 16 * n = 8 * (-3 * a + 2 * n)
-```
 
-### 3.5.2
+claim:
+    prove:
+        forall n, a Z:
+            5 * n = 8 * a
+            =>:
+                $dvdZ(8, n)
+    witness exist c Z st {n = 8 * c} from 5 * a - 3 * n:
+        n = 5 * (5 * n) - 24 * n = 5 * (8 * a) - 24 * n = 8 * (5 * a - 3 * n)
 
-Show that if 5 divides 3n, then 5 divides n.
-
-```litex
 claim:
     prove:
         forall n, x Z:
@@ -909,13 +1018,7 @@ claim:
                 $dvdZ(5, n)
     witness exist c Z st {n = 5 * c} from 2 * x - n:
         n = 2 * (3 * n) - 5 * n = 2 * (5 * x) - 5 * n = 5 * (2 * x - n)
-```
 
-### 3.5.3
-
-Let m be an integer which is divisible by 8 and by 5. Show that it is also divisible by 40.
-
-```litex
 claim:
     prove:
         forall m, a, b Z:
@@ -926,3 +1029,23 @@ claim:
     witness exist c Z st {m = 40 * c} from -3 * a + 2 * b:
         m = -15 * m + 16 * m = -15 * (8 * a) + 16 * (5 * b) = 40 * (-3 * a + 2 * b)
 ```
+
+### 3.5.1
+
+Let n be an integer and suppose that 5n is a multiple of 8. Show that n is also a multiple of 8.
+
+If `5 * n = 8 * a`, then the Bézout identity `1 = -3 * 5 + 2 * 8`
+gives the needed multiple of `8`.
+
+The same problem can be solved with another Bézout combination.
+
+### 3.5.2
+
+Show that if 5 divides 3n, then 5 divides n.
+
+### 3.5.3
+
+Let m be an integer which is divisible by 8 and by 5. Show that it is also divisible by 40.
+
+Here the two divisibility assumptions are written with their witnesses:
+`m = 8 * a` and `m = 5 * b`.
