@@ -652,3 +652,42 @@ forall x Z:
 > package recurring mathematical ideas as `prop`s. So the same kind of
 > convenience is still possible in principle, but it is built from named
 > mathematical statements rather than from remembering many tactic names.
+
+## 1.6 Litex statements and ideas in this chapter
+
+This chapter uses only a small part of the Litex proof language.
+
+### Litex statements and syntax used
+
+1. `forall ...:` introduces arbitrary parameters, together with their parameter
+   constraints such as `x R` or `a, b Q`, which means `x $in R`(x in real number set) and `a $in Q and b $in Q`(a and b in rational number set).
+
+2. Assumption lines before `=>:` are the facts available in the proof body.
+
+3. `=>:` starts the conclusion part of a `forall` statement. The indented facts
+   after it are proved in order.
+
+4. A bare fact line, such as `x = -2` or `a <= b`, asks Litex to verify that
+   fact from the current context.
+
+5. Equality and comparison chains, such as `A = B = C` or `A <= B = C < D`,
+   are compact forms for several adjacent facts checked link by link.
+
+### Litex knowledge points
+
+1. A proof context grows line by line. Once Litex verifies a fact, later lines
+   can use it.
+
+2. Calculation proofs usually do not need tactic names. Litex chooses built-in
+   rules from the shape of the fact: algebraic normalization for equalities,
+   order reasoning for inequalities, and numeric calculation for concrete
+   numbers.
+
+3. Known equalities can be used as substitutions inside larger expressions.
+
+4. Simple equations can store solved values, so later facts may use `x = -2`
+   even if the earlier assumption was written as `x + 4 = 2`.
+
+5. The standard number sets `N`, `Z`, `Q`, and `R` are enough for the first
+   examples, and their parameter constraints give Litex the arithmetic domain
+   information needed to check the proof.

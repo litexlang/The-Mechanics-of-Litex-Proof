@@ -751,3 +751,63 @@ the four witnesses are chosen.
 ```litex
 witness exist a, b, c, d N st {a^3 + b^3 = 1729, c^3 + d^3 = 1729, a != c, a != d} from 1, 12, 9, 10
 ```
+
+## 2.6 Litex statements and ideas in this chapter
+
+This chapter adds proof structure on top of the calculation style from Chapter
+1. The main change is that the body of a proof can contain several statements,
+and each verified statement becomes useful context for the next one.
+
+### Litex statements and syntax used
+
+1. Intermediate fact lines inside `=>:`:
+
+   ```text
+   b = 1
+   a = (a - 5 * b) + 5 * b = 9
+   ```
+
+   The first line is stored before the second line is checked.
+
+2. `claim:` with `prove:` packages a goal together with a proof process. This
+   is useful when the proof uses non-fact statements such as `by contra`,
+   `by cases`, or `witness`.
+
+3. `by contra:` and `by contra <goal>:` open a temporary contradiction proof.
+   The branch closes with an `impossible <FACT>` line.
+
+4. `by cases:` and `by cases <goal>:` split a proof into branches, each written
+   as a `case ...:` block.
+
+5. `exist ... st {...}` writes an existential fact. The braces contain the facts
+   the witness must satisfy.
+
+6. `have by exist ...: name` extracts a witness from an existential fact already
+   available in the context.
+
+7. `witness exist ... from ...:` proves an existential goal by supplying one or
+   more concrete witnesses, followed by an optional proof body.
+
+8. `!=`, `and`, and `or` appear as ordinary fact forms and can be combined with
+   contradiction and case analysis.
+
+### Litex knowledge points
+
+1. Litex proofs are context-growing: assumptions, intermediate facts, and
+   facts proved inside the current block can justify later lines.
+
+2. `claim` separates the fact being proved from the proof process used to prove
+   it. Only the claimed fact is exported to the surrounding context.
+
+3. Contradiction proofs work by temporarily assuming the opposite of the goal
+   and deriving a fact that conflicts with the current context.
+
+4. Case proofs use an available disjunction or comparison split. Each branch is
+   checked under its own case assumption.
+
+5. Existential reasoning has two directions: `have by exist` uses an existing
+   existential fact, while `witness` proves a new existential fact.
+
+6. A witness may depend on parameters already in scope, such as choosing
+   `(p + q) / 2` between two real numbers or choosing `a + 1` for a value
+   larger than `a`.

@@ -41,7 +41,7 @@ The user states the desired facts directly. Litex handles routine rewriting, ari
 
 ### Chapter 1 — Proofs by calculation
 
-[Chapter 1](./Chapter_1_Proofs_By_Calculation.md) begins with equalities and inequalities over the familiar number systems `N`, `Z`, `Q`, and `R`.
+Chapter 1 begins with equalities and inequalities over the familiar number systems `N`, `Z`, `Q`, and `R`.
 
 It introduces the main Litex style for calculation proofs:
 
@@ -51,9 +51,56 @@ It introduces the main Litex style for calculation proofs:
 - reading Litex's verification messages to see which fact or rule proved each step;
 - using common shortcuts, such as stored values from simple equations like `x + 4 = 2`.
 
-Future chapters can be added here as the Litex version of the book grows.
+### Chapter 2 — Proofs with structure
 
-Feedback and corrections are welcome on [GitHub](https://github.com/litexlang/golitex) or at litexlang@outlook.com. Visit [Litex's website](https://litexlang.com) for more information.
+Chapter 2 moves from single calculation chains to structured proofs.
+
+It introduces:
+
+- universal statements with `forall`;
+- implications with `=>:`;
+- local proof blocks with `claim`;
+- existential statements with `witness` and `have by exist`;
+- proof by contradiction with `by contra`;
+- case splits with `by cases`.
+
+### Chapter 3 — Parity and divisibility
+
+Chapter 3 develops examples about evenness, divisibility, and modular arithmetic.
+
+It shows how to:
+
+- define reusable predicates with `prop`;
+- use existential witnesses for divisibility;
+- work with integer and natural-number divisibility;
+- reason with congruences and modular residues;
+- combine earlier proof structure with arithmetic facts.
+
+### Chapter 4 — Proofs with structure II
+
+Chapter 4 revisits structured proof tools in larger examples.
+
+It covers:
+
+- quantified statements with multiple hypotheses;
+- equivalence proofs and `iff`-style reasoning;
+- uniqueness and `exist_unique`;
+- contradiction and impossible branches;
+- case splits over algebraic, order, and modular facts.
+
+### Chapter 5 — Logic
+
+Chapter 5 focuses on the logical patterns behind the earlier proofs.
+
+It explains:
+
+- why Litex does not quantify over `Prop`;
+- how to use `abstract_prop` for schematic logical examples;
+- how built-in logic handles `and`, `or`, `not`, and implication-shaped facts;
+- how `by for` proves bounded universal statements over finite ranges;
+- how to write negation-normal forms directly in Litex.
+
+Feedback and corrections are welcome on [GitHub](https://github.com/litexlang/golitex) or at litexlang@outlook.com. Visit [Litex's website](https://litexlang.com), [Online Manual](https://litexlang.com/doc/Manual) for more information.
 
 Reference:
 - [The Mechanics of Proof](https://hrmacbeth.github.io/math2001/)

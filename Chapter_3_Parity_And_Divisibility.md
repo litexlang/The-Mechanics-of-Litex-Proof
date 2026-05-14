@@ -1049,3 +1049,72 @@ Let m be an integer which is divisible by 8 and by 5. Show that it is also divis
 
 Here the two divisibility assumptions are written with their witnesses:
 `m = 8 * a` and `m = 5 * b`.
+
+## 3.6 Litex statements and ideas in this chapter
+
+This chapter is mostly about turning familiar number-theory words into Litex
+propositions, then using the same existential proof patterns repeatedly.
+
+### Litex statements and syntax used
+
+1. `prop name(args...):` defines a proposition. For example:
+
+   ```text
+   prop odd(a Z):
+       exist k Z st {a = 2 * k + 1}
+   ```
+
+   After this definition, `$odd(n)` means the body of the proposition with
+   `a` replaced by `n`.
+
+2. `$prop_name(...)` calls a proposition as a fact, such as `$odd(7)`,
+   `$even(n)`, `$dvdZ(a, b)`, or `$mod_eq(a, b, n)`.
+
+3. `exist ... st {...}` is used inside definitions of parity, divisibility, and
+   modular equivalence.
+
+4. `witness exist ... from ...:` proves propositions whose definitions contain
+   an existential fact.
+
+5. `have by exist ...: k` opens an existential hypothesis and gives a name to
+   the witness.
+
+6. `claim forall! ... => {...}:` is the compact one-line form of a `claim`
+   proving a `forall` fact.
+
+7. `forall! ...` is the compact one-line form of a universal statement.
+
+8. `by cases:` and `case ...:` are used for parity and residue splits, such as
+   `n % 2 = 0` versus `n % 2 = 1`, or the three cases modulo `3`.
+
+9. `know:` records reusable facts without reproving them in the current
+   example.
+
+10. `%` is the remainder operator. Facts such as `n % 2 = 0` can be connected
+    to existential quotient facts.
+
+### Litex knowledge points
+
+1. A `prop` is a named mathematical statement, not a tactic. It packages facts
+   so that later proof lines can use a readable name.
+
+2. Definitions by existence are central in elementary number theory. Odd,
+   even, divisibility, and modular equivalence all have the same proof shape:
+   either provide the missing integer with `witness`, or extract it with
+   `have by exist`.
+
+3. The name of an existential variable is local to that existential fact. Two
+   statements such as `exist k Z st {...}` and `exist l Z st {...}` can express
+   the same mathematical content.
+
+4. Compact forms such as `forall!` and `claim forall! ...` are convenient for
+   short theorems, while the multiline forms are clearer for longer proofs.
+
+5. `know` is useful for standalone exposition, but in a developed proof file
+   those facts should usually be earlier `claim`s or imported lemmas.
+
+6. Modular proofs often combine three ingredients: a definition of congruence,
+   reusable congruence rules, and a finite residue split by `by cases`.
+
+7. Bézout-style divisibility proofs are witness proofs. The main work is
+   finding the integer expression that makes the divisibility equation true.

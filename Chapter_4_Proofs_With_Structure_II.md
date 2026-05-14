@@ -870,3 +870,73 @@ The remaining examples combine earlier tools:
 
 The Litex knowledge point is not a new command, but combining `by cases`,
 `by contra`, `witness`, `have by exist`, and the modular facts from Chapter 3.
+
+## 4.6 Litex statements and ideas in this chapter
+
+This chapter revisits the structural proof tools from Chapter 2 in more
+logical settings: universal statements, implications, equivalences, uniqueness,
+contradictory hypotheses, and refutations.
+
+### Litex statements and syntax used
+
+1. Nested `forall` statements express hypotheses that can later be instantiated
+   with concrete values:
+
+   ```text
+   forall x R:
+       a <= x^2 - 2 * x
+   ```
+
+2. Assumptions before `=>:` form the antecedent of an implication. To prove an
+   implication, write a `forall` block whose body assumes those facts before
+   proving the facts after `=>:`.
+
+3. `prop ...:` packages longer logical properties, such as lower-bound
+   statements, primality, or uniqueness-style conditions.
+
+4. `witness exist ... from ...:` proves existence statements whose witnesses
+   may themselves have universal or implication properties.
+
+5. `by cases:` uses an available disjunction, comparison split, or finite
+   residue split to prove a goal branch by branch.
+
+6. `by contra:` proves a goal by assuming its negation in a temporary local
+   context and deriving an `impossible` fact.
+
+7. `not <FACT>` writes negated facts, including negated universal statements
+   such as `not forall x R: ...`.
+
+8. `impossible <FACT>` closes a contradiction when the current context also
+   proves the opposite or an incompatible fact.
+
+9. `know:` is used to state standard facts needed by a standalone example, such
+   as order facts, divisibility bounds, and modular facts.
+
+### Litex knowledge points
+
+1. To use a `forall` fact, write the needed instance as a proof line. Litex
+   matches the line against the universal statement and checks the required
+   assumptions.
+
+2. An implication is handled by context: assumptions before `=>:` are available
+   while proving the conclusion after `=>:`.
+
+3. Existence goals can have rich bodies. A witness block may contain a nested
+   `forall` proof or an implication proof, not just a calculation.
+
+4. An `iff` proof can be organized as two implications, one in each direction.
+
+5. A uniqueness proof usually has two parts: first show existence, then show
+   that any two objects satisfying the property are equal.
+
+6. Contradictory hypotheses should be isolated inside `by contra` or a case
+   branch. The surrounding proof only receives the final proved fact.
+
+7. Refuting universal or existential statements often means choosing a
+   counterexample or showing that any proposed witness leads to an impossible
+   fact.
+
+8. Later proofs can combine earlier chapters' tools freely: proposition
+   definitions from Chapter 3, witness extraction, modular cases, comparison
+   splits, and contradiction all work inside the same context-growing proof
+   model.
