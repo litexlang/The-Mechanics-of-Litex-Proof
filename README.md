@@ -1,10 +1,23 @@
 # The Mechanics of Litex Proof
 
-_Author: Jiachen Shen, Yunwen Guo_
+Jiachen Shen and The Litex Team, 2026-05-14. Email: litexlang@outlook.com
 
-This repository reworks examples from Heather Macbeth's **The Mechanics of Proof** in Litex. The original book is written around Lean; this version asks what the same mathematical training looks like when proofs are written in a language whose surface is closer to ordinary textbook reasoning.
+Try all snippets in browser: https://litexlang.com/doc/The_Mechanics_of_Litex_Proof/Introduction
 
-Litex is a formal language still under active development. Its design emphasizes simplicity, learnability, and proof scripts that look close to the mathematical facts they justify. We hope this repository helps readers learn Litex while also comparing it with other formal languages.
+Markdown source: https://github.com/litexlang/The-Mechanics-of-Litex-Proof/blob/main/README.md
+
+Litex is a formal language for writing and checking mathematical proofs. Its
+design emphasizes simplicity, learnability, and proof scripts that look close to
+the mathematical facts they justify. Instead of asking users to build every
+small logical or algebraic step by hand, Litex provides builtin reasoning for
+routine calculation, order, membership, and logical structure.
+
+This book reworks examples from Heather Macbeth's **The Mechanics of Proof** in
+Litex. The original book is written around Lean; this version asks what the same
+mathematical training looks like when proofs are written in a language whose
+surface is closer to ordinary textbook reasoning.
+
+Special thanks to *Yunwen Guo* for helping with the book.
 
 ## How Litex Proofs Work
 
@@ -99,6 +112,17 @@ It explains:
 - how built-in logic handles `and`, `or`, `not`, and implication-shaped facts;
 - how `by for` proves bounded universal statements over finite ranges;
 - how to write negation-normal forms directly in Litex.
+
+### Chapter 7 — Number theory
+
+Chapter 7 starts with Euclid's theorem that there are infinitely many primes.
+
+It highlights:
+
+- how Litex can express the core proof as a short forward proof script;
+- how `know` facts can record standard mathematical facts before the main proof;
+- how the full version can also prove those facts inside the same file;
+- how the Litex style compares with Lean proofs that depend on remembered theorem and tactic names.
 
 Feedback and corrections are welcome on [GitHub](https://github.com/litexlang/golitex) or at litexlang@outlook.com. Visit [Litex's website](https://litexlang.com), [Online Manual](https://litexlang.com/doc/Manual) for more information.
 

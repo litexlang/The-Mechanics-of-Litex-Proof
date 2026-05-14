@@ -299,6 +299,12 @@ claim:
 This section uses one new Litex statement: `by for`. It proves a `forall`
 statement over a finite range by checking each value in that range. The range
 `range(a, b)` means the integers from `a` up to but not including `b`.
+The range `closed_range(a, b)` includes both endpoints, and can also be written
+as `a...b`.
+
+The check is literal finite enumeration. For example, `forall i range(2, 17)`
+is proved by substituting `i = 2`, then `i = 3`, and so on up to `i = 16`, and
+checking the conclusion each time.
 
 Here is the basic shape:
 
@@ -306,6 +312,11 @@ Here is the basic shape:
 by for:
     prove:
         forall n range(a, b):
+            goal_about(n)
+
+by for:
+    prove:
+        forall n a...b:
             goal_about(n)
 ```
 
