@@ -1,5 +1,9 @@
 # Chapter 6 — Induction
 
+Online: https://litexlang.com/doc/The_Mechanics_of_Litex_Proof/Chapter_6_Induction
+
+GitHub source: https://github.com/litexlang/The-Mechanics-of-Litex-Proof/blob/main/Chapter_6_Induction.lit
+
 Induction is the standard way to prove a statement about all natural numbers.
 The proof has two parts:
 

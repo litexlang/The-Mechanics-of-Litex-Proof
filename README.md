@@ -128,3 +128,7 @@ Feedback and corrections are welcome on [GitHub](https://github.com/litexlang/go
 
 Reference:
 - [The Mechanics of Proof](https://hrmacbeth.github.io/math2001/)
+
+> **Learning hint.** Learning Litex is mostly learning how to transcribe ordinary mathematical writing faithfully. The extra effort you spend reading this chapter tracks the mathematics you express, more than memorizing proof-engine choreography.
+>
+> Lean is oriented differently at the tooling layer: besides the mathematics, you routinely invest in dependent type theory, Lean's notation and elaboration habits, locating and remembering facts in Mathlib, and assembling tactic scripts around each goal. Litex trims that outer stack early so informal math carries more of the weight.

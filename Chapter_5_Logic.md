@@ -1,5 +1,9 @@
 # Chapter 5 — Logic
 
+Online: https://litexlang.com/doc/The_Mechanics_of_Litex_Proof/Chapter_5_Logic
+
+GitHub source: https://github.com/litexlang/The-Mechanics-of-Litex-Proof/blob/main/Chapter_5_Logic.md
+
 Chapters 2 and 4 introduced the grammar of logical symbols such as `and`,
 `or`, `forall`, and `=>` in concrete mathematical proofs. This chapter looks at
 the logical patterns themselves: when two statement forms can always be

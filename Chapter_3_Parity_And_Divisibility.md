@@ -1,5 +1,9 @@
 # Chapter 3 — Parity and divisibility
 
+Online: https://litexlang.com/doc/The_Mechanics_of_Litex_Proof/Chapter_3_Parity_And_Divisibility
+
+GitHub source: https://github.com/litexlang/The-Mechanics-of-Litex-Proof/blob/main/Chapter_3_Parity_And_Divisibility.md
+
 This chapter is about elementary properties of natural numbers and integers:
 parity, divisibility, and congruence modulo `n`. There are no major new proof
 forms here. Instead, the point is to practice the style from the previous

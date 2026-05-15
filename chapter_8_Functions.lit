@@ -1,5 +1,9 @@
 # Chapter 8 — 函数（Functions）
 
+Online: https://litexlang.com/doc/The_Mechanics_of_Litex_Proof/Chapter_8_Functions
+
+GitHub source: https://github.com/litexlang/The-Mechanics-of-Litex-Proof/blob/main/Chapter_8_Functions.lit
+
 本章在 Litex 中形式化单射、满射、双射、复合、恒等、逆映射，以及部分积类型上的例子。
 
 约定：与原书「例」对应的 `have fn` / `claim` / `prove` 块多已用三段引号 """ … """ 包起，作为「例题 Litex」保留字串（不参与当前文件求解）；题面英文仍可保留在未包起的上一层 `"""` 中。

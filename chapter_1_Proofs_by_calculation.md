@@ -1,5 +1,9 @@
 # Chapter 1 — Proofs By Calculation
 
+Online: https://litexlang.com/doc/The_Mechanics_of_Litex_Proof/Chapter_1_Proofs_By_Calculation
+
+GitHub source: https://github.com/litexlang/The-Mechanics-of-Litex-Proof/blob/main/Chapter_1_Proofs_By_Calculation.md
+
 Litex proofs are meant to look close to the mathematical sentence they justify.
 In this first chapter the objects are only the usual number systems, `N`, `Z`,
 `Q`, and `R`, and the goals are familiar algebraic equalities and inequalities.
@@ -10,6 +14,71 @@ A calculation proof in Litex is written as a chain of expressions. Each link in
 the chain is a small claim whose shape already suggests the rule to try:
 equalities invite calculation and substitution, inequalities invite order
 reasoning, and the assumptions above the arrow provide patterns to match. The statement itself carries the hints that guide the proof search.
+
+## How Facts Are Written
+
+Most lines inside a Litex proof are facts. A fact is a mathematical sentence
+that Litex should verify from the current context. There are three common
+surface forms.
+
+First, many basic relations are built in. Equalities, inequalities, order
+relations, membership, subset, and similar relations can be written directly:
+
+```litex
+prove:
+    1 + 1 = 2
+    3 > 1
+    2 <= 2
+    2 $in {1, 2, 3}
+    {1, 2} $in power_set({1, 2, 3})
+```
+
+Second, binary facts can be written in an infix style, with the predicate name
+between the two arguments. This is why membership is written as
+
+```litex
+2 $in {1, 2, 3}
+```
+
+and subset is written as
+
+```text
+{1, 2} $subset {1, 2, 3}
+```
+
+This keeps common binary mathematical relations close to the way they are read:
+"2 is in the set" and "`{1, 2}` is a subset of `{1, 2, 3}`."
+
+Third, predicates with any number of arguments are written in function-call
+style, with a dollar sign before the proposition name:
+
+```litex
+abstract_prop between(a, b, c)
+
+know $between(1, 2, 3)
+
+prove:
+    $between(1, 2, 3)
+```
+
+The same form works for unary, binary, ternary, or longer predicates:
+
+```text
+$prime(7)
+$parallel(line1, line2)
+$collinear(A, B, C)
+```
+
+The dollar sign is meaningful. It tells Litex that the name is being used to
+make a judgment, not to compute an object. For example, `f(1)` is an ordinary
+function application: it denotes the value of the function `f` at `1`.
+By contrast, `$p(1)` is a proposition call: it asserts that the predicate or
+property `p` holds of `1`.
+
+```text
+f(1)      # an object: the value of function f at 1
+$p(1)     # a fact: proposition p holds of 1
+```
 
 ## 1.1 Proving equalities
 
@@ -691,3 +760,4 @@ This chapter uses only a small part of the Litex proof language.
 5. The standard number sets `N`, `Z`, `Q`, and `R` are enough for the first
    examples, and their parameter constraints give Litex the arithmetic domain
    information needed to check the proof.
+

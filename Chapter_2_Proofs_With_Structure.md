@@ -1,5 +1,9 @@
 # Chapter 2 — Proofs with structure
 
+Online: https://litexlang.com/doc/The_Mechanics_of_Litex_Proof/Chapter_2_Proofs_With_Structure
+
+GitHub source: https://github.com/litexlang/The-Mechanics-of-Litex-Proof/blob/main/Chapter_2_Proofs_With_Structure.md
+
 The proofs by calculation in Chapter 1 were, from one point of view, one-step
 proofs: each line was a single calculation chain, and Litex only had to verify
 the links inside that chain. In this chapter we begin to write proofs with more
@@ -774,7 +778,9 @@ and each verified statement becomes useful context for the next one.
    `by cases`, or `witness`.
 
 3. `by contra:` and `by contra <goal>:` open a temporary contradiction proof.
-   The branch closes with an `impossible <FACT>` line.
+   In the local environment of that block, the fact being proved is negated and
+   added as a temporary assumption. The proof is expected to derive a
+   contradiction, and the branch closes with an `impossible <FACT>` line.
 
 4. `by cases:` and `by cases <goal>:` split a proof into branches, each written
    as a `case ...:` block.

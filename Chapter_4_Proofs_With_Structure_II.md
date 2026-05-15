@@ -1,5 +1,9 @@
 # Chapter 4 — Proofs With Structure II
 
+Online: https://litexlang.com/doc/The_Mechanics_of_Litex_Proof/Chapter_4_Proofs_With_Structure_II
+
+GitHub source: https://github.com/litexlang/The-Mechanics-of-Litex-Proof/blob/main/Chapter_4_Proofs_With_Structure_II.md
+
 In Chapter 2, we started using proof structures that go beyond a single
 calculation: intermediate facts, case splits, and contradiction arguments. In
 Litex, these are not mainly about choosing tactics from a library. They are

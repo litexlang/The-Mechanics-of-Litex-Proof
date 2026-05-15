@@ -1,6 +1,8 @@
 # Chapter 7 — Number Theory
 
-Original chapter: https://hrmacbeth.github.io/math2001/07_Number_Theory.html
+Online: https://litexlang.com/doc/The_Mechanics_of_Litex_Proof/Chapter_7_Number_Theory
+
+GitHub source: https://github.com/litexlang/The-Mechanics-of-Litex-Proof/blob/main/Chapter_7_Number_Theory.md
 
 This chapter has a different flavor from the earlier chapters. The theorems here
 are classical results, and their proofs often depend on a one-time clever idea
