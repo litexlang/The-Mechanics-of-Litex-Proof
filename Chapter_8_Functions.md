@@ -54,6 +54,14 @@ This has the same essential meaning as introducing a named function by:
 have fn f(x R: x > 0) R = x + 1
 ```
 
+When the input set and the output set are the same, and there is no extra domain
+condition, Litex also supports a shorter form. For example, the function from `R` to
+`R` sending `x` to `x + 1` can be written as:
+
+```litex
+'R(x){x + 1} = '(x R) R {x + 1}
+```
+
 The difference is only the surface form. The anonymous function expression builds the
 function value first, and `have f set = ...` gives that function value the name `f`.
 The `have fn` form introduces the same function directly by its defining equation.
@@ -193,19 +201,61 @@ forall x1, x2 R:
 $injective_fn(R, R, q)
 ```
 
+Equivalently, you can use `forall` to prove this statement without defining the specific function.
+
+```litex
+prop injective_fn(S, T set, f fn(x S) T):
+    forall x1, x2 S:
+        f(x1) = f(x2)
+        =>:
+            x1 = x2
+
+claim:
+    prove:
+        forall f fn(x R) R:
+            forall a R:
+                f(a) = a + 1
+            =>:
+                $injective_fn(R, R, f)
+    forall x1, x2 R:
+        f(x1) = f(x2)
+        =>:
+            x1 = x1 + 1 - 1 = f(x1) - 1 = f(x2) - 1 = x2 + 1 - 1 = x2
+```
+
+Equivalently, you can use anonymous function to define the function.
+
+```litex
+prop injective_fn(S, T set, f fn(x S) T):
+    forall x1, x2 S:
+        f(x1) = f(x2)
+        =>:
+            x1 = x2
+
+forall x1, x2 R:
+    'R(x){x + 1}(x1) = 'R(x){x + 1}(x2)
+    =>:
+        x1 = (x1 + 1) - 1 = 'R(x){x + 1}(x1) - 1 = 'R(x){x + 1}(x2) - 1 = (x2 + 1) - 1 = x2
+
+$injective_fn(R, R, 'R(x){x + 1})
+```
+
 ### 8.1.4 Example: `x |-> x^2` On `R` Is Not Injective
 
 To disprove injectivity, find two different inputs with the same output.
 For the square function on real numbers, the witnesses are `-1` and `1`:
 
-```text
-(-1)^2 = 1^2,
+```litex
+prop injective_fn(S, T set, f fn(x S) T):
+    forall x1, x2 S:
+        f(x1) = f(x2)
+        =>:
+            x1 = x2
+
+by contra not $injective_fn(R, R, 'R(x){x^2}):
+    'R(x){x^2}(1) = 1 = 'R(x){x^2}(-1)
+    impossible 1 = -1
 ```
-
-but `-1 != 1`. Therefore the square function from `R` to `R` is not injective.
-
-This is the standard counterexample pattern: one collision in the output is
-enough to refute injectivity.
 
 ### 8.1.5 Surjective Functions
 
@@ -217,6 +267,12 @@ for every y in Y, there exists x in X such that f(x) = y.
 
 A surjectivity proof is usually a witness construction. Given the target output
 `y`, solve the equation `f(x) = y` for `x`.
+
+```litex
+prop surjective_fn(S, T set, f fn(x S) T):
+    forall y T:
+        exist x S st {y = f(x)}
+```
 
 ### 8.1.6 Example: `s(a) = 3a + 2` Is Surjective On `Q`
 
@@ -237,6 +293,25 @@ s((y - 2) / 3)
 
 Since every rational `y` has a rational preimage, `s` is surjective.
 
+```litex
+prop surjective_fn(S, T set, f fn(x S) T):
+    forall y T:
+        exist x S st {y = f(x)}
+
+have fn s(a Q) Q = 3 * a + 2
+
+claim:
+    prove:
+        forall y Q:
+            exist x Q st {y = s(x)}
+
+    have a Q = (y - 2) / 3
+    witness exist x Q st {y = s(x)} from a:
+        y = 3 * ((y - 2) / 3) + 2 = 3 * a + 2 = s(a)
+
+$surjective_fn(Q, Q, s)
+```
+
 ### 8.1.7 Example: `x |-> x^2` On `R` Is Not Surjective
 
 To disprove surjectivity, find one output value which is not hit. For the square
@@ -251,6 +326,21 @@ For every real number `x`, we have
 So `x^2` can never equal `-1`. Therefore the square function is not surjective
 as a function from `R` to `R`.
 
+```litex
+prop surjective_fn(S, T set, f fn(x S) T):
+    forall y T:
+        exist x S st {y = f(x)}
+
+have fn square(x R) R = x^2
+
+by contra not $surjective_fn(R, R, square):
+    have by exist x R st {-1 = square(x)}: x
+    0 <= x^2
+    -1 = square(x) = x^2
+    0 <= -1
+    impossible 0 <= -1
+```
+
 ### 8.1.8 Example: A Finite Function Which Is Not Injective
 
 Consider a finite set with three elements:
@@ -264,7 +354,7 @@ Define a function `f : Musketeer -> Musketeer` by
 ```text
 f(athos) = aramis,
 f(porthos) = aramis,
-f(aramis) = athos.
+f(aramis) = aramis.
 ```
 
 This function is not injective because `athos` and `porthos` are different
@@ -277,6 +367,24 @@ f(athos) = aramis = f(porthos).
 Finite functions make injectivity especially concrete: inspect the arrows and
 look for two arrows landing at the same output.
 
+In the Litex example below, `{1, 2, 3}` represents `{athos, porthos, aramis}`.
+The function `f` sends every element to `3`, so `1` and `2` are different inputs
+with the same output.
+
+```litex
+prop injective_fn(S, T set, f fn(x S) T):
+    forall x1, x2 S:
+        f(x1) = f(x2)
+        =>:
+            x1 = x2
+
+have fn f(x {1, 2, 3}) {1, 2, 3} = 3
+
+by contra not $injective_fn({1, 2, 3}, {1, 2, 3}, f):
+    f(1) = 3 = f(2)
+    impossible 1 = 2
+```
+
 ### 8.1.9 Example: The Same Finite Function Is Not Surjective
 
 The same function `f` is not surjective. The element `porthos` is never hit:
@@ -284,11 +392,30 @@ The same function `f` is not surjective. The element `porthos` is never hit:
 ```text
 f(athos) = aramis,
 f(porthos) = aramis,
-f(aramis) = athos.
+f(aramis) = aramis.
 ```
 
-The outputs are only `aramis` and `athos`. Since no input maps to `porthos`, the
-function is not surjective.
+The only output is `aramis`. Since no input maps to `porthos`, the function is
+not surjective.
+
+```litex
+prop surjective_fn(S, T set, f fn(x S) T):
+    forall y T:
+        exist x S st {y = f(x)}
+
+have fn f(x {1, 2, 3}) {1, 2, 3} = 3
+
+by enumerate finite_set:
+    prove:
+        forall x {1, 2, 3}:
+            f(x) = 3
+
+by contra not $surjective_fn({1, 2, 3}, {1, 2, 3}, f):
+    have by exist x {1, 2, 3} st {2 = f(x)}: x
+    f(x) = 3
+    2 = f(x) = 3
+    impossible 2 = 3
+```
 
 ### 8.1.10 Example: A Finite Function Which Is Injective
 
@@ -306,17 +433,118 @@ must be the same. This proves that `g` is injective.
 On a small finite set, injectivity can be proved by checking the finite table:
 no two different inputs share an output.
 
+```litex
+prop injective_fn(S, T set, f fn(x S) T):
+    forall x1, x2 S:
+        f(x1) = f(x2)
+        =>:
+            x1 = x2
+
+have fn g(x {1, 2, 3}) {1, 2, 3}:
+    case x = 1: 2
+    case x = 2: 3
+    case x = 3: 1
+
+claim:
+    prove:
+        forall x1, x2 {1, 2, 3}:
+            g(x1) = g(x2)
+            =>:
+                x1 = x2
+
+    by cases:
+        prove:
+            x1 = x2
+        case x1 = 1:
+            by cases:
+                prove:
+                    x1 = x2
+                case x2 = 1:
+                    x1 = 1 = x2
+                case x2 = 2:
+                    g(x1) = g(1) = 2
+                    g(x2) = g(2) = 3
+                    impossible g(x1) = g(x2)
+                case x2 = 3:
+                    g(x1) = g(1) = 2
+                    g(x2) = g(3) = 1
+                    impossible g(x1) = g(x2)
+        case x1 = 2:
+            by cases:
+                prove:
+                    x1 = x2
+                case x2 = 1:
+                    g(x1) = g(2) = 3
+                    g(x2) = g(1) = 2
+                    impossible g(x1) = g(x2)
+                case x2 = 2:
+                    x1 = 2 = x2
+                case x2 = 3:
+                    g(x1) = g(2) = 3
+                    g(x2) = g(3) = 1
+                    impossible g(x1) = g(x2)
+        case x1 = 3:
+            by cases:
+                prove:
+                    x1 = x2
+                case x2 = 1:
+                    g(x1) = g(3) = 1
+                    g(x2) = g(1) = 2
+                    impossible g(x1) = g(x2)
+                case x2 = 2:
+                    g(x1) = g(3) = 1
+                    g(x2) = g(2) = 3
+                    impossible g(x1) = g(x2)
+                case x2 = 3:
+                    x1 = 3 = x2
+
+$injective_fn({1, 2, 3}, {1, 2, 3}, g)
+```
+
+
+
 ### 8.1.11 Example: The Same Finite Function Is Surjective
 
 The same function `g` is also surjective. Each target has a preimage:
 
 ```text
+athos = g(aramis),
 porthos = g(athos),
-aramis = g(porthos),
-athos = g(aramis).
+aramis = g(porthos).
 ```
 
 Thus every element of `Musketeer` is hit.
+
+```litex
+prop surjective_fn(S, T set, f fn(x S) T):
+    forall y T:
+        exist x S st {y = f(x)}
+
+have fn g(x {1, 2, 3}) {1, 2, 3}:
+    case x = 1: 2
+    case x = 2: 3
+    case x = 3: 1
+
+claim:
+    prove:
+        forall y {1, 2, 3}:
+            exist x {1, 2, 3} st {y = g(x)}
+
+    by cases:
+        prove:
+            exist x {1, 2, 3} st {y = g(x)}
+        case y = 1:
+            witness exist x {1, 2, 3} st {y = g(x)} from 3:
+                y = 1 = g(3)
+        case y = 2:
+            witness exist x {1, 2, 3} st {y = g(x)} from 1:
+                y = 2 = g(1)
+        case y = 3:
+            witness exist x {1, 2, 3} st {y = g(x)} from 2:
+                y = 3 = g(2)
+
+$surjective_fn({1, 2, 3}, {1, 2, 3}, g)
+```
 
 ### 8.1.12 Example: `x |-> x^3` On `R` Is Injective
 
@@ -326,32 +554,43 @@ Suppose `x1^3 = x2^3`. Then
 (x1 - x2)(x1^2 + x1*x2 + x2^2) = x1^3 - x2^3 = 0.
 ```
 
-So either `x1 - x2 = 0`, in which case `x1 = x2`, or
+So either `x1 = x2` or `x1^2 + x1*x2 + x2^2 = 0`. We just need to show the latter is impossible.
 
-```text
-x1^2 + x1*x2 + x2^2 = 0.
+```litex
+prop injective_fn(S, T set, f fn(x S) T):
+    forall x1, x2 S:
+        f(x1) = f(x2)
+        =>:
+            x1 = x2
+
+have fn f(x R) R = x^3
+
+claim:
+    prove:
+        forall x1, x2 R:
+            f(x1) = f(x2)
+            =>:
+                x1 = x2
+
+    0 = f(x1) - f(x2) = x1^3 - x2^3 = (x1 - x2)*(x1^2 + x1*x2 + x2^2)
+
+    by cases:
+        prove:
+            x1 = x2
+        case x1 - x2 = 0:
+            x1 = x2
+        case x1^2 + x1*x2 + x2^2 = 0:
+            by cases x1 = x2:
+                case x1 != 0:
+                    0 < x1^2
+                    0 < x1^2 +((x1+x2)^2+x2^2) = 2 * (x1^2 + x1 * x2 + x2^2) = 2 * 0 = 0
+                    impossible 0 < 0
+                case x1 = 0:
+                    0 = 0 - x2^3
+                    x2^3 = 0
+                    by contra x2 = 0:
+                        impossible x2^3 != 0
 ```
-
-The second case is impossible unless both variables are forced into the same
-degenerate situation. One way to see the contradiction is to split on whether
-`x1 = 0`.
-
-If `x1 = 0`, then `x2^3 = x1^3 = 0`, so `x2 = 0` as well, hence `x1 = x2`.
-
-If `x1 != 0`, then the expression
-
-```text
-x1^2 + ((x1 + x2)^2 + x2^2)
-```
-
-is strictly positive, but it is also equal to
-
-```text
-2(x1^2 + x1*x2 + x2^2),
-```
-
-which is `0` in the second case. That is impossible. Therefore only the first
-factor can vanish, and `x1 = x2`. Thus the cube function is injective.
 
 ## 8.2 Bijectivity
 
