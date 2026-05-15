@@ -1,6 +1,6 @@
 # Chapter 2 — Proofs with structure
 
-Online: https://litexlang.com/doc/The_Mechanics_of_Litex_Proof/Chapter_2_Proofs_With_Structure
+Try all snippets in browser: https://litexlang.com/doc/The_Mechanics_of_Litex_Proof/Chapter_2_Proofs_With_Structure
 
 GitHub source: https://github.com/litexlang/The-Mechanics-of-Litex-Proof/blob/main/Chapter_2_Proofs_With_Structure.md
 
@@ -201,6 +201,42 @@ is proof by contradiction:
 ```text
 by contra a >= 1:
 ```
+
+It is important to understand what happens when the claimed fact is a universal
+statement such as this one. Litex opens a **local proof environment** for the
+body of the `claim`. In that local environment, it introduces the parameters
+from the `forall` header and gives them the properties listed before `=>:`.
+
+For this example, the claimed statement is:
+
+```text
+forall a, b R:
+    a^2 = b^2 + 1
+    a >= 0
+    =>:
+        a >= 1
+```
+
+So inside the proof process, Litex lets you use:
+
+```text
+a $in R
+b $in R
+a^2 = b^2 + 1
+a >= 0
+```
+
+The local goal is then just:
+
+```text
+a >= 1
+```
+
+This is why the proof body can immediately mention `a`, `b`, `a^2 = b^2 + 1`,
+and `a >= 0`. They are not global objects; they are the temporary parameters
+and assumptions created by the `claim forall ...` statement. When the claim is
+finished, Litex exports the proved universal fact to the surrounding context,
+not the temporary names `a` and `b`.
 
 The meaning is: to prove `a >= 1`, temporarily enter a local contradiction
 environment where the opposite of `a >= 1` is assumed. In this case, since `a`

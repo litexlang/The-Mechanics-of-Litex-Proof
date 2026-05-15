@@ -1,6 +1,6 @@
 # Chapter 7 — Number Theory
 
-Online: https://litexlang.com/doc/The_Mechanics_of_Litex_Proof/Chapter_7_Number_Theory
+Try all snippets in browser: https://litexlang.com/doc/The_Mechanics_of_Litex_Proof/Chapter_7_Number_Theory
 
 GitHub source: https://github.com/litexlang/The-Mechanics-of-Litex-Proof/blob/main/Chapter_7_Number_Theory.md
 
@@ -57,6 +57,27 @@ know:
 With these facts in the context, the whole proof body is the following 11 lines:
 
 ```litex
+prop prime(a N_pos):
+    2 <= a
+    forall b N_pos:
+        2 <= b < a
+        =>:
+            a % b != 0
+
+know:
+    forall a, k N_pos:
+        k <= a
+        =>:
+            product(1, a, 'N_pos(x){x}) % k = 0
+
+    forall a N_pos:
+        2 <= a
+        =>:
+            exist k N_pos st {$prime(k), a % k = 0}
+
+    forall a N_pos:
+        a <= product(1, a, 'N_pos(x){x})
+
 claim forall! a N_pos: 2 <= a => exist k N_pos st {k > a, $prime(k)}:
     2 <= a <= product(1, a, 'N_pos(x){x}) <= product(1, a, 'N_pos(x){x}) + 1
     have by exist k N_pos st {$prime(k), (product(1, a, 'N_pos(x){x}) + 1) % k = 0}: k
@@ -184,6 +205,17 @@ coming from `d | a * b`. The final `witness` line supplies the quotient for
 `d | b`.
 
 ```litex
+prop divides(a Z, b Z):
+    exist k Z st {b = a * k}
+
+abstract_prop gcd_eq_one(a, d)
+
+know:
+    forall a, d Z:
+        $gcd_eq_one(a, d)
+        =>:
+            exist x Z, y Z st {1 = x * a + y * d}
+
 claim:
     prove:
         forall d, a, b Z:

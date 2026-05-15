@@ -1,6 +1,6 @@
 # Chapter 1 — Proofs By Calculation
 
-Online: https://litexlang.com/doc/The_Mechanics_of_Litex_Proof/Chapter_1_Proofs_By_Calculation
+Try all snippets in browser: https://litexlang.com/doc/The_Mechanics_of_Litex_Proof/Chapter_1_Proofs_By_Calculation
 
 GitHub source: https://github.com/litexlang/The-Mechanics-of-Litex-Proof/blob/main/Chapter_1_Proofs_By_Calculation.md
 

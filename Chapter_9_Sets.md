@@ -1,6 +1,6 @@
 # Chapter 9 — Sets
 
-Online: https://litexlang.com/doc/The_Mechanics_of_Litex_Proof/Chapter_9_Sets
+Try all snippets in browser: https://litexlang.com/doc/The_Mechanics_of_Litex_Proof/Chapter_9_Sets
 
 GitHub source: https://github.com/litexlang/The-Mechanics-of-Litex-Proof/blob/main/Chapter_9_Sets.md
 
@@ -642,6 +642,32 @@ setting, the complement of the even integers is the set of odd integers:
 ({k Z : k % 2 = 0})^c = {k Z : k % 2 = 1}.
 ```
 
+```litex
+forall a, b set, x set_minus(a, b):
+    x $in a
+    not x $in b
+
+by extension set_minus(Z, {n Z: n % 2 = 0}) = {n Z: n % 2 = 1}:
+    claim forall! x set_minus(Z, {n Z: n % 2 = 0}) => {x $in {n Z: n % 2 = 1}}:
+        x $in Z
+        not x $in {n Z: n % 2 = 0}
+        x % 2 = 0 or x % 2 = 1
+        by cases x % 2 = 1:
+            case x % 2 = 0:
+                x $in {n Z: n % 2 = 0}
+                impossible x $in {n Z: n % 2 = 0}
+            case x % 2 = 1:
+                do_nothing
+    claim forall! x {n Z: n % 2 = 1} => {x $in set_minus(Z, {n Z: n % 2 = 0})}:
+        x $in Z
+        x % 2 = 1
+        by contra not x $in {n Z: n % 2 = 0}:
+            x $in {n Z: n % 2 = 0}
+            x % 2 = 0
+            impossible x % 2 = 1
+
+set_minus(Z, {n Z: n % 2 = 0}) = {n Z: n % 2 = 1}
+```
 
 ### 9.2.6 Example
 
@@ -656,25 +682,104 @@ If `n` belongs to the left-hand set, then `n` is a natural number and `n < 0`.
 But natural numbers are nonnegative. This contradiction shows that no object
 can be in the left-hand set.
 
-The reverse inclusion is automatic mathematically: every element of the empty
-set belongs to any set, because there is no element to check.
+In Litex `{}` is a set with no elements. It is subset of any set.
+
+```litex
+claim:
+    prove:
+        forall s set:
+            {} $subset s
+    by enumerate finite_set:
+        prove:
+            forall x {}:
+                x $in s
+```
+
+Now we prove that the intersection of two sets of numbers that are congruent to 1 and 2 modulo 5 is the empty set.
+
+```litex
+claim intersect({n Z: n % 5 = 1}, {n Z: n % 5 = 2}) = {}:
+    by contra not $is_nonempty_set(intersect({n Z: n % 5 = 1}, {n Z: n % 5 = 2})):
+        have x intersect({n Z: n % 5 = 1}, {n Z: n % 5 = 2})
+        x % 5 = 1
+        x % 5 = 2
+        impossible 1 = 2
+```
+
+The line
+
+```text
+have x intersect({n Z: n % 5 = 1}, {n Z: n % 5 = 2})
+```
+
+is the key move. In general, `have x OBJECT` means that Litex takes one element
+from `OBJECT` and names it `x`. This is only legitimate when `OBJECT` is known
+to satisfy `$is_nonempty_set(OBJECT)`: in ordinary words, when `OBJECT` is a
+nonempty set. Here the surrounding `by contra not $is_nonempty_set(...)` has
+temporarily assumed that the intersection is nonempty, so Litex is allowed to
+take such an `x`. 
+
+You can also use `have x set`, `have x nonempty_set`, `have x finite_set`, where `set` says `is_set(x)`, `nonempty_set` says `$is_nonempty_set(x)`, `finite_set` says `$is_finite_set(x)`. Notice `set`, `nonempty_set`, and `finite_set` are actions, not objects.
+
+If nonemptiness has not been proved or assumed, Litex cannot take an element
+from the set. This is just the usual mathematical rule: you cannot choose an
+element from an empty set.
+
+Litex also has the empty-set equivalence built in:
+
+```text
+not $is_nonempty_set(OBJECT)    means the same thing as    OBJECT = {}
+```
+
+So the proof above can establish equality with `{}` by proving that the set is
+not nonempty. This is the familiar mathematical fact that a set is empty exactly
+when it has no elements.
+
+
 
 ### 9.2.7 Example
 
-The universal set for a domain is proved by showing that the defining condition
-is always true on that domain. For instance,
+As you might have noticed, For any set `s`, `s = {x s: 0 = 0}`. Here `0 = 0` is a trivial condition that always holds, which can be replaced with any other condition that always holds.
 
-```text
-{n Z : n % 2 = 0 or n % 2 = 1} = Z.
+```litex
+claim:
+    prove:
+        forall s set:
+            s = {x s: 0 = 0}
+    by extension s = {x s: 0 = 0}:
+        ...
 ```
 
-Take an arbitrary integer `n`. Every integer has remainder `0` or `1` modulo
-`2`, so `n` satisfies the defining condition of the set builder. Thus every
-integer belongs to the left-hand side.
+Here is an exmple of proving that the union of two sets of real numbers is the set of all real numbers.
 
-The other inclusion is built into the set-builder domain: if `n` belongs to
-`{n Z : n % 2 = 0 or n % 2 = 1}`, then in particular `n` is an integer. Hence
-the set builder is exactly `Z`.
+```litex
+by extension union({x R: -1 < x}, {x R: x < 1}) = R:
+    claim:
+        prove:
+            forall a R:
+                a $in union({x R: -1 < x}, {x R: x < 1})
+
+        by cases a $in union({x R: -1 < x}, {x R: x < 1}):
+            case a < -1:
+                a < -1 < 1
+                a $in {x R: x < 1}
+            case a = -1:
+                -1 $in {x R: x < 1}
+                a $in {x R: x < 1}
+            case a > -1:
+                ...
+
+    claim:
+        prove:
+            forall a union({x R: -1 < x}, {x R: x < 1}):
+                a $in R
+
+        by cases a $in R:
+            case a $in {x R: -1 < x}:
+                ...
+            case a $in {x R: x < 1}:
+                ...
+```
 
 ## 9.3 Power Sets
 
@@ -690,74 +795,408 @@ means the same mathematical thing as
 B $subset A.
 ```
 
+For example,
+
+```litex
+{3, 4, 5} $in power_set(R)
+{n N: 8 < n} $in power_set(N)
+```
+
 So proofs about power sets usually reduce to subset proofs: take an arbitrary
 element of the proposed subset and show that it lies in the base set.
 
-### 9.3.1 Example
-
-The statement
-
-```text
-{-1, 1} $in power_set({x Z : x^2 = 1})
-```
-
-says that every element of `{-1, 1}` satisfies `x^2 = 1`. There are two cases.
-If `x = -1`, then `x^2 = (-1)^2 = 1`. If `x = 1`, then `x^2 = 1^2 = 1`.
-Therefore every element of `{-1, 1}` belongs to `{x Z : x^2 = 1}`, so
-`{-1, 1}` is an element of the power set.
-
 ### 9.3.2 Example
 
-To show that
+We show that `{n N: n % 2 = 0}` is not an element of `{s power_set(N): 3 $in s}`, which is equivalent to `not 3 $in {n N: n % 2 = 0}`.
 
-```text
-{0, 1, 4} $in power_set({x N : x < 5}),
+```litex
+by contra not {n N: n % 2 = 0} $in {s power_set(N): 3 $in s}:
+    {n N: n % 2 = 0} $in {s power_set(N): 3 $in s}
+    3 $in {n N: n % 2 = 0}
+    impossible 3 % 2 = 0
 ```
 
-prove that each displayed element is a natural number less than `5`. The
-membership proof splits into three cases: `x = 0`, `x = 1`, and `x = 4`.
-Each case satisfies `x < 5`, and each object is in `N`. Hence the whole
-displayed set is a subset of `{x N : x < 5}`.
+This proof flows smoothly: we assume the negation of the goal, and get the first statement `{n N: n % 2 = 0} $in {s power_set(N): 3 $in s}`, then by that we have `3 $in {n N: n % 2 = 0}`, then we get a contradiction by the fact that `3 % 2 = 0`.
+
+You might think those objects are too length, actually you can give them a name for convenience.
+
+```litex
+have a set = {n N: n % 2 = 0}
+have b set = {s power_set(N): 3 $in s}
+
+by contra not a $in b:
+    a $in b
+    3 $in a
+    impossible 3 % 2 = 0
+```
 
 ### 9.3.3 Example
 
-Some power-set claims fail because a single listed element violates the target
-condition. For example, to disprove
+Here we show that the function
 
 ```text
-{1, 2, 5} $in power_set({x N : x < 5}),
+p(x) = {n N: (n + 1) $in x}
 ```
 
-it is enough to look at `5`. The element `5` is in `{1, 2, 5}`, but it does not
-satisfy `5 < 5`. Therefore `{1, 2, 5}` is not a subset of `{x N : x < 5}`, and
-so it is not an element of the power set.
+is not injective as a function from `power_set(N)` to `power_set(N)`. The idea is
+that both `{}` and `{0}` are sent to `{}`. If `p` were injective, then from
+`p({}) = p({0})` we would get `{}` = `{0}`. But these two finite sets have
+different sizes, since `count({}) = 0` and `count({0}) = 1`, so this gives a
+contradiction.
+
+```litex
+prop injective_from_power_set_R_to_power_set_R(f fn(x power_set(R)) power_set(R)):
+    forall a, b power_set(R):
+        f(a) = f(b)
+        =>:
+            a = b
+
+have fn p(x power_set(N)) power_set(N) = {n N: (n + 1) $in x}
+
+p({0}) = {n N: (n + 1) $in {0}}
+
+by contra {n N: (n + 1) $in {0}} = {}:
+    have x {n N: (n + 1) $in {0}}
+    by enumerate finite_set:
+        prove:
+            forall x {0}:
+                x = 0
+    (x + 1) = 0
+    x = -1
+    impossible x >= 0
+
+p({0}) = {}
+
+p({}) = {n N: (n + 1) $in {}}
+
+by contra {n N: (n + 1) $in {}} = {}:
+    have x {n N: (n + 1) $in {}}
+    witness $is_nonempty_set({}) from x + 1
+    impossible $is_nonempty_set({})
+
+p({}) = {}
+
+by contra not $injective_from_power_set_R_to_power_set_R(p):
+    p({}) = p({0})
+    {} = {0}
+    0 = count({}) = count({0}) = 1
+    impossible 0 = 1
+```
+
+This example uses three useful statements.
+
+First, the line
+
+```litex
+have fn p(x power_set(N)) power_set(N) = {n N: (n + 1) $in x}
+```
+
+introduces a function by a defining equality. The part `p(x power_set(N))`
+declares the input variable and its domain, the following `power_set(N)` declares
+the return type, and the expression after `=` is the value of the function. After
+this definition, Litex can unfold applications such as `p({0})` and `p({})` into
+the corresponding set-builder expressions.
+
+Likewise, we can define a function from R to R by f(x) = x + 1.
+
+```litex
+have fn f(x R) R = x + 1
+```
+
+Second, `witness $is_nonempty_set(s) from x` proves that a set is nonempty by
+giving one concrete element of the set. For example, if the proof already knows
+that `x $in s`, then the witness statement can derive `$is_nonempty_set(s)`.
+When the witness needs a small proof, it can be written as a block:
+
+```text
+witness $is_nonempty_set(s) from x:
+    know x $in s
+```
+
+Third, `count(list_set)` is the number of elements in a finite listed set. For
+example, `count({}) = 0` and `count({0}) = 1`. This is useful when two listed
+sets would be equal only if they had the same size.
+
+Here is a more interesting example. The key point is that `by enumerate
+finite_set` can also enumerate the empty set. Since the empty set has no
+elements, a statement of the form `forall x {}: ...` has no cases to check, so
+it is true no matter what property we put after it. For example, we can prove
+the strange-looking statement `forall x {}: 0 = x = 1`.
+
+This is useful in a contradiction proof. If the proof environment ever gives us
+some object in `{}`, then we may apply such a vacuous property to that object and
+derive an impossible equality like `0 = 1`.
+
+```litex
+prop injective_from_power_set_R_to_power_set_R(f fn(x power_set(R)) power_set(R)):
+    forall a, b power_set(R):
+        f(a) = f(b)
+        =>:
+            a = b
+
+have fn p(x power_set(N)) power_set(N) = {n N: (n + 1) $in x}
+
+p({0}) = {n N: (n + 1) $in {0}}
+
+by contra {n N: (n + 1) $in {0}} = {}:
+    have x {n N: (n + 1) $in {0}}
+    by enumerate finite_set:
+        prove:
+            forall x {0}:
+                x = 0
+    (x + 1) = 0
+    x = -1
+    impossible x >= 0
+
+p({0}) = {}
+
+p({}) = {n N: (n + 1) $in {}}
+
+# This true because the empty set has no elements, and we can apply any property to elements of the empty set.
+by enumerate finite_set:
+    prove:
+        forall x {}:
+            0 = x = 1
+
+by contra {n N: (n + 1) $in {}} = {}:
+    have x {n N: (n + 1) $in {}}
+    (x + 1) $in {}
+    0 = x + 1 = 1
+    impossible 0 = 1
+
+p({}) = {}
+
+by contra not $injective_from_power_set_R_to_power_set_R(p):
+    p({}) = p({0})
+    {} = {0}
+    0 $in {0}
+    0 $in {}
+    0 = 0 = 1
+    impossible 0 = 1
+```
 
 ### 9.3.4 Example
 
-Power-set membership can also be nested. A statement like
+Now consider a function whose inputs and outputs are both subsets of `Z`.
 
-```text
-{{1}, {1, 2}} $in power_set(power_set({1, 2}))
+```litex
+prop injective_from_power_set_Z_to_power_set_Z(f fn(x power_set(Z)) power_set(Z)):
+    forall a, b power_set(Z):
+        f(a) = f(b)
+        =>:
+            a = b
+
+have fn q(s power_set(Z)) power_set(Z) = {n Z: n + 1 $in s}
+
+claim:
+    prove:
+        forall a, b power_set(Z):
+            q(a) = q(b)
+            =>:
+                a = b
+
+    by extension:
+        prove:
+            a = b
+        claim:
+            prove:
+                forall x a:
+                    x $in b
+            x $in Z
+            (x - 1) + 1 = x
+            (x - 1) +1 $in a
+            x - 1 $in {n Z: n + 1 $in a}
+            {n Z: n + 1 $in a} = q(a)
+            x - 1 $in q(a)
+            x - 1 $in q(b)
+            {n Z: n + 1 $in b} = q(b)
+            x - 1 $in {n Z: n + 1 $in b}
+            (x - 1) + 1 $in b
+            x $in b
+        claim:
+            prove:
+                forall y b:
+                    y $in a
+            y $in Z
+            (y - 1) + 1 = y
+            (y - 1) + 1 $in b
+            y - 1 $in {n Z: n + 1 $in b}
+            {n Z: n + 1 $in b} = q(b)
+            y - 1 $in q(b)
+            y - 1 $in q(a)
+            {n Z: n + 1 $in a} = q(a)
+            y - 1 $in {n Z: n + 1 $in a}
+            (y - 1) + 1 $in a
+            y $in a
+            y $in b
+
+$injective_from_power_set_Z_to_power_set_Z(q)
+
 ```
 
-means that every element of `{{1}, {1, 2}}` is itself a subset of `{1, 2}`.
-There are two outer cases. If the element is `{1}`, then every member of it is
-`1`, hence belongs to `{1, 2}`. If the element is `{1, 2}`, then its members are
-`1` or `2`, and both belong to `{1, 2}`. Thus both listed sets are elements of
-`power_set({1, 2})`, so the whole outer displayed set is in the larger power
-set.
+The predicate `injective_from_power_set_Z_to_power_set_Z` says exactly what
+injective means for functions from `power_set(Z)` to `power_set(Z)`: if two
+subsets `a` and `b` have the same image under `f`, then `a = b`.
+
+The function `q` sends a set `s` of integers to the set of all integers whose
+successor lies in `s`:
+
+```text
+q(s) = {n in Z : n + 1 is in s}.
+```
+
+In ordinary language, `q(s)` shifts the membership test one step backward. For
+example, `0 $in q(s)` means `1 $in s`, and `-3 $in q(s)` means `-2 $in s`.
+
+The goal of this example is to prove that `q` is injective. Mathematically, the
+reason is that over all integers this backward shift loses no information. If
+`q(a) = q(b)`, then to show `a = b` we use extensionality. Take `x $in a`.
+Then `x - 1 $in q(a)`, because `(x - 1) + 1 = x` is in `a`. Since
+`q(a) = q(b)`, we get `x - 1 $in q(b)`, hence `(x - 1) + 1 = x $in b`.
+This proves `a $subset b`. The same argument with `a` and `b` switched proves
+`b $subset a`, so `a = b`.
+
+The important contrast with the previous power-set example is that the domain is
+`Z`, not `N`. On `N`, shifting backward can lose information at `0`. On `Z`, every
+integer has a predecessor, so the original set can be recovered from its shifted
+membership test.
+
+
 
 ### 9.3.5 Example
 
-The empty set is always a subset of any set, so it is always an element of a
-power set:
+This example proves a version of Cantor's theorem: for any set `X`, no function
+from `X` to `power_set(X)` can be surjective. Here `surj_to_power(X, f)` means
+that every subset of `X` is hit by some input of `f`.
+
+The proof uses the diagonal set
 
 ```text
-{} $in power_set(A).
+{x X: not x $in f(x)}.
 ```
 
-The proof has no cases. To prove `{}` is a subset of `A`, take an arbitrary
-element of `{}`. There is no such element, so the implication is vacuously true.
-This is often the easiest power-set membership proof: the empty set belongs to
-every power set because it has no element that could fail the target membership
-condition.
+If `f` were surjective, this set would be equal to `f(a)` for some `a $in X`.
+Now ask whether `a` is in this diagonal set. If `a` is in it, then by definition
+`a` is not in `f(a)`, contradiction. If `a` is not in it, then by definition
+`a` is in `f(a)`, again contradiction.
+
+```litex
+prop surj_to_power(X set, f fn(x X) power_set(X)):
+    forall y power_set(X):
+        exist x X st {f(x) = y}
+
+claim:
+    prove:
+        forall X set, f fn(x X) power_set(X):
+            not $surj_to_power(X, f)
+
+    by contra:
+        prove:
+            not $surj_to_power(X, f)
+        have by exist a X st {f(a) = {x X: not x $in f(x)}}: a
+        by cases:
+            prove:
+                a != a
+            case a $in {x X: not x $in f(x)}:
+                a $in {x X: not x $in f(x)}
+                not a $in f(a)
+                a $in f(a)
+                impossible a $in f(a)
+            case not a $in {x X: not x $in f(x)}:
+                not a $in f(a)
+                a $in {x X: not x $in f(x)}
+                impossible a $in {x X: not x $in f(x)}
+        a = a
+        impossible a != a
+
+```
+
+Historically, this theorem is one of Cantor's central insights. It shows that
+there is no largest infinity: every set has a strictly larger power set. The
+same diagonal idea is also the source of the proof that the real numbers are
+uncountable, and it became one of the basic tools of modern set theory, logic,
+and later computability theory.
+
+## 9.4 Litex statements and ideas in this chapter
+
+This chapter extends the earlier proof style from numbers and logic to sets. The
+main point is that sets are ordinary mathematical objects in Litex: they can be
+named, compared, passed to functions, placed inside other sets, and described by
+conditions.
+
+### Litex statements and syntax used
+
+1. Membership is written directly with `$in`:
+
+   ```text
+   x $in A
+   ```
+
+   For a set builder such as `{n Z: n <= 3}`, membership means that the object
+   belongs to the base domain and satisfies the defining condition.
+
+2. Finite displayed sets such as `{1, 2, 3}` behave like finite alternatives.
+   Membership in such a set can be used as a case split over the listed values.
+
+3. Subset and superset facts are written with `$subset` and `$superset`.
+   A subset proof is a universal membership proof: take an arbitrary element of
+   the smaller set and show that it belongs to the larger set.
+
+4. `by extension` proves set equality by mutual membership. To prove `A = B`,
+   Litex checks the two directions:
+
+   ```text
+   forall x A:
+       x $in B
+
+   forall x B:
+       x $in A
+   ```
+
+5. Set operations such as `union`, `intersect`, `set_minus`, and `power_set`
+   can be used as ordinary objects. Their membership facts unfold into the
+   corresponding mathematical conditions.
+
+6. `have x OBJECT` can introduce an element of a set-like object only when that
+   object is known to be nonempty. In contradiction proofs about empty sets, a
+   temporary assumption of nonemptiness lets Litex take such an element and then
+   derive a contradiction.
+
+7. Long set expressions can be named for readability:
+
+```litex
+have a set = {n N: n % 2 = 0}
+have b set = {s power_set(N): 3 $in s}
+```
+
+   This does not change the mathematics; it only gives shorter names to objects
+   that would otherwise make later lines hard to read.
+
+### Litex knowledge points
+
+1. Set-builder membership is a pattern. To prove `x $in {n S: P(n)}`, prove
+   that `x $in S` and that `P(x)` holds.
+
+2. Set equality is extensional. The proof is not about how two set expressions
+   are written, but about whether they have exactly the same elements.
+
+3. Empty-set proofs often work by contradiction: assume the set is nonempty,
+   take an element, unfold the membership facts, and derive an impossible
+   condition.
+
+4. Power-set membership is subset membership. A fact such as
+   `B $in power_set(A)` says that every element of `B` is an element of `A`.
+
+5. Functions can take sets as inputs and return sets as outputs. A definition
+   such as `q(s) = {n Z: n + 1 $in s}` is a function whose value is itself a
+   set-builder expression.
+
+6. The same proof patterns from earlier chapters still drive the work:
+   `claim` opens local proof environments, `by contra` proves negations by
+   contradiction, `by cases` splits membership alternatives, and `witness` or
+   `have by exist` handles existential information.
+
+7. The chapter's larger examples show why sets matter as first-class objects:
+   they support ordinary finite reasoning, extensional equality, power-set
+   arguments, shifted-set functions, and Cantor-style diagonal proofs without
+   forcing the user to manage a separate visible hierarchy of set encodings.

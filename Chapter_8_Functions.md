@@ -1,44 +1,160 @@
-# Chapter 10 — Functions
+# Chapter 8 — Functions
 
-Source chapter: https://hrmacbeth.github.io/math2001/08_Functions.html
+Try all snippets in browser: https://litexlang.com/doc/The_Mechanics_of_Litex_Proof/Chapter_8_Functions
 
-This chapter records the mathematics of the function examples from Math2001
-Chapter 8. The goal here is only to write the mathematical content cleanly. Litex
-examples and any extra implementation commentary can be added later.
+GitHub source: https://github.com/litexlang/The-Mechanics-of-Litex-Proof/blob/main/Chapter_8_Functions.md
 
-Functions bring three recurring proof patterns.
+So far, most of our examples have lived close to numbers. We have studied
+properties of numbers, such as being odd, positive, prime, or divisible by
+another number, and operations on numbers, such as addition, remainders, and
+greatest common divisors.
 
-First, a function is **injective** if equal outputs force equal inputs. To prove
-injectivity, start with `f(x1) = f(x2)` and derive `x1 = x2`. To disprove
-injectivity, find two different inputs with the same output.
+In this chapter we go up one level of abstraction and study properties of and
+operations on functions. The new properties include injectivity, surjectivity,
+bijectivity, and being inverse to another function. The central operation is
+composition.
 
-Second, a function is **surjective** if every target value is hit. To prove
-surjectivity, take an arbitrary output value `y` and build an input `x` with
-`f(x) = y`. To disprove surjectivity, find one target value which no input can
-hit.
+In Litex, it is fairly easy to write functions and their properties. Since functions are just ordinary objects, they can be used directly in proofs, and the properties of functions can be proved using the same proof patterns as other objects.
 
-Third, a function is **bijective** if it is both injective and surjective. Often
-the most efficient way to prove bijectivity is to produce an inverse function
-and check both compositions.
+## 8.1 Basics
 
-## 10.1 Injectivity And Surjectivity
+### 8.1.1 Defining Functions with `have fn`
 
-### 10.1.1 Functions, Domains, And Codomains
+Before proving properties of functions, we need ways to introduce functions.
+Litex's main statement for this is `have fn`. There are several common forms.
 
-A function has a domain, where its inputs live, and a codomain, where its outputs
-live. For example, the Fibonacci sequence can be viewed as a function from
-natural numbers to integers: it takes an index `n` and returns the `n`th integer
-in the sequence.
+If a function is given by one formula, write one defining equation:
 
-A function can also be defined by a formula. If `q(x) = x + 3`, then `q` is a
-function from real numbers to real numbers. The input is a real number `x`, and
-the output is the real number `x + 3`.
+```text
+have fn f(x S) T = body
+```
 
-When a function is only needed once, it is often written anonymously, such as
-`x |-> x^2`. Mathematically this still has a domain and codomain, for example
-from `R` to `R`.
+For example, `have fn f(x R: x > 1) R = x + 1` introduces a function whose input is a
+real number greater than 1, whose output is a real number, and whose value at `x` is `x + 1`.
 
-### 10.1.2 Injective Functions
+```litex
+have fn f(x R: x > 1) R = x + 1
+f(2) = 3
+```
+
+One of the most powerful features of Litex is anonymous function. An anonymous function is
+a function expression without a separate name. It has the form `'(x S: condition) T {body}`:
+the part before `T` gives the input variable and its domain, `T` is the output type, and
+`body` gives the value of the function.
+
+For example:
+
+```litex
+have f set = '(x R: x > 0) R {x + 1}
+```
+
+This has the same essential meaning as introducing a named function by:
+
+```litex
+have fn f(x R: x > 0) R = x + 1
+```
+
+The difference is only the surface form. The anonymous function expression builds the
+function value first, and `have f set = ...` gives that function value the name `f`.
+The `have fn` form introduces the same function directly by its defining equation.
+
+**Anonymous functions are very very useful when a function is only needed for one specific purpose, so giving it a separate name would add noise.** This often happens
+when we pass a function as an argument to another object. For example, the summation/product
+operator reads a function as its third argument: that function tells Litex which term
+to use for each index. (Think for yourself how to define integral functions with anonymous functions.)
+
+```litex
+eval sum(1, 3, '(x Z) Z {x + x})
+eval product(1, 3, '(x Z) Z {x^2})
+eval sum(1, 2, '(x Z) Z {sum(2, 3, '(y Z) Z {x + y})})
+```
+
+If the formula depends on cases, write a `case` branch for each condition:
+
+```text
+have fn g(x S) T:
+    case condition_1: value_1
+    case condition_2: value_2
+```
+
+The cases should cover the part of the domain where the function will be used.
+This is the natural Litex form for functions such as absolute value, maximum, or
+finite lookup tables.
+
+```litex
+have fn g(x, y R) R:
+    case x > y: x
+    case x <= y: y
+
+g(2, 1) = 2
+```
+
+Sometimes a function is not first given by a formula. Instead, mathematics tells
+us that for every input there exists a unique output. In that situation, Litex
+can introduce the function from the corresponding `forall ... exist!` fact:
+
+```text
+have fn f by forall x A:
+    condition(x)
+    =>:
+        exist! y B st {relation(x, y)}
+```
+
+After this, `f(x)` names the unique `y` related to `x`.
+
+```litex
+abstract_prop p(x, x2)
+abstract_prop F(x, x2, y)
+have A set
+have B set
+have C set
+
+know forall x A, x2 B:
+    $p(x, x2)
+    =>:
+        exist! y C st {$F(x, x2, y)}
+
+have fn f by forall x A, x2 B:
+    $p(x, x2)
+    =>:
+        exist! y C st {$F(x, x2, y)}
+
+f $in fn(x A, x2 B: $p(x, x2)) C
+
+forall x A, x2 B:
+    $p(x, x2)
+    =>:
+        $F(x, x2, f(x, x2))
+```
+
+That's the set theory definition of a function. In Litex, we can also use it to define a function.
+
+Finally, recursive functions on inductive domains can be introduced by
+`have fn by induc`. Base cases and the recursive step are again written as
+`case` branches:
+
+```text
+have fn by induc from 0: h(x Z: x >= 0) T:
+    case x = 0: base_value
+    case x >= 1: expression_using_earlier_values
+```
+
+This form is useful for sequences and functions defined by recurrence. It says
+that values are built in order from the starting point, so the recursive branch
+may use earlier values such as `h(x - 1)`.
+
+For example, Fibonacci sequence can be defined by:
+
+```litex
+have fn by induc from 0: f(x Z: x >= 0) R:
+    case x = 0: 1
+    case x = 1: 1
+    case x >= 2: f(x - 2) + f(x - 1)
+
+f(2) = f(0) + f(1) = 1 + 1 = 2
+```
+
+### 8.1.2 Injective Functions
 
 A function `f : X -> Y` is injective when
 
@@ -49,21 +165,35 @@ f(x1) = f(x2)  implies  x1 = x2.
 The important point is that the equality starts in the codomain and must be
 pulled back to equality in the domain.
 
-### 10.1.3 Example: `q(x) = x + 3` Is Injective
-
-Let `q : R -> R` be defined by `q(x) = x + 3`. Suppose `q(x1) = q(x2)`.
-Then
-
-```text
-x1 + 3 = x2 + 3.
+```litex
+prop injective_fn(S, T set, f fn(x S) T):
+    forall x1, x2 S:
+        f(x1) = f(x2)
+        =>:
+            x1 = x2
 ```
 
-Subtracting `3` from both sides gives `x1 = x2`. Therefore `q` is injective.
+### 8.1.3 Example: `q(x) = x + 1` Is Injective
 
-The mathematical reason is that adding a fixed number is reversible. Equal
-outputs differ from the inputs by the same shift, so the inputs were equal.
+```litex
+prop injective_fn(S, T set, f fn(x S) T):
+    forall x1, x2 S:
+        f(x1) = f(x2)
+        =>:
+            x1 = x2
 
-### 10.1.4 Example: `x |-> x^2` On `R` Is Not Injective
+have fn q(x R) R = x + 1
+
+forall x1, x2 R:
+    q(x1) = q(x2)
+    =>:
+        x2 + 1 = q(x2) = q(x1) = x1 + 1
+        x1 = x1 + 1 - 1 = x2 + 1 - 1 = x2
+
+$injective_fn(R, R, q)
+```
+
+### 8.1.4 Example: `x |-> x^2` On `R` Is Not Injective
 
 To disprove injectivity, find two different inputs with the same output.
 For the square function on real numbers, the witnesses are `-1` and `1`:
@@ -77,7 +207,7 @@ but `-1 != 1`. Therefore the square function from `R` to `R` is not injective.
 This is the standard counterexample pattern: one collision in the output is
 enough to refute injectivity.
 
-### 10.1.5 Surjective Functions
+### 8.1.5 Surjective Functions
 
 A function `f : X -> Y` is surjective when every `y` in `Y` is hit by some input:
 
@@ -88,7 +218,7 @@ for every y in Y, there exists x in X such that f(x) = y.
 A surjectivity proof is usually a witness construction. Given the target output
 `y`, solve the equation `f(x) = y` for `x`.
 
-### 10.1.6 Example: `s(a) = 3a + 2` Is Surjective On `Q`
+### 8.1.6 Example: `s(a) = 3a + 2` Is Surjective On `Q`
 
 Let `s : Q -> Q` be defined by `s(a) = 3a + 2`. Given a rational number `y`,
 choose
@@ -107,7 +237,7 @@ s((y - 2) / 3)
 
 Since every rational `y` has a rational preimage, `s` is surjective.
 
-### 10.1.7 Example: `x |-> x^2` On `R` Is Not Surjective
+### 8.1.7 Example: `x |-> x^2` On `R` Is Not Surjective
 
 To disprove surjectivity, find one output value which is not hit. For the square
 function from `R` to `R`, the value `-1` is not hit.
@@ -121,7 +251,7 @@ For every real number `x`, we have
 So `x^2` can never equal `-1`. Therefore the square function is not surjective
 as a function from `R` to `R`.
 
-### 10.1.8 Example: A Finite Function Which Is Not Injective
+### 8.1.8 Example: A Finite Function Which Is Not Injective
 
 Consider a finite set with three elements:
 
@@ -147,7 +277,7 @@ f(athos) = aramis = f(porthos).
 Finite functions make injectivity especially concrete: inspect the arrows and
 look for two arrows landing at the same output.
 
-### 10.1.9 Example: The Same Finite Function Is Not Surjective
+### 8.1.9 Example: The Same Finite Function Is Not Surjective
 
 The same function `f` is not surjective. The element `porthos` is never hit:
 
@@ -160,7 +290,7 @@ f(aramis) = athos.
 The outputs are only `aramis` and `athos`. Since no input maps to `porthos`, the
 function is not surjective.
 
-### 10.1.10 Example: A Finite Function Which Is Injective
+### 8.1.10 Example: A Finite Function Which Is Injective
 
 Define `g : Musketeer -> Musketeer` by
 
@@ -176,7 +306,7 @@ must be the same. This proves that `g` is injective.
 On a small finite set, injectivity can be proved by checking the finite table:
 no two different inputs share an output.
 
-### 10.1.11 Example: The Same Finite Function Is Surjective
+### 8.1.11 Example: The Same Finite Function Is Surjective
 
 The same function `g` is also surjective. Each target has a preimage:
 
@@ -188,7 +318,7 @@ athos = g(aramis).
 
 Thus every element of `Musketeer` is hit.
 
-### 10.1.12 Example: `x |-> x^3` On `R` Is Injective
+### 8.1.12 Example: `x |-> x^3` On `R` Is Injective
 
 Suppose `x1^3 = x2^3`. Then
 
@@ -223,14 +353,14 @@ is strictly positive, but it is also equal to
 which is `0` in the second case. That is impossible. Therefore only the first
 factor can vanish, and `x1 = x2`. Thus the cube function is injective.
 
-## 10.2 Bijectivity
+## 8.2 Bijectivity
 
-### 10.2.1 Bijective Functions
+### 8.2.1 Bijective Functions
 
 A function is bijective when it is both injective and surjective. This means it
 has no collisions and misses no target values.
 
-### 10.2.2 Example: `p(x) = 2x - 5` Is Bijective
+### 8.2.2 Example: `p(x) = 2x - 5` Is Bijective
 
 Let `p : R -> R` be defined by `p(x) = 2x - 5`.
 
@@ -256,7 +386,7 @@ p((y + 5) / 2) = 2 * ((y + 5) / 2) - 5 = y.
 
 So `p` is both injective and surjective, hence bijective.
 
-### 10.2.3 Example: `a(t) = t^3 - t` Is Not Bijective
+### 8.2.3 Example: `a(t) = t^3 - t` Is Not Bijective
 
 Let `a : R -> R` be defined by `a(t) = t^3 - t`. This function is not
 injective, because
@@ -268,7 +398,7 @@ a(1) = 1^3 - 1 = 0,
 
 but `0 != 1`. Since bijective implies injective, the function is not bijective.
 
-### 10.2.4 Example: A Finite Function Which Is Not Bijective
+### 8.2.4 Example: A Finite Function Which Is Not Bijective
 
 Let
 
@@ -290,7 +420,7 @@ not bijective.
 This also illustrates a counting obstruction: a function from a two-element set
 to a three-element set cannot hit all three target values.
 
-### 10.2.5 Example: Bijective Means Unique Preimages
+### 8.2.5 Example: Bijective Means Unique Preimages
 
 A function `f : X -> Y` is bijective if and only if every `y` in `Y` has a
 unique preimage in `X`.
@@ -304,7 +434,7 @@ each `y` has some preimage. For injectivity, assume `f(x1) = f(x2)`. Apply the
 unique-preimage property to the target value `f(x1)`. Both `x1` and `x2` are
 preimages of this same target, so uniqueness gives `x1 = x2`.
 
-### 10.2.6 Example: Injective Implies Bijective On A Two-Element Set
+### 8.2.6 Example: Injective Implies Bijective On A Two-Element Set
 
 For functions from the two-element set `Celestial` to itself, injectivity already
 forces bijectivity.
@@ -317,7 +447,7 @@ surjective. Since injectivity was assumed, the function is bijective.
 The proof is a finite case analysis over the possible values of `f(sun)` and
 `f(moon)`.
 
-### 10.2.7 Example: Injective Does Not Always Imply Bijective
+### 8.2.7 Example: Injective Does Not Always Imply Bijective
 
 The statement "injective implies bijective" fails for functions from `N` to `N`.
 The counterexample is
@@ -332,14 +462,14 @@ But it is not surjective, because `0` is never hit. For every natural number
 `n`, `n + 1 > 0`. So there is no `n` with `f(n) = 0`. Therefore `f` is injective
 but not bijective.
 
-## 10.3 Composition And Inverses
+## 8.3 Composition And Inverses
 
-### 10.3.1 Composition
+### 8.3.1 Composition
 
 If `f : X -> Y` and `g : Y -> Z`, then the composite `g o f : X -> Z` sends
 `x` to `g(f(x))`.
 
-### 10.3.2 Example: A Simple Composite
+### 8.3.2 Example: A Simple Composite
 
 Let `f : R -> R` be defined by `f(a) = a + 3`, let `g : R -> R` be defined by
 `g(b) = 2b`, and let `h : R -> R` be defined by `h(c) = 2c + 6`.
@@ -356,12 +486,12 @@ For every real number `x`,
 
 Since the two functions agree on every input, `g o f = h`.
 
-### 10.3.3 Identity Function
+### 8.3.3 Identity Function
 
 The identity function on `X` sends each `x` in `X` to itself. It is usually
 written `Id_X`.
 
-### 10.3.4 Example: A Function Which Is Its Own Inverse
+### 8.3.4 Example: A Function Which Is Its Own Inverse
 
 Let `s : R -> R` be defined by `s(x) = 5 - x`. Then for every real number `x`,
 
@@ -372,7 +502,7 @@ Let `s : R -> R` be defined by `s(x) = 5 - x`. Then for every real number `x`,
 Thus `s o s = Id_R`. The function is an involution: applying it twice gives the
 identity.
 
-### 10.3.5 Inverse Functions
+### 8.3.5 Inverse Functions
 
 A function `g : Y -> X` is an inverse of `f : X -> Y` if both compositions are
 identity functions:
@@ -385,7 +515,7 @@ f o g = Id_Y.
 The first equation says that starting in `X`, applying `f`, then applying `g`
 returns the original input. The second says the same for starting in `Y`.
 
-### 10.3.6 Example: An Inverse On A Finite Set
+### 8.3.6 Example: An Inverse On A Finite Set
 
 Let
 
@@ -414,7 +544,7 @@ q(sanguine) = choleric.
 Checking `q o p = Id` and `p o q = Id` is a finite case check over the four
 elements of `Humour`.
 
-### 10.3.7 Example: A Bijective Function Has An Inverse
+### 8.3.7 Example: A Bijective Function Has An Inverse
 
 Let `f : X -> Y` be bijective. We construct an inverse `g : Y -> X`.
 
@@ -436,7 +566,7 @@ g(f(x)) = x.
 
 Thus `g o f = Id_X`, so `g` is an inverse of `f`.
 
-### 10.3.8 Example: A Function With An Inverse Is Bijective
+### 8.3.8 Example: A Function With An Inverse Is Bijective
 
 Suppose `g : Y -> X` is an inverse of `f : X -> Y`. That means
 
@@ -465,7 +595,7 @@ f(g(y)) = (f o g)(y) = Id_Y(y) = y.
 
 Therefore `f` is bijective.
 
-### 10.3.9 Example: Bijective If And Only If It Has An Inverse
+### 8.3.9 Example: Bijective If And Only If It Has An Inverse
 
 The previous two examples combine into the fundamental equivalence:
 
@@ -476,7 +606,7 @@ f is bijective  if and only if  f has an inverse.
 One direction constructs the inverse from bijectivity. The other direction uses
 the inverse equations to prove injectivity and surjectivity.
 
-## 10.4 Product Types
+## 8.4 Product Types
 
 Product types are ordered-pair types. Equality of ordered pairs is coordinatewise:
 
@@ -487,7 +617,7 @@ Product types are ordered-pair types. Equality of ordered pairs is coordinatewis
 This is why function proofs on products often split a pair equality into
 coordinate equations.
 
-### 10.4.1 Example: A Function From `Z` To `Z^2`
+### 8.4.1 Example: A Function From `Z` To `Z^2`
 
 Define `q : Z -> Z^2` by
 
@@ -526,7 +656,7 @@ Adding these equations in the combination `(m + 1) + (2 - m) - 2` gives
 
 which is impossible. Therefore no integer `m` maps to `(0, 1)`.
 
-### 10.4.2 Example: A Bijective Linear Map On `Z^2`
+### 8.4.2 Example: A Bijective Linear Map On `Z^2`
 
 Consider the function
 
@@ -569,7 +699,7 @@ and
 
 Therefore the original function is bijective.
 
-### 10.4.3 Example: Same Formula Over `R^2` And `Z^2`
+### 8.4.3 Example: Same Formula Over `R^2` And `Z^2`
 
 The function
 
@@ -610,7 +740,7 @@ then adding gives
 which is impossible for integers. Equivalently, modulo `2`, this would say
 `0 = 1`.
 
-### 10.4.4 Example: An Injective Map From `R^2` To `R^3`
+### 8.4.4 Example: An Injective Map From `R^2` To `R^3`
 
 Consider
 
@@ -635,7 +765,7 @@ y1 = y2.
 Using `y1 = y2` in the first equation gives `x1 = x2`. Therefore
 `(x1, y1) = (x2, y2)`, so the function is injective.
 
-### 10.4.5 Example: Addition From `R^2` To `R`
+### 8.4.5 Example: Addition From `R^2` To `R`
 
 The function
 
@@ -664,7 +794,7 @@ It is surjective because for any real number `a`, the input `(a, 0)` maps to
 a + 0 = a.
 ```
 
-### 10.4.6 Example: `5m + 8n` From `Z^2` To `Z`
+### 8.4.6 Example: `5m + 8n` From `Z^2` To `Z`
 
 The function
 
@@ -691,7 +821,7 @@ It is surjective because `5` and `8` are coprime. Explicitly, for any integer
 
 So the input `(-3a, 2a)` maps to `a`.
 
-### 10.4.7 Example: `5m + 10n` From `Z^2` To `Z`
+### 8.4.7 Example: `5m + 10n` From `Z^2` To `Z`
 
 The function
 
@@ -717,7 +847,7 @@ change the value, because
 5(m + 2) + 10(n - 1) = 5m + 10n.
 ```
 
-### 10.4.8 Example: Swapping Coordinates
+### 8.4.8 Example: Swapping Coordinates
 
 Define `g : R^2 -> R^2` by
 
@@ -733,7 +863,7 @@ g(g(x, y)) = g(y, x) = (x, y).
 
 Thus `g o g = Id`.
 
-### 10.4.9 Example: A Bijection From `N^2` To `N`
+### 8.4.9 Example: A Bijection From `N^2` To `N`
 
 There exists a bijection from pairs of natural numbers to natural numbers. One
 standard construction lists pairs by diagonals:
