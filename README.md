@@ -12,14 +12,18 @@ the mathematical facts they justify. Instead of asking users to build every
 small logical or algebraic step by hand, Litex provides builtin reasoning for
 routine calculation, order, membership, and logical structure.
 
-This book reworks examples from Heather Macbeth's **The Mechanics of Proof** in
-Litex. The original book is written around Lean; this version asks what the same
-mathematical training looks like when proofs are written in a language whose
-surface is closer to ordinary textbook reasoning.
+> This book reworks examples from Heather Macbeth's **The Mechanics of Proof** in
+> Litex. The original book is written around Lean; this version asks what the same
+> mathematical training looks like when proofs are written in a language whose
+> surface is closer to ordinary textbook reasoning. Comparison between Litex and Lean will be discussed here and there in this book.
 
 Special thanks to *Yunwen Guo* for helping with the book.
 
 ## How Litex Proofs Work
+
+_A mathematician, like a painter or a poet, is a maker of patterns._
+
+_– G. H. Hardy, *A Mathematician's Apology*_
 
 The central idea of Litex is: **users write facts; Litex grows a verified context**. A file introduces objects, states facts, checks them, stores successful results, and reuses them later.
 
@@ -29,14 +33,9 @@ Litex proofs are built from three main ingredients:
 - **Facts** are mathematical claims about objects, such as `x = 2`, `x $in R`, `0 <= x`, or `forall x R: x = x`.
 - **Statements** are proof-script actions: introduce objects, state facts, prove facts, or store known information.
 
-Unlike tactic-heavy proof scripts, Litex often lets the shape of a statement guide verification. An equality chain invites calculation and substitution; an inequality chain invites order reasoning; a membership statement invites set and type rules. The checker has many built-in rules for routine algebra, order, membership, functions, sets, tuples, and finite objects, and it also explains which rule or known fact verified each step.
+Litex often lets the *shape of a statement* guide verification. Litex expects you to recognize familiar proof patterns (equality chains, membership, subsets, witnesses, contradiction, finite case splits). The checker matches those shapes to facts and routine consequences—more like following a textbook argument than memorizing tactic or library names for each line.
 
-Litex does not require an IDE-specific output panel to see this feedback. The
-online documentation can run examples directly in the page; for instance,
-[Chapter 1 online](https://litexlang.com/doc/The_Mechanics_of_Litex_Proof/Chapter_1_Proofs_By_Calculation)
-lets you click **Run** on each example and inspect the verification output.
-If you install Litex locally, the command-line runner prints the same kind of
-output when you run a file or a snippet.
+> This is very different from Lean, where the user often chooses the step explicitly: rewrite with this hypothesis, simplify this definition, apply this theorem, run this tactic.
 
 For example:
 
@@ -49,6 +48,48 @@ forall x R:
 ```
 
 The user states the desired facts directly. Litex handles routine rewriting, arithmetic, and reuse of the assumption `x = 2`.
+
+
+Not only does Litex aim to be **the language where mathematics verifies itself**, but it also tells you how it was proved.
+
+```litex
+abstract_prop p(x)
+know forall x R:
+    $p(x)
+$p(2)
+```
+
+The output looks like:
+
+```json
+{
+  "result": "success",
+  "type": "Fact",
+  "line": 4,
+  "stmt": "$p(2)",
+  "verified_by":   {
+    "type": "known_fact",
+    "line": 2,
+    "source": "entry",
+    "cited_fact": "forall x R:\n    $p(x)"
+  },
+  "infer_facts": [],
+  "inside_results": []
+}
+```
+
+This says `$p(2)` was proved by reusing the known `forall`: Litex matched `x` with `2`, substituted into `$p(x)`, and closed the goal. You can see whether a fact closed by a builtin rule, a known fact, a known `forall`, or an inferred consequence.
+
+In this book, you will discover how Litex proofs work in practice. I hope you will enjoy the journey.
+
+## Setup
+
+Litex also does not require an IDE-specific output panel to see this feedback. The
+online documentation can run examples directly in the page; for instance,
+[Chapter 1 online](https://litexlang.com/doc/The_Mechanics_of_Litex_Proof/Chapter_1_Proofs_By_Calculation)
+lets you click **Run** on each example and inspect the verification output.
+If you install Litex locally, the command-line runner prints the same kind of
+output when you run a file or a snippet.
 
 ## Chapters
 
@@ -140,3 +181,5 @@ Reference:
 > mathematics. Litex is exploring a different interface for ordinary proof
 > writing, but Lean has a clear present-day advantage in library depth,
 > community size, tooling, and production experience.
+
+> The Litex author is fascinated by the idea of a language where mathematics verifies itself. This book is a journey to explore how Litex can encode mathematical reasoning in a computer language.

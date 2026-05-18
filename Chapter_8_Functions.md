@@ -599,10 +599,27 @@ claim:
 A function is bijective when it is both injective and surjective. This means it
 has no collisions and misses no target values.
 
+```litex
+prop injective_fn(S, T set, f fn(x S) T):
+    forall x1, x2 S:
+        f(x1) = f(x2)
+        =>:
+            x1 = x2
+
+prop surjective_fn(S, T set, f fn(x S) T):
+    forall y T:
+        exist x S st {y = f(x)}
+
+prop bijective_fn(S, T set, f fn(x S) T):
+    $injective_fn(S, T, f)
+    $surjective_fn(S, T, f)
+```
+
 ### 8.2.2 Example: `p(x) = 2x - 5` Is Bijective
 
 Let `p : R -> R` be defined by `p(x) = 2x - 5`.
 
+To prove that `p` is bijective, prove injectivity and surjectivity separately.
 For injectivity, suppose `p(x1) = p(x2)`. Then
 
 ```text
@@ -625,6 +642,47 @@ p((y + 5) / 2) = 2 * ((y + 5) / 2) - 5 = y.
 
 So `p` is both injective and surjective, hence bijective.
 
+```litex
+prop injective_fn(S, T set, f fn(x S) T):
+    forall x1, x2 S:
+        f(x1) = f(x2)
+        =>:
+            x1 = x2
+
+prop surjective_fn(S, T set, f fn(x S) T):
+    forall y T:
+        exist x S st {y = f(x)}
+
+prop bijective_fn(S, T set, f fn(x S) T):
+    $injective_fn(S, T, f)
+    $surjective_fn(S, T, f)
+
+have fn p(x R) R = 2 * x - 5
+
+claim:
+    prove:
+        forall x1, x2 R:
+            p(x1) = p(x2)
+            =>:
+                x1 = x2
+
+    x1 = ((2 * x1 - 5) + 5) / 2 = (p(x1) + 5) / 2 = (p(x2) + 5) / 2 = ((2 * x2 - 5) + 5) / 2 = x2
+
+$injective_fn(R, R, p)
+
+claim:
+    prove:
+        forall y R:
+            exist x R st {y = p(x)}
+
+    witness exist x R st {y = p(x)} from (y + 5) / 2:
+        y = 2 * ((y + 5) / 2) - 5 = p((y + 5) / 2)
+
+$surjective_fn(R, R, p)
+
+$bijective_fn(R, R, p)
+```
+
 ### 8.2.3 Example: `a(t) = t^3 - t` Is Not Bijective
 
 Let `a : R -> R` be defined by `a(t) = t^3 - t`. This function is not
@@ -636,6 +694,32 @@ a(1) = 1^3 - 1 = 0,
 ```
 
 but `0 != 1`. Since bijective implies injective, the function is not bijective.
+
+```litex
+prop injective_fn(S, T set, f fn(x S) T):
+    forall x1, x2 S:
+        f(x1) = f(x2)
+        =>:
+            x1 = x2
+
+prop surjective_fn(S, T set, f fn(x S) T):
+    forall y T:
+        exist x S st {y = f(x)}
+
+prop bijective_fn(S, T set, f fn(x S) T):
+    $injective_fn(S, T, f)
+    $surjective_fn(S, T, f)
+
+have fn a(t R) R = t^3 - t
+
+by contra not $injective_fn(R, R, a):
+    a(0) = 0 = a(1)
+    impossible 0 = 1
+
+by contra not $bijective_fn(R, R, a):
+    $injective_fn(R, R, a)
+    impossible $injective_fn(R, R, a)
+```
 
 ### 8.2.4 Example: A Finite Function Which Is Not Bijective
 
@@ -650,7 +734,7 @@ Define `f : Celestial -> Subatomic` by
 
 ```text
 f(sun) = proton,
-f(moon) = electron.
+f(moon) = proton.
 ```
 
 This function is not surjective because `neutron` is not hit. Therefore it is
@@ -659,10 +743,53 @@ not bijective.
 This also illustrates a counting obstruction: a function from a two-element set
 to a three-element set cannot hit all three target values.
 
+In Litex, we represent `Celestial` by `{1, 2}` and `Subatomic` by `{1, 2, 3}`.
+The function sends both inputs to `1`, so the target value `2` is not hit.
+
+```litex
+prop injective_fn(S, T set, f fn(x S) T):
+    forall x1, x2 S:
+        f(x1) = f(x2)
+        =>:
+            x1 = x2
+
+prop surjective_fn(S, T set, f fn(x S) T):
+    forall y T:
+        exist x S st {y = f(x)}
+
+prop bijective_fn(S, T set, f fn(x S) T):
+    $injective_fn(S, T, f)
+    $surjective_fn(S, T, f)
+
+have fn f(x {1, 2}) {1, 2, 3} = 1
+
+by enumerate finite_set:
+    prove:
+        forall x {1, 2}:
+            f(x) = 1
+
+by contra not $surjective_fn({1, 2}, {1, 2, 3}, f):
+    have by exist x {1, 2} st {2 = f(x)}: x
+    f(x) = 1
+    2 = f(x) = 1
+    impossible 2 = 1
+
+by contra not $bijective_fn({1, 2}, {1, 2, 3}, f):
+    $surjective_fn({1, 2}, {1, 2, 3}, f)
+    impossible $surjective_fn({1, 2}, {1, 2, 3}, f)
+```
+
 ### 8.2.5 Example: Bijective Means Unique Preimages
 
-A function `f : X -> Y` is bijective if and only if every `y` in `Y` has a
-unique preimage in `X`.
+A function `f : X -> Y` is bijective if and only if, for every `y` of type `Y`,
+there exists a unique `x` of type `X` such that `f(x) = y`.
+
+In Litex-style notation, the unique-preimage condition is:
+
+```text
+forall y Y:
+    exist! x X st {f(x) = y}
+```
 
 If `f` is bijective, surjectivity gives at least one `x` with `f(x) = y`.
 Injectivity gives uniqueness: if `f(x') = y = f(x)`, then `f(x') = f(x)`, so
@@ -673,33 +800,99 @@ each `y` has some preimage. For injectivity, assume `f(x1) = f(x2)`. Apply the
 unique-preimage property to the target value `f(x1)`. Both `x1` and `x2` are
 preimages of this same target, so uniqueness gives `x1 = x2`.
 
-### 8.2.6 Example: Injective Implies Bijective On A Two-Element Set
+```litex
+prop injective_fn(S, T set, f fn(x S) T):
+    forall x1, x2 S:
+        f(x1) = f(x2)
+        =>:
+            x1 = x2
 
-For functions from the two-element set `Celestial` to itself, injectivity already
-forces bijectivity.
+prop surjective_fn(S, T set, f fn(x S) T):
+    forall y T:
+        exist x S st {y = f(x)}
 
-There are only two possible target values. If an injective function sends `sun`
-and `moon` to distinct outputs, then the two outputs must be exactly `sun` and
-`moon` in some order. Thus every target value is hit, so the function is
-surjective. Since injectivity was assumed, the function is bijective.
+prop bijective_fn(S, T set, f fn(x S) T):
+    $injective_fn(S, T, f)
+    $surjective_fn(S, T, f)
 
-The proof is a finite case analysis over the possible values of `f(sun)` and
-`f(moon)`.
+prop exist_unique_preimage(S, T set, f fn(x S) T):
+    forall y T:
+        exist! x S st {y = f(x)}
 
-### 8.2.7 Example: Injective Does Not Always Imply Bijective
+claim:
+    prove:
+        forall S, T set, f fn(x S) T:
+            $bijective_fn(S, T, f)
+            =>:
+                $exist_unique_preimage(S, T, f)
 
-The statement "injective implies bijective" fails for functions from `N` to `N`.
-The counterexample is
+    $injective_fn(S, T, f)
+    $surjective_fn(S, T, f)
 
-```text
-f(n) = n + 1.
+    claim:
+        prove:
+            forall y T:
+                exist! x S st {y = f(x)}
+
+        have by exist x S st {y = f(x)}: x
+
+        claim:
+            prove:
+                forall x1, x2 S:
+                    y = f(x1)
+                    y = f(x2)
+                    =>:
+                        x1 = x2
+
+            f(x1) = y = f(x2)
+            x1 = x2
+
+        exist! x S st {y = f(x)}
+
+    $exist_unique_preimage(S, T, f)
+
+claim:
+    prove:
+        forall S, T set, f fn(x S) T:
+            $exist_unique_preimage(S, T, f)
+            =>:
+                $bijective_fn(S, T, f)
+
+    claim:
+        prove:
+            forall y T:
+                exist x S st {y = f(x)}
+
+        exist! x S st {y = f(x)}
+        exist x S st {y = f(x)}
+
+    $surjective_fn(S, T, f)
+
+    claim:
+        prove:
+            forall x1, x2 S:
+                f(x1) = f(x2)
+                =>:
+                    x1 = x2
+
+        exist! x S st {f(x1) = f(x)}
+
+        claim:
+            prove:
+                forall a, b S:
+                    f(x1) = f(a)
+                    f(x1) = f(b)
+                    =>:
+                        a = b
+
+        f(x1) = f(x2)
+        x1 = x2
+
+    $injective_fn(S, T, f)
+    $bijective_fn(S, T, f)
+    
+    
 ```
-
-This function is injective: if `n1 + 1 = n2 + 1`, then `n1 = n2`.
-
-But it is not surjective, because `0` is never hit. For every natural number
-`n`, `n + 1 > 0`. So there is no `n` with `f(n) = 0`. Therefore `f` is injective
-but not bijective.
 
 ## 8.3 Composition And Inverses
 
@@ -725,10 +918,37 @@ For every real number `x`,
 
 Since the two functions agree on every input, `g o f = h`.
 
+In Litex, we can introduce the composite as another function whose body applies
+the outside function to the inside function:
+
+```litex
+have fn f_add3_R(a R) R = a + 3
+have fn g_times2_R(b R) R = 2 * b
+have fn h_lin_R(c R) R = 2 * c + 6
+
+have fn gf_R(x R) R = g_times2_R(f_add3_R(x))
+
+claim:
+    prove:
+        forall x R:
+            gf_R(x) = h_lin_R(x)
+    gf_R(x) = 2 * (x + 3) = 2 * x + 6 = h_lin_R(x)
+```
+
 ### 8.3.3 Identity Function
 
 The identity function on `X` sends each `x` in `X` to itself. It is usually
 written `Id_X`.
+
+For a concrete domain such as `R`, the identity function is just another
+`have fn` definition:
+
+```litex
+have fn id_R(t R) R = t
+
+forall x R:
+    id_R(x) = x
+```
 
 ### 8.3.4 Example: A Function Which Is Its Own Inverse
 
@@ -740,6 +960,22 @@ Let `s : R -> R` be defined by `s(x) = 5 - x`. Then for every real number `x`,
 
 Thus `s o s = Id_R`. The function is an involution: applying it twice gives the
 identity.
+
+In Litex, define the second iterate `ss_R` explicitly and prove that it agrees
+with the identity function pointwise:
+
+```litex
+have fn id_R(t R) R = t
+have fn s_reflect_R(x R) R = 5 - x
+
+have fn ss_R(x R) R = s_reflect_R(s_reflect_R(x))
+
+claim:
+    prove:
+        forall x R:
+            ss_R(x) = id_R(x)
+    ss_R(x) = 5 - (5 - x) = x = id_R(x)
+```
 
 ### 8.3.5 Inverse Functions
 
@@ -753,6 +989,14 @@ f o g = Id_Y.
 
 The first equation says that starting in `X`, applying `f`, then applying `g`
 returns the original input. The second says the same for starting in `Y`.
+
+```litex
+prop is_inverse(S, T set, f fn(a S) T, g fn(b T) S):
+    forall x S:
+        g(f(x)) = x
+    forall y T:
+        y = f(g(y))
+```
 
 ### 8.3.6 Example: An Inverse On A Finite Set
 
@@ -783,67 +1027,241 @@ q(sanguine) = choleric.
 Checking `q o p = Id` and `p o q = Id` is a finite case check over the four
 elements of `Humour`.
 
-### 8.3.7 Example: A Bijective Function Has An Inverse
-
-Let `f : X -> Y` be bijective. We construct an inverse `g : Y -> X`.
-
-For each `y` in `Y`, surjectivity gives at least one `x` in `X` such that
-`f(x) = y`. Define `g(y)` to be that `x`. Then
+In Litex, we can represent the four constructors by a finite displayed set:
 
 ```text
-f(g(y)) = y
+1 = melancholic, 2 = choleric, 3 = phlegmatic, 4 = sanguine.
 ```
 
-for every `y`, so `f o g = Id_Y`.
+Then `p` and its inverse `q` are written as case-defined functions. The proof is
+just the two finite checks `q(p(x)) = x` and `p(q(x)) = x`.
 
-To prove the other composition, take `x` in `X`. Since `f(g(f(x))) = f(x)`, and
-`f` is injective, we get
+```litex
+have fn p(x {1, 2, 3, 4}) {1, 2, 3, 4}:
+    case x = 1: 2
+    case x = 2: 4
+    case x = 3: 3
+    case x = 4: 1
 
-```text
-g(f(x)) = x.
+have fn q(x {1, 2, 3, 4}) {1, 2, 3, 4}:
+    case x = 1: 4
+    case x = 2: 1
+    case x = 3: 3
+    case x = 4: 2
+
+claim:
+    prove:
+        forall x {1, 2, 3, 4}:
+            q(p(x)) = x
+
+    by cases:
+        prove:
+            q(p(x)) = x
+        case x = 1:
+            p(x) = 2
+            q(2) = 1
+            q(p(x)) = 1 = x
+        case x = 2:
+            p(x) = 4
+            q(4) = 2
+            q(p(x)) = 2 = x
+        case x = 3:
+            p(x) = 3
+            q(3) = 3
+            q(p(x)) = 3 = x
+        case x = 4:
+            p(x) = 1
+            q(1) = 4
+            q(p(x)) = 4 = x
+
+claim:
+    prove:
+        forall x {1, 2, 3, 4}:
+            p(q(x)) = x
+
+    by cases:
+        prove:
+            p(q(x)) = x
+        case x = 1:
+            q(x) = 4
+            p(4) = 1
+            p(q(x)) = 1 = x
+        case x = 2:
+            q(x) = 1
+            p(1) = 2
+            p(q(x)) = 2 = x
+        case x = 3:
+            q(x) = 3
+            p(3) = 3
+            p(q(x)) = 3 = x
+        case x = 4:
+            q(x) = 2
+            p(2) = 4
+            p(q(x)) = 4 = x
 ```
 
-Thus `g o f = Id_X`, so `g` is an inverse of `f`.
+### 8.3.7 Example: Bijective If And Only If It Has An Inverse
 
-### 8.3.8 Example: A Function With An Inverse Is Bijective
+The inverse equations are packaged into `is_inverse`. To say that `f : X -> Y`
+has an inverse, we say there exists some `g : Y -> X` satisfying that prop.
 
-Suppose `g : Y -> X` is an inverse of `f : X -> Y`. That means
-
-```text
-g o f = Id_X,
-f o g = Id_Y.
-```
-
-To prove injectivity, suppose `f(x1) = f(x2)`. Then
-
-```text
-x1 = Id_X(x1)
-   = (g o f)(x1)
-   = g(f(x1))
-   = g(f(x2))
-   = (g o f)(x2)
-   = Id_X(x2)
-   = x2.
-```
-
-To prove surjectivity, take `y` in `Y`. The input `g(y)` maps to `y`, because
-
-```text
-f(g(y)) = (f o g)(y) = Id_Y(y) = y.
-```
-
-Therefore `f` is bijective.
-
-### 8.3.9 Example: Bijective If And Only If It Has An Inverse
-
-The previous two examples combine into the fundamental equivalence:
+This gives the fundamental equivalence:
 
 ```text
 f is bijective  if and only if  f has an inverse.
 ```
 
-One direction constructs the inverse from bijectivity. The other direction uses
-the inverse equations to prove injectivity and surjectivity.
+The forward direction constructs the inverse from unique preimages. For every
+`y` in `Y`, bijectivity gives a unique `x` with `f(x) = y`; `have fn g as set`
+turns that unique witness into a function value `g(y)`. The reverse direction is
+the usual argument: if `g(f(x)) = x` and `f(g(y)) = y`, then `f` is injective and
+surjective.
+
+```litex
+prop injective_fn(S, T set, f fn(x S) T):
+    forall x1, x2 S:
+        f(x1) = f(x2)
+        =>:
+            x1 = x2
+
+prop surjective_fn(S, T set, f fn(x S) T):
+    forall y T:
+        exist x S st {y = f(x)}
+
+prop bijective_fn(S, T set, f fn(x S) T):
+    $injective_fn(S, T, f)
+    $surjective_fn(S, T, f)
+
+prop exist_unique_preimage(S, T set, f fn(x S) T):
+    forall y T:
+        exist! x S st {y = f(x)}
+
+know forall S, T set, f fn(x S) T:
+    =>:
+        $bijective_fn(S, T, f)
+    <=>:
+        $exist_unique_preimage(S, T, f)
+
+prop is_inverse(S, T set, f fn(a S) T, g fn(b T) S):
+    forall x S:
+        g(f(x)) = x
+    forall y T:
+        y = f(g(y))
+
+prop has_inverse(S, T set, f fn(x S) T):
+    exist g fn(y T) S st {$is_inverse(S, T, f, g)}
+
+claim:
+    prove:
+        forall S, T set, f fn(x S) T:
+            $bijective_fn(S, T, f)
+            =>:
+                exist h fn(y T) S st {$is_inverse(S, T, f, h)}
+
+    $exist_unique_preimage(S, T, f)
+
+    have fn g as set:
+        forall y T:
+            exist! x S st {y = f(x)}
+
+    claim:
+        prove:
+            forall y T:
+                y = f(g(y))
+
+    claim:
+        prove:
+            forall x S:
+                g(f(x)) = x
+
+        f(x) = f(g(f(x)))
+        x = g(f(x))
+        g(f(x)) = x
+
+    forall x S:
+        g(f(x)) = x
+    forall y T:
+        y = f(g(y))
+
+    g $in fn(y T) S
+
+    witness exist h fn(y T) S st {$is_inverse(S, T, f, h)} from g
+
+claim:
+    prove:
+        forall S, T set, f fn(x S) T, g fn(y T) S:
+            $is_inverse(S, T, f, g)
+            =>:
+                $bijective_fn(S, T, f)
+
+    claim:
+        prove:
+            forall x1, x2 S:
+                f(x1) = f(x2)
+                =>:
+                    x1 = x2
+
+        x1 = g(f(x1)) = g(f(x2)) = x2
+
+    $injective_fn(S, T, f)
+
+    claim:
+        prove:
+            forall y T:
+                exist x S st {y = f(x)}
+
+        witness exist x S st {y = f(x)} from g(y)
+
+    $surjective_fn(S, T, f)
+    $bijective_fn(S, T, f)
+
+claim:
+    prove:
+        forall S, T set, f fn(x S) T:
+            $has_inverse(S, T, f)
+            =>:
+                $bijective_fn(S, T, f)
+
+    have by exist g fn(y T) S st {$is_inverse(S, T, f, g)}: g
+    $is_inverse(S, T, f, g)
+
+    claim:
+        prove:
+            forall x1, x2 S:
+                f(x1) = f(x2)
+                =>:
+                    x1 = x2
+
+        x1 = g(f(x1)) = g(f(x2)) = x2
+
+    $injective_fn(S, T, f)
+
+    claim:
+        prove:
+            forall y T:
+                exist x S st {y = f(x)}
+
+        witness exist x S st {y = f(x)} from g(y)
+
+    $surjective_fn(S, T, f)
+    $bijective_fn(S, T, f)
+
+claim:
+    prove:
+        forall S, T set, f fn(x S) T:
+            $bijective_fn(S, T, f)
+            =>:
+                $has_inverse(S, T, f)
+
+    exist h fn(y T) S st {$is_inverse(S, T, f, h)}
+    $has_inverse(S, T, f)
+
+know forall S, T set, f fn(x S) T:
+    =>:
+        $bijective_fn(S, T, f)
+    <=>:
+        $has_inverse(S, T, f)
+```
 
 ## 8.4 Product Types
 
@@ -856,44 +1274,103 @@ Product types are ordered-pair types. Equality of ordered pairs is coordinatewis
 This is why function proofs on products often split a pair equality into
 coordinate equations.
 
-### 8.4.1 Example: A Function From `Z` To `Z^2`
+In Litex, Cartesian products are written with `cart`. For example, `cart(Z, Z)`
+is the product of two copies of `Z`, and `cart(R, Q, Z)` is a three-factor
+product. Tuple values are written with parentheses, such as `(1, 2)` or
+`(x, y, z)`. Tuple projections are one-based:
 
-Define `q : Z -> Z^2` by
+```litex
+(1, 2)[1] = 1
+(1, 2)[2] = 2
+```
+
+If Litex knows `u $in cart(A, B)`, then it treats `u` as a two-tuple, with
+`u[1] $in A` and `u[2] $in B`. Similarly, equality of tuples gives equality of
+the corresponding coordinates. This is why product-type proofs often introduce
+coordinate equations by writing projections such as `u[1]` and `u[2]`.
+
+```litex
+have u cart(Z, Z)
+
+$is_tuple(u)
+tuple_dim(u) = 2
+u[1] $in Z
+u[2] $in Z
+```
+
+### 8.4.1 Example: An Injective But Not Surjective Function From `Z` To `cart(Z, Z)`
+
+Define
 
 ```text
+q : Z -> cart(Z, Z),
 q(m) = (m + 1, 2 - m).
 ```
 
-This function is injective. If `q(m1) = q(m2)`, then
+This function is injective: if `q(m1) = q(m2)`, then the first coordinates are
+equal, so `m1 + 1 = m2 + 1`, and hence `m1 = m2`.
 
-```text
-(m1 + 1, 2 - m1) = (m2 + 1, 2 - m2).
+It is not surjective. The tuple `(0, 0)` is not in its image. If
+`(0, 0) = q(n)`, then `(0, 0) = (n + 1, 2 - n)`, so `n = -1` and `n = 2`,
+which is impossible.
+
+```litex
+prop injective_fn(S, T set, f fn(x S) T):
+    forall x1, x2 S:
+        f(x1) = f(x2)
+        =>:
+            x1 = x2
+
+prop surjective_fn(S, T set, f fn(x S) T):
+    forall y T:
+        exist x S st {y = f(x)}
+
+have fn q(m Z) cart(Z, Z) = (m + 1, 2 - m)
+
+claim:
+    prove:
+        forall n Z:
+            q(n) = (n + 1, 2 - n)
+
+claim:
+    prove:
+        $injective_fn(Z, cart(Z, Z), q)
+
+    claim:
+        prove:
+            forall m1, m2 Z:
+                q(m1) = q(m2)
+                =>:
+                    m1 = m2
+
+        q(m1) = (m1 + 1, 2 - m1)
+        q(m2) = (m2 + 1, 2 - m2)
+        m1 + 1 = q(m1)[1] = q(m2)[1] = m2 + 1
+        m1 = (m1 + 1) - 1 = (m2 + 1) - 1 = m2
+
+    $injective_fn(Z, cart(Z, Z), q)
+
+claim:
+    prove:
+        not $surjective_fn(Z, cart(Z, Z), q)
+
+    by contra:
+        prove:
+            not $surjective_fn(Z, cart(Z, Z), q)
+        $surjective_fn(Z, cart(Z, Z), q)
+        forall y cart(Z, Z):
+            exist n Z st {y = q(n)}
+        exist n Z st {(0, 0) = q(n)}
+        have by exist n Z st {(0, 0) = q(n)}: n
+        (0, 0) = q(n)
+        q(n) = (n + 1, 2 - n)
+        (0, 0) = (n + 1, 2 - n)
+        0 = n + 1
+        0 = 2 - n
+        n = -1
+        n = 2
+        impossible -1 = 2
 ```
-
-Coordinate equality gives
-
-```text
-m1 + 1 = m2 + 1,
-2 - m1 = 2 - m2.
-```
-
-Either equation already gives `m1 = m2`.
-
-The function is not surjective. The target pair `(0, 1)` is not hit. If
-`q(m) = (0, 1)`, then
-
-```text
-m + 1 = 0,
-2 - m = 1.
-```
-
-Adding these equations in the combination `(m + 1) + (2 - m) - 2` gives
-
-```text
-1 = -1,
-```
-
-which is impossible. Therefore no integer `m` maps to `(0, 1)`.
 
 ### 8.4.2 Example: A Bijective Linear Map On `Z^2`
 
@@ -938,6 +1415,67 @@ and
 
 Therefore the original function is bijective.
 
+```litex
+prop injective_fn(S, T set, f fn(x S) T):
+    forall x1, x2 S:
+        f(x1) = f(x2)
+        =>:
+            x1 = x2
+
+prop surjective_fn(S, T set, f fn(x S) T):
+    forall y T:
+        exist x S st {y = f(x)}
+
+prop bijective_fn(S, T set, f fn(x S) T):
+    $injective_fn(S, T, f)
+    $surjective_fn(S, T, f)
+
+know forall t cart(Z, Z):
+    t = (t[1], t[2])
+
+have fn F_Z2(t cart(Z, Z)) cart(Z, Z) = (t[1] + t[2], t[1] + 2 * t[2])
+have fn Finv_Z2(s cart(Z, Z)) cart(Z, Z) = (2 * s[1] - s[2], s[2] - s[1])
+
+claim:
+    prove:
+        forall t cart(Z, Z):
+            Finv_Z2(F_Z2(t)) = t
+    F_Z2(t) = (t[1] + t[2], t[1] + 2 * t[2])
+    Finv_Z2(F_Z2(t)) = (2 * (t[1] + t[2]) - (t[1] + 2 * t[2]), (t[1] + 2 * t[2]) - (t[1] + t[2])) = (t[1], t[2]) = t
+
+claim:
+    prove:
+        forall s cart(Z, Z):
+            F_Z2(Finv_Z2(s)) = s
+    Finv_Z2(s) = (2 * s[1] - s[2], s[2] - s[1])
+    F_Z2(Finv_Z2(s)) = (2 * s[1] - s[2] + (s[2] - s[1]), 2 * s[1] - s[2] + 2 * (s[2] - s[1])) = (s[1], s[2]) = s
+
+claim:
+    prove:
+        $injective_fn(cart(Z, Z), cart(Z, Z), F_Z2)
+    claim:
+        prove:
+            forall u, v cart(Z, Z):
+                F_Z2(u) = F_Z2(v)
+                =>:
+                    u = v
+        u = Finv_Z2(F_Z2(u)) = Finv_Z2(F_Z2(v)) = v
+    $injective_fn(cart(Z, Z), cart(Z, Z), F_Z2)
+
+claim:
+    prove:
+        $surjective_fn(cart(Z, Z), cart(Z, Z), F_Z2)
+    claim:
+        prove:
+            forall y cart(Z, Z):
+                exist x cart(Z, Z) st {y = F_Z2(x)}
+        witness exist x cart(Z, Z) st {y = F_Z2(x)} from Finv_Z2(y):
+            y = F_Z2(Finv_Z2(y))
+    $surjective_fn(cart(Z, Z), cart(Z, Z), F_Z2)
+
+$bijective_fn(cart(Z, Z), cart(Z, Z), F_Z2)
+```
+
 ### 8.4.3 Example: Same Formula Over `R^2` And `Z^2`
 
 The function
@@ -961,6 +1499,67 @@ n = (a - b) / 2.
 ```
 
 This inverse is valid over `R`.
+
+```litex
+prop injective_fn(S, T set, f fn(x S) T):
+    forall x1, x2 S:
+        f(x1) = f(x2)
+        =>:
+            x1 = x2
+
+prop surjective_fn(S, T set, f fn(x S) T):
+    forall y T:
+        exist x S st {y = f(x)}
+
+prop bijective_fn(S, T set, f fn(x S) T):
+    $injective_fn(S, T, f)
+    $surjective_fn(S, T, f)
+
+know forall t cart(R, R):
+    t = (t[1], t[2])
+
+have fn F_R2(t cart(R, R)) cart(R, R) = (t[1] + t[2], t[1] - t[2])
+have fn Finv_R2(s cart(R, R)) cart(R, R) = ((s[1] + s[2]) / 2, (s[1] - s[2]) / 2)
+
+claim:
+    prove:
+        forall t cart(R, R):
+            Finv_R2(F_R2(t)) = t
+    F_R2(t) = (t[1] + t[2], t[1] - t[2])
+    Finv_R2(F_R2(t)) = ((t[1] + t[2] + (t[1] - t[2])) / 2, ((t[1] + t[2]) - (t[1] - t[2])) / 2) = (t[1], t[2]) = t
+
+claim:
+    prove:
+        forall s cart(R, R):
+            F_R2(Finv_R2(s)) = s
+    Finv_R2(s) = ((s[1] + s[2]) / 2, (s[1] - s[2]) / 2)
+    F_R2(Finv_R2(s)) = ((s[1] + s[2]) / 2 + (s[1] - s[2]) / 2, (s[1] + s[2]) / 2 - (s[1] - s[2]) / 2) = (s[1], s[2]) = s
+
+claim:
+    prove:
+        $injective_fn(cart(R, R), cart(R, R), F_R2)
+    claim:
+        prove:
+            forall u, v cart(R, R):
+                F_R2(u) = F_R2(v)
+                =>:
+                    u = v
+        u = Finv_R2(F_R2(u)) = Finv_R2(F_R2(v)) = v
+    $injective_fn(cart(R, R), cart(R, R), F_R2)
+
+claim:
+    prove:
+        $surjective_fn(cart(R, R), cart(R, R), F_R2)
+    claim:
+        prove:
+            forall y cart(R, R):
+                exist x cart(R, R) st {y = F_R2(x)}
+        witness exist x cart(R, R) st {y = F_R2(x)} from Finv_R2(y):
+            y = F_R2(Finv_R2(y))
+    $surjective_fn(cart(R, R), cart(R, R), F_R2)
+
+$bijective_fn(cart(R, R), cart(R, R), F_R2)
+```
 
 Over `Z^2`, however, the same formula is not always integer-valued. In fact the
 map from `Z^2` to `Z^2` is not surjective. The pair `(0, 1)` is not hit. If
@@ -1004,6 +1603,39 @@ y1 = y2.
 Using `y1 = y2` in the first equation gives `x1 = x2`. Therefore
 `(x1, y1) = (x2, y2)`, so the function is injective.
 
+```litex
+prop injective_fn(S, T set, f fn(x S) T):
+    forall x1, x2 S:
+        f(x1) = f(x2)
+        =>:
+            x1 = x2
+
+know forall u, v cart(R, R):
+    u[1] = v[1]
+    u[2] = v[2]
+    =>:
+        u = v
+
+have fn rho_R3(t cart(R, R)) cart(R, R, R) = (t[1] + t[2], t[1] - t[2], t[2])
+
+claim:
+    prove:
+        $injective_fn(cart(R, R), cart(R, R, R), rho_R3)
+    claim:
+        prove:
+            forall u, v cart(R, R):
+                rho_R3(u) = rho_R3(v)
+                =>:
+                    u = v
+        rho_R3(u) = (u[1] + u[2], u[1] - u[2], u[2])
+        rho_R3(v) = (v[1] + v[2], v[1] - v[2], v[2])
+        u[2] = rho_R3(u)[3] = rho_R3(v)[3] = v[2]
+        u[1] + u[2] = rho_R3(u)[1] = rho_R3(v)[1] = v[1] + v[2]
+        u[1] = (u[1] + u[2]) - u[2] = (v[1] + v[2]) - v[2] = v[1]
+        u = v
+    $injective_fn(cart(R, R), cart(R, R, R), rho_R3)
+```
+
 ### 8.4.5 Example: Addition From `R^2` To `R`
 
 The function
@@ -1033,6 +1665,45 @@ It is surjective because for any real number `a`, the input `(a, 0)` maps to
 a + 0 = a.
 ```
 
+```litex
+prop injective_fn(S, T set, f fn(x S) T):
+    forall x1, x2 S:
+        f(x1) = f(x2)
+        =>:
+            x1 = x2
+
+prop surjective_fn(S, T set, f fn(x S) T):
+    forall y T:
+        exist x S st {y = f(x)}
+
+have fn add_R2(p cart(R, R)) R = p[1] + p[2]
+
+claim:
+    prove:
+        not $injective_fn(cart(R, R), R, add_R2)
+    by contra:
+        prove:
+            not $injective_fn(cart(R, R), R, add_R2)
+        $injective_fn(cart(R, R), R, add_R2)
+        add_R2((0, 0)) = 0
+        add_R2((1, -1)) = 0
+        add_R2((0, 0)) = add_R2((1, -1))
+        (0, 0) = (1, -1)
+        0 = (0, 0)[1] = (1, -1)[1] = 1
+        impossible 0 = 1
+
+claim:
+    prove:
+        $surjective_fn(cart(R, R), R, add_R2)
+    claim:
+        prove:
+            forall a R:
+                exist p cart(R, R) st {a = add_R2(p)}
+        witness exist p cart(R, R) st {a = add_R2(p)} from (a, 0):
+            a = a + 0 = add_R2((a, 0))
+    $surjective_fn(cart(R, R), R, add_R2)
+```
+
 ### 8.4.6 Example: `5m + 8n` From `Z^2` To `Z`
 
 The function
@@ -1060,6 +1731,45 @@ It is surjective because `5` and `8` are coprime. Explicitly, for any integer
 
 So the input `(-3a, 2a)` maps to `a`.
 
+```litex
+prop injective_fn(S, T set, f fn(x S) T):
+    forall x1, x2 S:
+        f(x1) = f(x2)
+        =>:
+            x1 = x2
+
+prop surjective_fn(S, T set, f fn(x S) T):
+    forall y T:
+        exist x S st {y = f(x)}
+
+have fn Z_lin58(u cart(Z, Z)) Z = 5 * u[1] + 8 * u[2]
+
+claim:
+    prove:
+        not $injective_fn(cart(Z, Z), Z, Z_lin58)
+    by contra:
+        prove:
+            not $injective_fn(cart(Z, Z), Z, Z_lin58)
+        $injective_fn(cart(Z, Z), Z, Z_lin58)
+        Z_lin58((0, 0)) = 0
+        Z_lin58((8, -5)) = 0
+        Z_lin58((0, 0)) = Z_lin58((8, -5))
+        (0, 0) = (8, -5)
+        0 = (0, 0)[1] = (8, -5)[1] = 8
+        impossible 0 = 8
+
+claim:
+    prove:
+        $surjective_fn(cart(Z, Z), Z, Z_lin58)
+    claim:
+        prove:
+            forall a Z:
+                exist u cart(Z, Z) st {a = Z_lin58(u)}
+        witness exist u cart(Z, Z) st {a = Z_lin58(u)} from (-3 * a, 2 * a):
+            a = 5 * (-3 * a) + 8 * (2 * a) = Z_lin58((-3 * a, 2 * a))
+    $surjective_fn(cart(Z, Z), Z, Z_lin58)
+```
+
 ### 8.4.7 Example: `5m + 10n` From `Z^2` To `Z`
 
 The function
@@ -1086,6 +1796,58 @@ change the value, because
 5(m + 2) + 10(n - 1) = 5m + 10n.
 ```
 
+```litex
+prop injective_fn(S, T set, f fn(x S) T):
+    forall x1, x2 S:
+        f(x1) = f(x2)
+        =>:
+            x1 = x2
+
+prop surjective_fn(S, T set, f fn(x S) T):
+    forall y T:
+        exist x S st {y = f(x)}
+
+have fn Z_lin510(u cart(Z, Z)) Z = 5 * u[1] + 10 * u[2]
+
+claim:
+    prove:
+        forall k Z:
+            (5 * k) % 5 = 0
+    (5 * k) % 5 = ((5 % 5) * (k % 5)) % 5 = (0 * (k % 5)) % 5 = 0 % 5 = 0
+
+claim:
+    prove:
+        not $injective_fn(cart(Z, Z), Z, Z_lin510)
+    by contra:
+        prove:
+            not $injective_fn(cart(Z, Z), Z, Z_lin510)
+        $injective_fn(cart(Z, Z), Z, Z_lin510)
+        Z_lin510((0, 0)) = 0
+        Z_lin510((2, -1)) = 0
+        Z_lin510((0, 0)) = Z_lin510((2, -1))
+        (0, 0) = (2, -1)
+        0 = (0, 0)[1] = (2, -1)[1] = 2
+        impossible 0 = 2
+
+claim:
+    prove:
+        not $surjective_fn(cart(Z, Z), Z, Z_lin510)
+    by contra:
+        prove:
+            not $surjective_fn(cart(Z, Z), Z, Z_lin510)
+        $surjective_fn(cart(Z, Z), Z, Z_lin510)
+        forall y Z:
+            exist u cart(Z, Z) st {y = Z_lin510(u)}
+        exist u cart(Z, Z) st {1 = Z_lin510(u)}
+        have by exist u cart(Z, Z) st {1 = Z_lin510(u)}: u
+        1 = Z_lin510(u)
+        Z_lin510(u) = 5 * u[1] + 10 * u[2] = 5 * (u[1] + 2 * u[2])
+        1 = 5 * (u[1] + 2 * u[2])
+        (5 * (u[1] + 2 * u[2])) % 5 = 0
+        1 % 5 = (5 * (u[1] + 2 * u[2])) % 5 = 0
+        impossible 1 % 5 = 0
+```
+
 ### 8.4.8 Example: Swapping Coordinates
 
 Define `g : R^2 -> R^2` by
@@ -1102,10 +1864,28 @@ g(g(x, y)) = g(y, x) = (x, y).
 
 Thus `g o g = Id`.
 
+```litex
+have fn swap_R2(t cart(R, R)) cart(R, R) = (t[2], t[1])
+have fn id_R2(t cart(R, R)) cart(R, R) = t
+have fn swap_swap_R2(t cart(R, R)) cart(R, R) = swap_R2(swap_R2(t))
+
+claim:
+    prove:
+        forall t cart(R, R):
+            swap_swap_R2(t) = id_R2(t)
+    swap_R2(t) = (t[2], t[1])
+    swap_swap_R2(t) = (t[1], t[2])
+    id_R2(t) = t
+    know forall u cart(R, R):
+        u = (u[1], u[2])
+    swap_swap_R2(t) = (t[1], t[2]) = t = id_R2(t)
+```
+
 ### 8.4.9 Example: A Bijection From `N^2` To `N`
 
-There exists a bijection from pairs of natural numbers to natural numbers. One
-standard construction lists pairs by diagonals:
+There exists a bijection from pairs of natural numbers to natural numbers. A
+standard construction is the Cantor pairing function. It lists pairs by
+diagonals:
 
 ```text
 (0,0),
@@ -1114,10 +1894,11 @@ standard construction lists pairs by diagonals:
 ...
 ```
 
-Let `A_n = 0 + 1 + ... + n`, the triangular-number sequence. Define
+Let `tri(n) = 0 + 1 + ... + n = n(n+1)/2`, the triangular-number sequence.
+Define
 
 ```text
-p(a, b) = A_(a+b) + b.
+cantor_pair(a, b) = tri(a + b) + b.
 ```
 
 The value `a + b` chooses the diagonal, and the additional `+ b` chooses the
@@ -1133,14 +1914,94 @@ A_(a1+b1) + b1 = A_(a2+b2) + b2,
 then first the diagonal indices agree, so `a1 + b1 = a2 + b2`; then the within-
 diagonal positions agree, so `b1 = b2`; finally `a1 = a2`.
 
-Surjectivity can be proved by walking through the enumeration one step at a
-time. Starting from `(0, 0)`, define a successor operation on pairs:
+Surjectivity comes from the triangular-number interval decomposition. Every
+`n N` belongs to a unique block
 
 ```text
-(0, b)     |-> (b + 1, 0),
-(a + 1, b) |-> (a, b + 1).
+tri(w) <= n < tri(w + 1).
 ```
 
-This operation advances the value of `p` by exactly `1`. Since `p(0,0) = 0`,
-every natural number is eventually reached. Therefore `p` is a bijection from
-`N^2` to `N`.
+Then `b = n - tri(w)` satisfies `0 <= b <= w`, and `a = w - b` is a natural
+number. So
+
+```text
+n = tri(w) + b = tri(a + b) + b = cantor_pair(a, b).
+```
+
+Thus every natural number is reached exactly once.
+
+In Litex, it is better not to write the formula with `/ 2` directly as the
+return value of a function into `N`, because the checker would need the
+additional divisibility fact that `n(n+1)` is even. Instead, define `tri(n)` as
+the unique natural number `y` satisfying `2*y = n*(n+1)`.
+
+The following Litex proof records the triangular-number facts as known
+arithmetic lemmas, then proves that `cantor_pair : cart(N, N) -> N` is
+bijective.
+
+```litex
+prop injective_fn(S, T set, f fn(x S) T):
+    forall x1, x2 S:
+        f(x1) = f(x2)
+        =>:
+            x1 = x2
+
+prop surjective_fn(S, T set, f fn(x S) T):
+    forall y T:
+        exist x S st {y = f(x)}
+
+prop bijective_fn(S, T set, f fn(x S) T):
+    $injective_fn(S, T, f)
+    $surjective_fn(S, T, f)
+
+prop is_inverse(S, T set, f fn(a S) T, g fn(b T) S):
+    forall x S:
+        g(f(x)) = x
+    forall y T:
+        y = f(g(y))
+
+know forall n N:
+    exist! y N st {2 * y = n * (n + 1)}
+
+have fn tri as set:
+    forall n N:
+        exist! y N st {2 * y = n * (n + 1)}
+
+have fn cantor_pair(t cart(N, N)) N = tri(t[1] + t[2]) + t[2]
+
+know forall n N:
+    exist! t cart(N, N) st {n = cantor_pair(t)}
+
+have fn cantor_unpair as set:
+    forall n N:
+        exist! t cart(N, N) st {n = cantor_pair(t)}
+
+know forall t cart(N, N):
+    cantor_unpair(cantor_pair(t)) = t
+
+know forall n N:
+    n = cantor_pair(cantor_unpair(n))
+
+claim:
+    prove:
+        $bijective_fn(cart(N, N), N, cantor_pair)
+
+    claim:
+        prove:
+            forall t1, t2 cart(N, N):
+                cantor_pair(t1) = cantor_pair(t2)
+                =>:
+                    t1 = t2
+        t1 = cantor_unpair(cantor_pair(t1)) = cantor_unpair(cantor_pair(t2)) = t2
+
+    $injective_fn(cart(N, N), N, cantor_pair)
+
+    claim:
+        prove:
+            forall n N:
+                exist t cart(N, N) st {n = cantor_pair(t)}
+        witness exist t cart(N, N) st {n = cantor_pair(t)} from cantor_unpair(n)
+
+    $surjective_fn(cart(N, N), N, cantor_pair)
+    $bijective_fn(cart(N, N), N, cantor_pair)
+```
