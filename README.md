@@ -154,6 +154,19 @@ It explains:
 - how `by for` proves bounded universal statements over finite ranges;
 - how to write negation-normal forms directly in Litex.
 
+### Chapter 6 — Induction
+
+Chapter 6 develops induction, recursive definitions, and well-founded
+definitions by decreasing measures.
+
+It shows how to:
+
+- prove formulas by ordinary induction and strong induction;
+- define recursive sequences and functions in a Litex-first style;
+- work with examples such as Pascal's triangle and factorial identities;
+- use AI assistance for long mechanical algebraic expansions while relying on
+  Litex, not the AI draft, to check every proof line.
+
 ### Chapter 7 — Number theory
 
 Chapter 7 starts with Euclid's theorem that there are infinitely many primes.
