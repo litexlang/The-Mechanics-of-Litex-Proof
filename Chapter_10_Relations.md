@@ -546,12 +546,6 @@ prop bijective_fn(S, T set, f fn(x S) T):
 prop exist_bijection(S, T set):
     exist f fn(x S) T st {$bijective_fn(S, T, f)}
 
-prop is_inverse(S, T set, f fn(a S) T, g fn(b T) S):
-    forall x S:
-        g(f(x)) = x
-    forall y T:
-        y = f(g(y))
-
 prop is_inverse_of_fn(S, T set, f fn(x S) T, g fn(x T) S):
     forall x S:
         g(f(x)) = x
@@ -665,6 +659,7 @@ claim:
     $bijective_fn(S, U, h)
     witness exist f fn(x S) U st {$bijective_fn(S, U, f)} from h
     $exist_bijection(S, U)
+
 
 ```
 
