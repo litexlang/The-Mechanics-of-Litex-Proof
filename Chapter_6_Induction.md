@@ -1383,32 +1383,45 @@ claim:
 
 ## 6.6 Division Algorithm
 
-Problem roadmap from the source examples:
+The division algorithm can be developed as a well-founded recursive
+calculation. We define two integer functions at the same time:
 
-1. Define an integer remainder function and an integer quotient function by
-   recursion. The definition must be well founded: every recursive call has to
-   move to a strictly smaller size.
+- `fmod(n, d)`, the remainder-like value;
+- `fdiv(n, d)`, the quotient-like value.
 
-2. Prove that every input integer is recovered by adding its remainder to the
-   divisor multiplied by its quotient.
+The recursive definitions move `n` by adding or subtracting `d` until it lies
+in the terminal range. The decreasing measure is `abs(2 * n - d)`. The first
+four claims below prove exactly the inequalities needed by `by decreasing`.
+Then a strong induction on that same measure proves the quotient-remainder
+identity:
 
-3. Prove that when the divisor is positive, the remainder is never negative.
+```text
+fmod(n, d) + d * fdiv(n, d) = n
+```
 
-4. Prove that when the divisor is positive, the remainder is strictly smaller
-   than the divisor.
+## 6.7 Remainder Bounds and GCD
 
-5. Prove that every integer has a standard representative modulo any positive
-   integer divisor: the representative lies in the usual remainder range, and it
-   is congruent to the original integer modulo that divisor.
+The next step is to prove that the recursive remainder is small enough for the
+Euclidean algorithm. For a positive divisor, the remainder has absolute value
+strictly smaller than the divisor. The negative-divisor case follows by applying
+the positive result to `-b`.
 
-6. Strengthen the previous result by proving uniqueness: if two standard
-   representatives are both congruent to the same integer modulo the same
-   positive divisor, then the two representatives are equal.
+Once those bounds are available, `gcd(a, b)` is well-defined by decreasing
+`abs(b)`: when `b` is nonzero, recurse to the pair `(b, remainder)`, whose
+second component has smaller absolute value.
 
-The first two items can already be tested directly in Litex. The initial
-`claim` blocks prove the arithmetic facts needed to justify the recursive
-decrease. The remaining `know` block records the base case and step case for
-the measure induction proof of the quotient-remainder identity.
+## 6.8 Extended Euclidean Algorithm
+
+The extended Euclidean algorithm is written as one recursive function
+`egcd_pair(a, b)` returning a pair of coefficients. The two coefficient
+functions `egcd_l` and `egcd_r` are projections from that pair. Keeping the pair
+as the single recursive function avoids mutual recursion while still matching
+the usual mathematical algorithm.
+
+The full block below is meant to be read and tested as one continuous example
+for Sections 6.6, 6.7, and 6.8. It is intentionally not split into separate
+snippets because the later definitions rely on the earlier measure and
+remainder facts.
 
 ```litex
 claim:
@@ -1497,22 +1510,124 @@ have fn fdiv(n Z, d Z) Z by decreasing abs(2 * n - d) from 0:
             case n != d: 0
 
 prop fmod_add_fdiv_at_measure(m Z):
-    forall n, d Z:
-        abs(2 * n - d) = m
+    forall u, v Z:
+        abs(2 * u - v) = m
         =>:
-            fmod(n, d) + d * fdiv(n, d) = n
+            fmod(u, v) + v * fdiv(u, v) = u
 
-know:
-    $fmod_add_fdiv_at_measure(0)
-    forall m Z:
-        m >= 0
-        forall y Z:
-            y >= 0
-            y <= m
+claim:
+    prove:
+        forall n, d Z:
+            abs(2 * n - d) = 0
             =>:
-                $fmod_add_fdiv_at_measure(y)
-        =>:
-            $fmod_add_fdiv_at_measure(m + 1)
+                fmod(n, d) + d * fdiv(n, d) = n
+
+    by cases:
+        prove:
+            fmod(n, d) + d * fdiv(n, d) = n
+        case n * d < 0:
+            abs(2 * (n + d) - d) < abs(2 * n - d) = 0
+            0 <= abs(2 * (n + d) - d)
+            impossible abs(2 * (n + d) - d) < 0
+        case n * d >= 0:
+            by cases:
+                prove:
+                    fmod(n, d) + d * fdiv(n, d) = n
+                case 0 < d * (n - d):
+                    abs(2 * (n - d) - d) < abs(2 * n - d) = 0
+                    0 <= abs(2 * (n - d) - d)
+                    impossible abs(2 * (n - d) - d) < 0
+                case 0 >= d * (n - d):
+                    by cases:
+                        prove:
+                            fmod(n, d) + d * fdiv(n, d) = n
+                        case n = d:
+                            fmod(n, d) = 0
+                            fdiv(n, d) = 1
+                            fmod(n, d) + d * fdiv(n, d) = 0 + d * 1 = d = n
+                        case n != d:
+                            fmod(n, d) = n
+                            fdiv(n, d) = 0
+                            fmod(n, d) + d * fdiv(n, d) = n + d * 0 = n
+
+$fmod_add_fdiv_at_measure(0)
+
+claim:
+    prove:
+        forall m Z:
+            m >= 0
+            forall y Z:
+                y >= 0
+                y <= m
+                =>:
+                    $fmod_add_fdiv_at_measure(y)
+            =>:
+                $fmod_add_fdiv_at_measure(m + 1)
+
+    claim:
+        prove:
+            forall n, d Z:
+                abs(2 * n - d) = m + 1
+                =>:
+                    fmod(n, d) + d * fdiv(n, d) = n
+
+        by cases:
+            prove:
+                fmod(n, d) + d * fdiv(n, d) = n
+            case n * d < 0:
+                abs(2 * (n + d) - d) >= 0
+                abs(2 * (n + d) - d) < abs(2 * n - d) = m + 1
+                abs(2 * (n + d) - d) <= m or abs(2 * (n + d) - d) >= m + 1
+                by cases:
+                    prove:
+                        abs(2 * (n + d) - d) <= m
+                    case abs(2 * (n + d) - d) <= m:
+                        do_nothing
+                    case abs(2 * (n + d) - d) >= m + 1:
+                        impossible abs(2 * (n + d) - d) < m + 1
+                $fmod_add_fdiv_at_measure(abs(2 * (n + d) - d))
+                n + d $in Z
+                abs(2 * (n + d) - d) = abs(2 * (n + d) - d)
+                fmod(n + d, d) + d * fdiv(n + d, d) = n + d
+                fmod(n, d) = fmod(n + d, d)
+                fdiv(n, d) = fdiv(n + d, d) - 1
+                fmod(n, d) + d * fdiv(n, d) = fmod(n + d, d) + d * (fdiv(n + d, d) - 1) = fmod(n + d, d) + d * fdiv(n + d, d) - d = n + d - d = n
+            case n * d >= 0:
+                by cases:
+                    prove:
+                        fmod(n, d) + d * fdiv(n, d) = n
+                    case 0 < d * (n - d):
+                        abs(2 * (n - d) - d) >= 0
+                        abs(2 * (n - d) - d) < abs(2 * n - d) = m + 1
+                        abs(2 * (n - d) - d) <= m or abs(2 * (n - d) - d) >= m + 1
+                        by cases:
+                            prove:
+                                abs(2 * (n - d) - d) <= m
+                            case abs(2 * (n - d) - d) <= m:
+                                do_nothing
+                            case abs(2 * (n - d) - d) >= m + 1:
+                                impossible abs(2 * (n - d) - d) < m + 1
+                        $fmod_add_fdiv_at_measure(abs(2 * (n - d) - d))
+                        n - d $in Z
+                        abs(2 * (n - d) - d) = abs(2 * (n - d) - d)
+                        fmod(n - d, d) + d * fdiv(n - d, d) = n - d
+                        fmod(n, d) = fmod(n - d, d)
+                        fdiv(n, d) = fdiv(n - d, d) + 1
+                        fmod(n, d) + d * fdiv(n, d) = fmod(n - d, d) + d * (fdiv(n - d, d) + 1) = fmod(n - d, d) + d * fdiv(n - d, d) + d = n - d + d = n
+                    case 0 >= d * (n - d):
+                        by cases:
+                            prove:
+                                fmod(n, d) + d * fdiv(n, d) = n
+                            case n = d:
+                                fmod(n, d) = 0
+                                fdiv(n, d) = 1
+                                fmod(n, d) + d * fdiv(n, d) = 0 + d * 1 = d = n
+                            case n != d:
+                                fmod(n, d) = n
+                                fdiv(n, d) = 0
+                                fmod(n, d) + d * fdiv(n, d) = n + d * 0 = n
+
+    $fmod_add_fdiv_at_measure(m + 1)
 
 by strong_induc m from 0:
     prove:
@@ -1533,77 +1648,267 @@ claim:
         abs(2 * n1 - d1) >= 0
         $fmod_add_fdiv_at_measure(abs(2 * n1 - d1))
         fmod(n1, d1) + d1 * fdiv(n1, d1) = n1
-```
 
-The division algorithm says that for natural numbers `n` and positive `d`,
-there are `q` and `r` such that
+claim:
+    prove:
+        forall x, y Z:
+            0 < y
+            x * y >= 0
+            =>:
+                0 <= x
 
-```text
-n = d * q + r
-0 <= r < d
-```
+    by contra:
+        prove:
+            0 <= x
+        x < 0
+        x * y < 0
+        impossible x * y >= 0
 
-A recursive proof subtracts `d` until the remainder is smaller than `d`. This
-is naturally a well-founded recursion proof: the argument decreases each time.
+claim:
+    prove:
+        forall x, y Z:
+            0 < y
+            0 >= y * (x - y)
+            =>:
+                x <= y
 
-Litex can express the final existence statement directly:
+    by contra:
+        prove:
+            x <= y
+        y < x
+        0 < x - y
+        0 < y * (x - y)
+        impossible 0 >= y * (x - y)
 
-```litex
-prop division_result(n N, d N_pos, q N):
-    exist r N st {n = d * q + r, r < d}
+claim:
+    prove:
+        forall x, y Z:
+            x <= y
+            x != y
+            =>:
+                x < y
 
-prop division_algorithm(n N, d N_pos):
-    exist q N st {$division_result(n, d, q)}
-```
+    by contra:
+        prove:
+            x < y
+        x >= y
+        x = y
+        impossible x != y
 
-## 6.7 Greatest Common Divisors
-
-Problem roadmap from the source examples:
-
-1. Define the greatest-common-divisor function on two integers by the Euclidean
-   algorithm. If the second input is nonzero, recurse using the second input and
-   the remainder from division; if the second input is zero, return the absolute
-   value of the first input. The recursive definition must be well founded.
-
-2. Prove that the greatest common divisor of two integers is always
-   nonnegative.
-
-3. Prove that the greatest common divisor of two integers divides each of the
-   original two integers. The source proof naturally separates this into two
-   mutually dependent statements: one for the left input and one for the right
-   input.
-
-4. Define the two coefficient functions from the extended Euclidean algorithm.
-   These functions record how to express the greatest common divisor as an
-   integer linear combination of the original two inputs.
-
-5. Prove the core identity for the extended Euclidean algorithm: the two
-   coefficient functions really do produce an integer linear combination equal
-   to the greatest common divisor.
-
-6. Deduce Bezout's identity: for any two integers, there exist two integer
-   coefficients whose linear combination of the original integers is their
-   greatest common divisor.
-
-7. Prove the maximality property of the greatest common divisor: any integer
-   that divides both original integers also divides their greatest common
-   divisor.
-
-The following tested Litex block should be read after the `fmod` definition in
-Section 6.6. The first `know` block records the remainder-size facts needed for
-termination. The later `know` blocks record the base and step facts for the
-measure induction proofs.
-
-```litex
-know:
-    forall a, b Z:
-        0 < b
+prop fmod_bound_at_measure(m Z):
+    forall u, v Z:
+        abs(2 * u - v) = m
+        0 < v
         =>:
+            abs(fmod(u, v)) < abs(v)
+
+claim:
+    prove:
+        forall a, b Z:
+            abs(2 * a - b) = 0
+            0 < b
+            =>:
+                abs(fmod(a, b)) < abs(b)
+
+    by cases:
+        prove:
             abs(fmod(a, b)) < abs(b)
-    forall a, b Z:
-        b < 0
+        case a * b < 0:
+            abs(2 * (a + b) - b) < abs(2 * a - b) = 0
+            0 <= abs(2 * (a + b) - b)
+            impossible abs(2 * (a + b) - b) < 0
+        case a * b >= 0:
+            by cases:
+                prove:
+                    abs(fmod(a, b)) < abs(b)
+                case 0 < b * (a - b):
+                    abs(2 * (a - b) - b) < abs(2 * a - b) = 0
+                    0 <= abs(2 * (a - b) - b)
+                    impossible abs(2 * (a - b) - b) < 0
+                case 0 >= b * (a - b):
+                    by cases:
+                        prove:
+                            abs(fmod(a, b)) < abs(b)
+                        case a = b:
+                            fmod(a, b) = 0
+                            abs(fmod(a, b)) = abs(0) = 0
+                            abs(b) = b
+                            0 < abs(b)
+                            abs(fmod(a, b)) < abs(b)
+                        case a != b:
+                            fmod(a, b) = a
+                            by contra:
+                                prove:
+                                    0 <= a
+                                a < 0
+                                a * b < 0
+                                impossible a * b >= 0
+                            by contra:
+                                prove:
+                                    a <= b
+                                b < a
+                                0 < a - b
+                                0 < b * (a - b)
+                                impossible 0 >= b * (a - b)
+                            by contra:
+                                prove:
+                                    a < b
+                                a >= b
+                                a = b
+                                impossible a != b
+                            abs(a) = a
+                            abs(b) = b
+                            0 <= fmod(a, b)
+                            abs(fmod(a, b)) = fmod(a, b) = a < b = abs(b)
+
+$fmod_bound_at_measure(0)
+
+claim:
+    prove:
+        forall m Z:
+            m >= 0
+            forall y Z:
+                y >= 0
+                y <= m
+                =>:
+                    $fmod_bound_at_measure(y)
+            =>:
+                $fmod_bound_at_measure(m + 1)
+
+    claim:
+        prove:
+            forall a, b Z:
+                abs(2 * a - b) = m + 1
+                0 < b
+                =>:
+                    abs(fmod(a, b)) < abs(b)
+
+        by cases:
+            prove:
+                abs(fmod(a, b)) < abs(b)
+            case a * b < 0:
+                abs(2 * (a + b) - b) >= 0
+                abs(2 * (a + b) - b) < abs(2 * a - b) = m + 1
+                abs(2 * (a + b) - b) <= m or abs(2 * (a + b) - b) >= m + 1
+                by cases:
+                    prove:
+                        abs(2 * (a + b) - b) <= m
+                    case abs(2 * (a + b) - b) <= m:
+                        do_nothing
+                    case abs(2 * (a + b) - b) >= m + 1:
+                        impossible abs(2 * (a + b) - b) < m + 1
+                $fmod_bound_at_measure(abs(2 * (a + b) - b))
+                a + b $in Z
+                abs(2 * (a + b) - b) = abs(2 * (a + b) - b)
+                abs(fmod(a + b, b)) < abs(b)
+                fmod(a, b) = fmod(a + b, b)
+                fmod(a, b) - fmod(a + b, b) = 0
+                abs(fmod(a, b)) - abs(fmod(a + b, b)) <= abs(fmod(a, b) - fmod(a + b, b)) = abs(0) = 0
+                abs(fmod(a, b)) <= abs(fmod(a + b, b))
+                abs(fmod(a, b)) <= abs(fmod(a + b, b)) < abs(b)
+                abs(fmod(a, b)) < abs(b)
+            case a * b >= 0:
+                by cases:
+                    prove:
+                        abs(fmod(a, b)) < abs(b)
+                    case 0 < b * (a - b):
+                        abs(2 * (a - b) - b) >= 0
+                        abs(2 * (a - b) - b) < abs(2 * a - b) = m + 1
+                        abs(2 * (a - b) - b) <= m or abs(2 * (a - b) - b) >= m + 1
+                        by cases:
+                            prove:
+                                abs(2 * (a - b) - b) <= m
+                            case abs(2 * (a - b) - b) <= m:
+                                do_nothing
+                            case abs(2 * (a - b) - b) >= m + 1:
+                                impossible abs(2 * (a - b) - b) < m + 1
+                        $fmod_bound_at_measure(abs(2 * (a - b) - b))
+                        a - b $in Z
+                        abs(2 * (a - b) - b) = abs(2 * (a - b) - b)
+                        abs(fmod(a - b, b)) < abs(b)
+                        fmod(a, b) = fmod(a - b, b)
+                        fmod(a, b) - fmod(a - b, b) = 0
+                        abs(fmod(a, b)) - abs(fmod(a - b, b)) <= abs(fmod(a, b) - fmod(a - b, b)) = abs(0) = 0
+                        abs(fmod(a, b)) <= abs(fmod(a - b, b))
+                        abs(fmod(a, b)) <= abs(fmod(a - b, b)) < abs(b)
+                        abs(fmod(a, b)) < abs(b)
+                    case 0 >= b * (a - b):
+                        by cases:
+                            prove:
+                                abs(fmod(a, b)) < abs(b)
+                            case a = b:
+                                fmod(a, b) = 0
+                                abs(fmod(a, b)) = abs(0) = 0
+                                abs(b) = b
+                                0 < abs(b)
+                                abs(fmod(a, b)) < abs(b)
+                            case a != b:
+                                fmod(a, b) = a
+                                by contra:
+                                    prove:
+                                        0 <= a
+                                    a < 0
+                                    a * b < 0
+                                    impossible a * b >= 0
+                                by contra:
+                                    prove:
+                                        a <= b
+                                    b < a
+                                    0 < a - b
+                                    0 < b * (a - b)
+                                    impossible 0 >= b * (a - b)
+                                by contra:
+                                    prove:
+                                        a < b
+                                    a >= b
+                                    a = b
+                                    impossible a != b
+                                abs(a) = a
+                                abs(b) = b
+                                0 <= fmod(a, b)
+                                abs(fmod(a, b)) = fmod(a, b) = a < b = abs(b)
+
+    $fmod_bound_at_measure(m + 1)
+
+by strong_induc m from 0:
+    prove:
+        $fmod_bound_at_measure(m)
+
+    prove from m = 0:
+        $fmod_bound_at_measure(0)
+
+    prove strong_induc:
+        $fmod_bound_at_measure(m + 1)
+
+claim:
+    prove:
+        forall a, b Z:
+            0 < b
+            =>:
+                abs(fmod(a, b)) < abs(b)
+
+    forall a1, b1 Z:
+        0 < b1
         =>:
-            abs(fmod(a, -b)) < abs(b)
+            abs(2 * a1 - b1) >= 0
+            $fmod_bound_at_measure(abs(2 * a1 - b1))
+            abs(fmod(a1, b1)) < abs(b1)
+
+claim:
+    prove:
+        forall a, b Z:
+            b < 0
+            =>:
+                abs(fmod(a, -b)) < abs(b)
+
+    0 < -b
+    -b $in Z
+    abs(fmod(a, -b)) < abs(-b)
+    b <= 0
+    abs(b) = -b
+    abs(-b) = -b
+    abs(-b) = abs(b)
+    abs(fmod(a, -b)) < abs(b)
 
 have fn gcd(a Z, b Z) Z by decreasing abs(b) from 0:
     case 0 < b: gcd(b, fmod(a, b))
@@ -1612,96 +1917,6 @@ have fn gcd(a Z, b Z) Z by decreasing abs(b) from 0:
         case b >= 0:
             case 0 <= a: a
             case 0 > a: -a
-
-prop gcd_nonneg_at_measure(m Z):
-    forall a, b Z:
-        abs(b) = m
-        =>:
-            gcd(a, b) >= 0
-
-know:
-    $gcd_nonneg_at_measure(0)
-    forall m Z:
-        m >= 0
-        forall y Z:
-            y >= 0
-            y <= m
-            =>:
-                $gcd_nonneg_at_measure(y)
-        =>:
-            $gcd_nonneg_at_measure(m + 1)
-
-by strong_induc m from 0:
-    prove:
-        $gcd_nonneg_at_measure(m)
-
-    prove from m = 0:
-        $gcd_nonneg_at_measure(0)
-
-    prove strong_induc:
-        $gcd_nonneg_at_measure(m + 1)
-
-claim:
-    prove:
-        forall a, b Z:
-            gcd(a, b) >= 0
-
-    forall a1, b1 Z:
-        abs(b1) >= 0
-        $gcd_nonneg_at_measure(abs(b1))
-        gcd(a1, b1) >= 0
-
-prop divides(d Z, n Z):
-    exist k Z st {n = d * k}
-
-prop gcd_divides_inputs_at_measure(m Z):
-    forall a, b Z:
-        abs(b) = m
-        =>:
-            $divides(gcd(a, b), a)
-            $divides(gcd(a, b), b)
-
-know:
-    $gcd_divides_inputs_at_measure(0)
-    forall m Z:
-        m >= 0
-        forall y Z:
-            y >= 0
-            y <= m
-            =>:
-                $gcd_divides_inputs_at_measure(y)
-        =>:
-            $gcd_divides_inputs_at_measure(m + 1)
-
-by strong_induc m from 0:
-    prove:
-        $gcd_divides_inputs_at_measure(m)
-
-    prove from m = 0:
-        $gcd_divides_inputs_at_measure(0)
-
-    prove strong_induc:
-        $gcd_divides_inputs_at_measure(m + 1)
-
-claim:
-    prove:
-        forall a, b Z:
-            $divides(gcd(a, b), a)
-
-    forall a1, b1 Z:
-        abs(b1) >= 0
-        $gcd_divides_inputs_at_measure(abs(b1))
-        $divides(gcd(a1, b1), a1)
-
-claim:
-    prove:
-        forall a, b Z:
-            $divides(gcd(a, b), b)
-
-    forall a1, b1 Z:
-        abs(b1) >= 0
-        $gcd_divides_inputs_at_measure(abs(b1))
-        $divides(gcd(a1, b1), b1)
 
 have fn egcd_pair(a Z, b Z) cart(Z, Z) by decreasing abs(b) from 0:
     case 0 < b: (egcd_pair(b, fmod(a, b))[2], egcd_pair(b, fmod(a, b))[1] - fdiv(a, b) * egcd_pair(b, fmod(a, b))[2])
@@ -1716,22 +1931,142 @@ have fn egcd_l(a Z, b Z) Z = egcd_pair(a, b)[1]
 have fn egcd_r(a Z, b Z) Z = egcd_pair(a, b)[2]
 
 prop egcd_identity_at_measure(m Z):
-    forall a, b Z:
-        abs(b) = m
+    forall u, v Z:
+        abs(v) = m
         =>:
-            egcd_l(a, b) * a + egcd_r(a, b) * b = gcd(a, b)
+            egcd_l(u, v) * u + egcd_r(u, v) * v = gcd(u, v)
 
-know:
-    $egcd_identity_at_measure(0)
-    forall m Z:
-        m >= 0
-        forall y Z:
-            y >= 0
-            y <= m
+claim:
+    prove:
+        forall a, b Z:
+            abs(b) = 0
             =>:
-                $egcd_identity_at_measure(y)
-        =>:
-            $egcd_identity_at_measure(m + 1)
+                egcd_l(a, b) * a + egcd_r(a, b) * b = gcd(a, b)
+
+    b = 0
+    0 >= b
+    b >= 0
+    by cases:
+        prove:
+            egcd_l(a, b) * a + egcd_r(a, b) * b = gcd(a, b)
+        case 0 <= a:
+            egcd_pair(a, b) = (1, 0)
+            egcd_l(a, b) = egcd_pair(a, b)[1] = (1, 0)[1] = 1
+            egcd_r(a, b) = egcd_pair(a, b)[2] = (1, 0)[2] = 0
+            gcd(a, b) = a
+            egcd_l(a, b) * a + egcd_r(a, b) * b = 1 * a + 0 * b = a = gcd(a, b)
+        case 0 > a:
+            egcd_pair(a, b) = (-1, 0)
+            egcd_l(a, b) = egcd_pair(a, b)[1] = (-1, 0)[1] = -1
+            egcd_r(a, b) = egcd_pair(a, b)[2] = (-1, 0)[2] = 0
+            gcd(a, b) = -a
+            egcd_l(a, b) * a + egcd_r(a, b) * b = -1 * a + 0 * b = -a = gcd(a, b)
+
+$egcd_identity_at_measure(0)
+
+claim:
+    prove:
+        forall m Z:
+            m >= 0
+            forall y Z:
+                y >= 0
+                y <= m
+                =>:
+                    $egcd_identity_at_measure(y)
+            =>:
+                $egcd_identity_at_measure(m + 1)
+
+    claim:
+        prove:
+            forall a, b Z:
+                abs(b) = m + 1
+                =>:
+                    egcd_l(a, b) * a + egcd_r(a, b) * b = gcd(a, b)
+
+        by cases:
+            prove:
+                egcd_l(a, b) * a + egcd_r(a, b) * b = gcd(a, b)
+            case 0 < b:
+                abs(fmod(a, b)) >= 0
+                abs(fmod(a, b)) < abs(b) = m + 1
+                abs(fmod(a, b)) <= m or abs(fmod(a, b)) >= m + 1
+                by cases:
+                    prove:
+                        abs(fmod(a, b)) <= m
+                    case abs(fmod(a, b)) <= m:
+                        do_nothing
+                    case abs(fmod(a, b)) >= m + 1:
+                        impossible abs(fmod(a, b)) < m + 1
+                $egcd_identity_at_measure(abs(fmod(a, b)))
+                fmod(a, b) $in Z
+                abs(fmod(a, b)) = abs(fmod(a, b))
+                egcd_l(b, fmod(a, b)) * b + egcd_r(b, fmod(a, b)) * fmod(a, b) = gcd(b, fmod(a, b))
+                egcd_pair(a, b) = (egcd_pair(b, fmod(a, b))[2], egcd_pair(b, fmod(a, b))[1] - fdiv(a, b) * egcd_pair(b, fmod(a, b))[2])
+                egcd_l(a, b) = egcd_pair(a, b)[1] = (egcd_pair(b, fmod(a, b))[2], egcd_pair(b, fmod(a, b))[1] - fdiv(a, b) * egcd_pair(b, fmod(a, b))[2])[1] = egcd_pair(b, fmod(a, b))[2]
+                egcd_r(b, fmod(a, b)) = egcd_pair(b, fmod(a, b))[2]
+                egcd_l(a, b) = egcd_r(b, fmod(a, b))
+                egcd_r(a, b) = egcd_pair(a, b)[2] = (egcd_pair(b, fmod(a, b))[2], egcd_pair(b, fmod(a, b))[1] - fdiv(a, b) * egcd_pair(b, fmod(a, b))[2])[2] = egcd_pair(b, fmod(a, b))[1] - fdiv(a, b) * egcd_pair(b, fmod(a, b))[2]
+                egcd_l(b, fmod(a, b)) = egcd_pair(b, fmod(a, b))[1]
+                egcd_pair(b, fmod(a, b))[1] = egcd_l(b, fmod(a, b))
+                egcd_pair(b, fmod(a, b))[2] = egcd_r(b, fmod(a, b))
+                egcd_r(a, b) = egcd_pair(b, fmod(a, b))[1] - fdiv(a, b) * egcd_pair(b, fmod(a, b))[2] = egcd_l(b, fmod(a, b)) - fdiv(a, b) * egcd_r(b, fmod(a, b))
+                fmod(a, b) + b * fdiv(a, b) = a
+                a = fmod(a, b) + b * fdiv(a, b)
+                a - b * fdiv(a, b) = fmod(a, b) + b * fdiv(a, b) - b * fdiv(a, b) = fmod(a, b)
+                gcd(a, b) = gcd(b, fmod(a, b))
+                egcd_l(a, b) * a + egcd_r(a, b) * b = egcd_r(b, fmod(a, b)) * a + (egcd_l(b, fmod(a, b)) - fdiv(a, b) * egcd_r(b, fmod(a, b))) * b = egcd_l(b, fmod(a, b)) * b + egcd_r(b, fmod(a, b)) * (a - b * fdiv(a, b)) = egcd_l(b, fmod(a, b)) * b + egcd_r(b, fmod(a, b)) * fmod(a, b) = gcd(b, fmod(a, b)) = gcd(a, b)
+            case 0 >= b:
+                by cases:
+                    prove:
+                        egcd_l(a, b) * a + egcd_r(a, b) * b = gcd(a, b)
+                    case b < 0:
+                        abs(fmod(a, -b)) >= 0
+                        abs(fmod(a, -b)) < abs(b) = m + 1
+                        abs(fmod(a, -b)) <= m or abs(fmod(a, -b)) >= m + 1
+                        by cases:
+                            prove:
+                                abs(fmod(a, -b)) <= m
+                            case abs(fmod(a, -b)) <= m:
+                                do_nothing
+                            case abs(fmod(a, -b)) >= m + 1:
+                                impossible abs(fmod(a, -b)) < m + 1
+                        $egcd_identity_at_measure(abs(fmod(a, -b)))
+                        fmod(a, -b) $in Z
+                        abs(fmod(a, -b)) = abs(fmod(a, -b))
+                        egcd_l(b, fmod(a, -b)) * b + egcd_r(b, fmod(a, -b)) * fmod(a, -b) = gcd(b, fmod(a, -b))
+                        egcd_pair(a, b) = (egcd_pair(b, fmod(a, -b))[2], egcd_pair(b, fmod(a, -b))[1] + fdiv(a, -b) * egcd_pair(b, fmod(a, -b))[2])
+                        egcd_l(a, b) = egcd_pair(a, b)[1] = (egcd_pair(b, fmod(a, -b))[2], egcd_pair(b, fmod(a, -b))[1] + fdiv(a, -b) * egcd_pair(b, fmod(a, -b))[2])[1] = egcd_pair(b, fmod(a, -b))[2]
+                        egcd_r(b, fmod(a, -b)) = egcd_pair(b, fmod(a, -b))[2]
+                        egcd_l(a, b) = egcd_r(b, fmod(a, -b))
+                        egcd_r(a, b) = egcd_pair(a, b)[2] = (egcd_pair(b, fmod(a, -b))[2], egcd_pair(b, fmod(a, -b))[1] + fdiv(a, -b) * egcd_pair(b, fmod(a, -b))[2])[2] = egcd_pair(b, fmod(a, -b))[1] + fdiv(a, -b) * egcd_pair(b, fmod(a, -b))[2]
+                        egcd_l(b, fmod(a, -b)) = egcd_pair(b, fmod(a, -b))[1]
+                        egcd_pair(b, fmod(a, -b))[1] = egcd_l(b, fmod(a, -b))
+                        egcd_pair(b, fmod(a, -b))[2] = egcd_r(b, fmod(a, -b))
+                        egcd_r(a, b) = egcd_pair(b, fmod(a, -b))[1] + fdiv(a, -b) * egcd_pair(b, fmod(a, -b))[2] = egcd_l(b, fmod(a, -b)) + fdiv(a, -b) * egcd_r(b, fmod(a, -b))
+                        fmod(a, -b) + (-b) * fdiv(a, -b) = a
+                        a = fmod(a, -b) + (-b) * fdiv(a, -b)
+                        a + b * fdiv(a, -b) = fmod(a, -b) + (-b) * fdiv(a, -b) + b * fdiv(a, -b) = fmod(a, -b)
+                        gcd(a, b) = gcd(b, fmod(a, -b))
+                        egcd_l(a, b) * a + egcd_r(a, b) * b = egcd_r(b, fmod(a, -b)) * a + (egcd_l(b, fmod(a, -b)) + fdiv(a, -b) * egcd_r(b, fmod(a, -b))) * b = egcd_l(b, fmod(a, -b)) * b + egcd_r(b, fmod(a, -b)) * (a + b * fdiv(a, -b)) = egcd_l(b, fmod(a, -b)) * b + egcd_r(b, fmod(a, -b)) * fmod(a, -b) = gcd(b, fmod(a, -b)) = gcd(a, b)
+                    case b >= 0:
+                        b = 0
+                        by cases:
+                            prove:
+                                egcd_l(a, b) * a + egcd_r(a, b) * b = gcd(a, b)
+                            case 0 <= a:
+                                egcd_pair(a, b) = (1, 0)
+                                egcd_l(a, b) = egcd_pair(a, b)[1] = (1, 0)[1] = 1
+                                egcd_r(a, b) = egcd_pair(a, b)[2] = (1, 0)[2] = 0
+                                gcd(a, b) = a
+                                egcd_l(a, b) * a + egcd_r(a, b) * b = 1 * a + 0 * b = a = gcd(a, b)
+                            case 0 > a:
+                                egcd_pair(a, b) = (-1, 0)
+                                egcd_l(a, b) = egcd_pair(a, b)[1] = (-1, 0)[1] = -1
+                                egcd_r(a, b) = egcd_pair(a, b)[2] = (-1, 0)[2] = 0
+                                gcd(a, b) = -a
+                                egcd_l(a, b) * a + egcd_r(a, b) * b = -1 * a + 0 * b = -a = gcd(a, b)
+
+    $egcd_identity_at_measure(m + 1)
 
 by strong_induc m from 0:
     prove:
@@ -1754,18 +2089,12 @@ claim:
         egcd_l(a1, b1) * a1 + egcd_r(a1, b1) * b1 = gcd(a1, b1)
 ```
 
-Instead of defining two mutually recursive coefficient functions, the extended
-Euclidean algorithm is represented by the single recursive function
-`egcd_pair`. The two coefficient functions are projections from that pair.
+The proof is organized around three induction measures:
 
-The Euclidean algorithm defines `gcd(a, b)` recursively using remainders. The
-mathematical facts proved by induction are:
+- `abs(2 * n - d)` for the quotient-remainder identity;
+- `abs(2 * a - b)` for the remainder bound when the divisor is positive;
+- `abs(b)` for the Euclidean and extended Euclidean algorithms.
 
-- `gcd(a, b)` divides `a`;
-- `gcd(a, b)` divides `b`;
-- any common divisor of `a` and `b` divides `gcd(a, b)`;
-- there are integers `x` and `y` such that `x * a + y * b = gcd(a, b)`.
-
-These are excellent examples of induction over a recursive algorithm. The
-tested code above covers the `gcd` layer and the extended Euclidean identity.
-Bezout's identity and the maximality theorem remain as direct next targets.
+This is the main lesson of these examples: recursive algorithms often become
+straightforward once the induction statement is indexed by the same measure
+that makes the function definition well-founded.
