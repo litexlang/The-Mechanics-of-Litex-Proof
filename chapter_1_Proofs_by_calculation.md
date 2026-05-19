@@ -5,68 +5,52 @@ Try all snippets in browser: https://litexlang.com/doc/The_Mechanics_of_Litex_Pr
 GitHub source: https://github.com/litexlang/The-Mechanics-of-Litex-Proof/blob/main/Chapter_1_Proofs_By_Calculation.md
 
 Litex proofs are meant to look close to the mathematical sentence they justify.
-In this first chapter the objects are only the usual number systems, `N`, `Z`,
-`Q`, and `R`, and the goals are familiar algebraic equalities and inequalities.
-The point is not that these examples are hard; the point is how little extra
-proof language is needed around them.
-
-A calculation proof in Litex is written as a chain of expressions. Each link in
-the chain is a small claim whose shape already suggests the rule to try:
-equalities invite calculation and substitution, inequalities invite order
-reasoning, and the assumptions above the arrow provide patterns to match. The statement itself carries the hints that guide the proof search.
+To help you get started, in this first chapter the examples are just familiar algebraic equalities and inequalities.
 
 ## How Facts Are Written
 
-Most lines inside a Litex proof are facts. A fact is a mathematical sentence
+A factual statement is a mathematical sentence
 that Litex should verify from the current context. There are three common
 surface forms.
 
-First, many basic relations are built in. Equalities, inequalities, order
-relations, membership, subset, and similar relations can be written directly:
+Every factual statement has a verb-like judgment and the object-like terms it
+is judging. For example, in `1 + 1 = 2`, the judgment symbol `=` is the verb,
+and `1 + 1` and `2` are the two object terms passed to it.
 
 ```litex
-prove:
-    1 + 1 = 2
-    3 > 1
-    2 <= 2
-    2 $in {1, 2, 3}
-    {1, 2} $in power_set({1, 2, 3})
-```
+# built-in relations
+1 + 1 = 2
+3 > 1
 
-Second, binary facts can be written in an infix style, with the predicate name
-between the two arguments. This is why membership is written as
-
-```litex
+# standard factual statement: $ followed by a proposition name with arguments with 2 arguments
 2 $in {1, 2, 3}
-```
+{1, 2} $in power_set({1, 2, 3})
 
-and subset is written as
+# standard factual statement: $ followed by a proposition name with arguments
+$is_set({1, 2, 3})
 
-```text
-{1, 2} $subset {1, 2, 3}
-```
-
-This keeps common binary mathematical relations close to the way they are read:
-"2 is in the set" and "`{1, 2}` is a subset of `{1, 2, 3}`."
-
-Third, predicates with any number of arguments are written in function-call
-style, with a dollar sign before the proposition name:
-
-```litex
+# user-defined proposition
 abstract_prop between(a, b, c)
-
 know $between(1, 2, 3)
-
-prove:
-    $between(1, 2, 3)
+$between(1, 2, 3)
 ```
 
-The same form works for unary, binary, ternary, or longer predicates:
+First, many basic relations are built in. Equalities, inequalities, order
+relations, membership, subset, and similar relations can be written directly
+with their usual symbols:
+
+Second, user-defined propositions, and some named builtin propositions, are
+written as proposition calls. This is the standard form of proposition calls.
 
 ```text
-$prime(7)
-$parallel(line1, line2)
-$collinear(A, B, C)
+$prop_name(arg1, arg2)
+```
+
+Third, when a proposition has exactly two arguments, it can also be written in
+infix form:
+
+```text
+arg1 $prop_name arg2
 ```
 
 The dollar sign is meaningful. It tells Litex that the name is being used to
@@ -84,8 +68,8 @@ $p(1)     # a fact: proposition p holds of 1
 
 ### 1.1.1
 
-Let a and b be rational numbers, and suppose that a - b = 4 and a*b = 1.
-Show that (a+b)^2 = 20.
+Let `a` and `b` be rational numbers, and suppose that `a - b = 4` and
+`a * b = 1`. Show that `(a + b)^2 = 20`.
 
 ```litex
 forall a, b Q:
@@ -110,10 +94,12 @@ Litex does not ask you to label these links with tactics. Their shapes already
 separate algebraic simplification, substitution from known equalities, and
 numeric calculation.
 
+`N` is the set of natural numbers, `N_pos` is the set of positive natural numbers, `Z` is the set of integers, `Q` is the set of rational numbers, and `R` is the set of real numbers. They are all built-in sets.
+
 ### 1.1.2
 
-Let r and s be real numbers, and suppose that r + 2s = -1 and s = 3.
-Prove that r = -7.
+Let `r` and `s` be real numbers, and suppose that `r + 2 * s = -1` and
+`s = 3`. Prove that `r = -7`.
 
 ```litex
 forall r, s R:
@@ -131,8 +117,9 @@ algebraic simplification and arithmetic.
 
 ### 1.1.3
 
-Let a, b, m and n be integers, and suppose that b^2 = 2a^2 and a*m + b*n = 1. 
-Show that (2a*n + b*m)^2 = 2. This fact is known as Brahmagupta’s identity.
+Let `a`, `b`, `m` and `n` be integers, and suppose that `b^2 = 2 * a^2` and
+`a * m + b * n = 1`. Show that `(2 * a * n + b * m)^2 = 2`. This fact is known
+as Brahmagupta’s identity.
 
 ```litex
 forall a, b, m, n Z:
@@ -144,8 +131,9 @@ forall a, b, m, n Z:
 
 ### 1.1.4
 
-Let a, b, c, d, e and f be integers, and suppose that a*d = b*c and c*f = d*e.
-Show that d*(a*f - b*e) = 0.
+Let `a`, `b`, `c`, `d`, `e` and `f` be integers, and suppose that
+`a * d = b * c` and `c * f = d * e`. Show that
+`d * (a * f - b * e) = 0`.
 
 ```litex
 forall a, b, c, d, e, f Z:
@@ -246,12 +234,7 @@ From the examples above, you can see that Litex and Lean express proofs very dif
 
 Litex also prints how each line was verified. This makes a proof easier to
 debug and easier to trust: you can see whether a line was proved by citing a
-known fact, by calculation, or by some other built-in rule. This output does
-not depend on an IDE-specific infoview: on the online version of this chapter,
-you can click **Run** next to each example and inspect the output directly:
-<https://litexlang.com/doc/The_Mechanics_of_Litex_Proof/Chapter_1_Proofs_By_Calculation>.
-If you install Litex locally, the command-line runner prints the same kind of
-verification output when you run a file or a snippet.
+known fact, by calculation, or by some other built-in rule. 
 For example, run this Litex code:
 
 ```litex
@@ -291,12 +274,14 @@ You may see a message like this:
 }
 ```
 
+The `verified_by` field shows how each line was verified. In this case, `x = 1` is verified by citing known fact `x = 1` on line 2, and `x + x = 2` is verified by calculation.
 
 ## 1.3 Tips and tricks (examples)
 
 ### 1.3.1
 
-Let a and b be integers and suppose that a = 2b + 5 and b = 3. Show that a = 11.
+Let `a` and `b` be integers and suppose that `a = 2 * b + 5` and `b = 3`.
+Show that `a = 11`.
 
 ```litex
 forall a, b Z:
@@ -308,7 +293,7 @@ forall a, b Z:
 
 ### 1.3.2
 
-Let x be an integer and suppose that x + 4 = 2. Show that x = -2.
+Let `x` be an integer and suppose that `x + 4 = 2`. Show that `x = -2`.
 
 ```litex
 forall x Z:
@@ -325,7 +310,8 @@ linear simplifications using `+`, `-`, `*`, and `/`; writing the equation as
 
 ### 1.3.3
 
-Let a and b be real numbers and suppose that a - 5b = 4 and b + 2 = 3. Show that a = 9.
+Let `a` and `b` be real numbers and suppose that `a - 5 * b = 4` and
+`b + 2 = 3`. Show that `a = 9`.
 
 ```litex
 forall a, b R:
@@ -337,7 +323,8 @@ forall a, b R:
 
 ### 1.3.4
 
-Let w be a rational number and suppose that 3w + 1 = 4. Show that w = 1.
+Let `w` be a rational number and suppose that `3 * w + 1 = 4`. Show that
+`w = 1`.
 
 ```litex
 forall w Q:
@@ -346,16 +333,13 @@ forall w Q:
         w = (3 * w + 1) / 3 - 1 / 3 = 4 / 3 - 1 / 3 = 1
 ```
 
-Division is handled a little differently from `+`, `-`, and `*`. For expressions
-made only from addition, subtraction, and multiplication, Litex can often verify
-a step by algebraic simplification, essentially polynomial simplification. For
-an identity such as `a / b + c / d = ...`, Litex instead clears denominators:
-it multiplies both sides by the denominators that appear on the two sides, and
-then checks whether the resulting denominator-free expressions are equal.
+Division is handled a little differently from `+`, `-`, and `*`. For
+an identity such as `a / b = c / d`, Litex instead clears denominators:
+it multiplies both sides by the denominators that appear on the two sides. For example, for `a / b = c / d`, Litex will multiply both sides by `b * d` to check `a * d = c * b`.
 
 ### 1.3.5
 
-Let x be an integer and suppose that 2x + 3 = x. Show that x = -3.
+Let `x` be an integer and suppose that `2 * x + 3 = x`. Show that `x = -3`.
 
 ```litex
 forall x Z:
@@ -366,7 +350,8 @@ forall x Z:
 
 ### 1.3.6
 
-Let x and y be integers and suppose that 2x - y = 4 and y - x + 1 = 2. Prove that x = 5.
+Let `x` and `y` be integers and suppose that `2 * x - y = 4` and
+`y - x + 1 = 2`. Prove that `x = 5`.
 
 ```litex
 forall x, y Z:
@@ -378,7 +363,8 @@ forall x, y Z:
 
 ### 1.3.7
 
-Let u and v be rational numbers, and suppose that u + 2v = 4 and u - 2v = 6. Show that u = 5.
+Let `u` and `v` be rational numbers, and suppose that `u + 2 * v = 4` and
+`u - 2 * v = 6`. Show that `u = 5`.
 
 ```litex
 forall u, v Q:
@@ -390,7 +376,8 @@ forall u, v Q:
 
 ### 1.3.8
 
-Let x and y be real numbers, and suppose that x + y = 4 and 5x - 3y = 4. Show that x = 2.
+Let `x` and `y` be real numbers, and suppose that `x + y = 4` and
+`5 * x - 3 * y = 4`. Show that `x = 2`.
 
 ```litex
 forall x, y R:
@@ -402,8 +389,8 @@ forall x, y R:
 
 ### 1.3.9
 
-Let a and b be rational numbers and suppose that a - 3 = 2b.
-Show that a^2 - a + 3 = 4b^2 + 10b + 9.
+Let `a` and `b` be rational numbers and suppose that `a - 3 = 2 * b`.
+Show that `a^2 - a + 3 = 4 * b^2 + 10 * b + 9`.
 
 ```litex
 forall a, b Q:
@@ -414,8 +401,8 @@ forall a, b Q:
 
 ### 1.3.10
 
-Let z be a real number and suppose that z^2 - 2 = 0.
-Show that z^4 - z^3 - z^2 + 2z + 1 = 3.
+Let `z` be a real number and suppose that `z^2 - 2 = 0`.
+Show that `z^4 - z^3 - z^2 + 2 * z + 1 = 3`.
 
 ```litex
 forall z R:
@@ -428,7 +415,8 @@ forall z R:
 
 ### 1.4.1
 
-Let x and y be integers, and suppose that x + 3 <= 2 and y + 2x >= 3. Show that y > 3.
+Let `x` and `y` be integers, and suppose that `x + 3 <= 2` and
+`y + 2 * x >= 3`. Show that `y > 3`.
 
 ```litex
 forall x, y Z:
@@ -472,7 +460,8 @@ Read the chain one link at a time.
 
 ### 1.4.2
 
-Let r and s be rational numbers, and suppose that s + 3 >= r and s + r <= 3. Show that r <= 3.
+Let `r` and `s` be rational numbers, and suppose that `s + 3 >= r` and
+`s + r <= 3`. Show that `r <= 3`.
 
 ```litex
 forall r, s Q:
@@ -508,7 +497,8 @@ Read the chain one link at a time.
 
 ### 1.4.3
 
-Let x and y be real numbers and suppose that y <= x + 5 and x <= -2. Show that x + y < 2.
+Let `x` and `y` be real numbers and suppose that `y <= x + 5` and
+`x <= -2`. Show that `x + y < 2`.
 
 ```litex
 forall x, y R:
@@ -519,8 +509,9 @@ forall x, y R:
 ```
 ### 1.4.4
 
-Let u, v, x, y, A and B be real numbers. Suppose 0 < A <= 1, B >= 1, x <= B, y <= B,
-0 <= u < A and 0 <= v < A. Show that u*y + v*x + u*v < 3*A*B.
+Let `u`, `v`, `x`, `y`, `A` and `B` be real numbers. Suppose `0 < A <= 1`,
+`B >= 1`, `x <= B`, `y <= B`, `0 <= u < A` and `0 <= v < A`. Show that
+`u * y + v * x + u * v < 3 * A * B`.
 
 ```litex
 forall u, v, x, y, A, B R:
@@ -552,7 +543,7 @@ New rules worth noticing here:
 
 ### 1.4.5
 
-Show that if t is a real number and t >= 10 then t^2 - 3t + 17 >= 5.
+Show that if `t` is a real number and `t >= 10` then `t^2 - 3 * t + 17 >= 5`.
 
 ```litex
 forall t R:
@@ -573,7 +564,7 @@ New rules worth noticing here:
 
 ### 1.4.6
 
-Let n >= 5 be an integer. Show that n^2 > 2n + 11.
+Let `n` be an integer with `n >= 5`. Show that `n^2 > 2 * n + 11`.
 
 ```litex
 forall n Z:
@@ -589,7 +580,8 @@ New rule worth noticing here:
 
 ### 1.4.7
 
-Let m and n be integers, and suppose that m^2 + n <= 2. Show that n <= 2.
+Let `m` and `n` be integers, and suppose that `m^2 + n <= 2`. Show that
+`n <= 2`.
 
 ```litex
 forall m, n Z:
@@ -607,7 +599,8 @@ New rules worth noticing here:
 
 ### 1.4.8
 
-Let x and y be real numbers, and suppose that x^2 + y^2 <= 1. Show that (x + y)^2 < 3.
+Let `x` and `y` be real numbers, and suppose that `x^2 + y^2 <= 1`. Show that
+`(x + y)^2 < 3`.
 
 ```litex
 forall x, y R:
@@ -618,8 +611,8 @@ forall x, y R:
 
 ### 1.4.9
 
-Let a and b be nonnegative rational numbers, and suppose that a + b <= 8.
-Show that 3*a*b + a <= 7*b + 72.
+Let `a` and `b` be nonnegative rational numbers, and suppose that `a + b <= 8`.
+Show that `3 * a * b + a <= 7 * b + 72`.
 
 ```litex
 forall a, b Q:
@@ -638,7 +631,8 @@ New rule worth noticing here:
 
 ### 1.4.10
 
-Let a, b and c be real numbers. Show that a^2 * (a^6 + 8*b^3*c^3) <= (a^4 + b^4 + c^4)^2.
+Let `a`, `b` and `c` be real numbers. Show that
+`a^2 * (a^6 + 8 * b^3 * c^3) <= (a^4 + b^4 + c^4)^2`.
 
 ```litex
 forall a, b, c R:
@@ -713,14 +707,11 @@ forall x Z:
 
 > There is no separate tactic script saying `by rw`, `by ring`, or `by rel [hx]`, which languages like Lean use to tell the proof engine what one-step rule to try.
 
-> In principle, Lean can package many tactics inside one tactic, and a mature
-> library can make special classes of goals feel almost automatic. That is a real
-> strength, and Litex should learn from the breadth of Lean's libraries. The
-> design difference is that Litex tries to rely less on a large tactic library at
-> the basic level. It gives a small proof language first, and then lets users
-> package recurring mathematical ideas as `prop`s. So the same kind of
-> convenience is still possible in principle, but it is built from named
-> mathematical statements rather than from remembering many tactic names.
+> The design difference is that Litex tries to make proof writing follow the
+> way people usually write mathematics. You look at the current expression,
+> remember the pattern of a theorem or rule that applies there, and write the
+> next mathematical statement. The proof is driven by the pattern in the
+> mathematics, not by first remembering a tactic name or theorem name.
 
 ## 1.6 Litex statements and ideas in this chapter
 
@@ -729,7 +720,9 @@ This chapter uses only a small part of the Litex proof language.
 ### Litex statements and syntax used
 
 1. `forall ...:` introduces arbitrary parameters, together with their parameter
-   constraints such as `x R` or `a, b Q`, which means `x $in R`(x in real number set) and `a $in Q and b $in Q`(a and b in rational number set).
+   constraints such as `x R` or `a, b Q`, which means `x $in R` (`x` in the
+   real number set) and `a $in Q and b $in Q` (`a` and `b` in the rational
+   number set).
 
 2. Assumption lines before `=>:` are the facts available in the proof body.
 
