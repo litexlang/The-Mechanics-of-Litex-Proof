@@ -389,3 +389,251 @@ claim forall! a N_pos: 2 <= a => exist k N_pos st {k > a, $prime(k)}:
             do_nothing
     witness exist k N_pos st {k > a, $prime(k)} from k
 ```
+
+## 7.2 Gauss' and Euclid's lemma
+
+This section proves two standard number-theoretic tools. The first is Gauss'
+lemma in a Bezout-style form: if `d` divides `a * b` and `gcd(a, d) = 1`, then
+`d` divides `b`. The second is Euclid's lemma for primes: if a prime `p`
+divides `a * b`, then `p` divides `a` or `p` divides `b`. After that, we use
+induction to extend Euclid's lemma from a product of two factors to a power:
+if `p` divides `a^k`, then `p` divides `a`.
+
+The `gcd`, `egcd_l`, and `egcd_r` objects are treated abstractly here. Chapter
+6 is where Euclid's algorithm constructs these objects and proves their basic
+properties, so this section does not repeat that construction. The `know`
+blocks record exactly the facts from that earlier development that we need:
+Bezout's identity, positivity of the gcd in the prime case, and the facts that
+`gcd(a, p)` divides both `a` and `p`.
+
+This is a common proof pattern in Litex and in mathematics. Many times we do
+not need to know a concept's internal definition or where it came from; it is
+enough to know the properties it satisfies and how it relates to the other
+concepts in the proof. Here, `gcd` is useful because of its Bezout identity and
+divisibility properties, not because we expand the Euclidean algorithm every
+time we use it.
+
+```litex
+prop divides(d Z, n Z):
+    exist k Z st {n = d * k}
+
+prop prime(p N_pos):
+    2 <= p
+    forall d Z:
+        1 <= d
+        $divides(d, p)
+        =>:
+            d = 1 or d = p
+
+abstract_prop gcd_value(a, b, g)
+abstract_prop egcd_l_value(a, b, l)
+abstract_prop egcd_r_value(a, b, r)
+
+# Chapter 6 constructs these functions by Euclid's algorithm.
+know:
+    forall a, b Z:
+        exist! g Z st {$gcd_value(a, b, g)}
+
+    forall a, b Z:
+        exist! l Z st {$egcd_l_value(a, b, l)}
+
+    forall a, b Z:
+        exist! r Z st {$egcd_r_value(a, b, r)}
+
+have fn gcd as set:
+    forall a, b Z:
+        exist! g Z st {$gcd_value(a, b, g)}
+
+have fn egcd_l as set:
+    forall a, b Z:
+        exist! l Z st {$egcd_l_value(a, b, l)}
+
+have fn egcd_r as set:
+    forall a, b Z:
+        exist! r Z st {$egcd_r_value(a, b, r)}
+
+# Chapter 6 gcd facts used by Gauss and Euclid's lemma.
+know:
+    forall a, b Z:
+        egcd_l(a, b) * a + egcd_r(a, b) * b = gcd(a, b)
+
+    forall a N, p N_pos:
+        $prime(p)
+        =>:
+            1 <= gcd(a, p)
+
+    forall a N, p N_pos:
+        $divides(gcd(a, p), a)
+
+    forall a N, p N_pos:
+        $divides(gcd(a, p), p)
+
+claim:
+    prove:
+        forall d, a, b Z:
+            $divides(d, a * b)
+            gcd(a, d) = 1
+            =>:
+                $divides(d, b)
+
+    have by exist z Z st {a * b = d * z}: z
+    egcd_l(a, d) * a + egcd_r(a, d) * d = gcd(a, d)
+    witness exist k Z st {b = d * k} from egcd_l(a, d) * z + b * egcd_r(a, d):
+        b = b * 1 = b * gcd(a, d) = b * (egcd_l(a, d) * a + egcd_r(a, d) * d) = egcd_l(a, d) * (a * b) + b * egcd_r(a, d) * d = egcd_l(a, d) * (d * z) + b * egcd_r(a, d) * d = d * (egcd_l(a, d) * z + b * egcd_r(a, d))
+
+claim:
+    prove:
+        forall a, b N, p N_pos:
+            $prime(p)
+            $divides(p, a * b)
+            =>:
+                $divides(p, a) or $divides(p, b)
+
+    a $in Z
+    b $in Z
+    p $in Z
+    1 <= gcd(a, p)
+    $divides(gcd(a, p), p)
+    gcd(a, p) = 1 or gcd(a, p) = p
+    by cases:
+        prove:
+            $divides(p, a) or $divides(p, b)
+        case gcd(a, p) = 1:
+            have by exist z Z st {a * b = p * z}: z
+            egcd_l(a, p) * a + egcd_r(a, p) * p = gcd(a, p)
+            witness exist k Z st {b = p * k} from egcd_l(a, p) * z + b * egcd_r(a, p):
+                b = b * 1 = b * gcd(a, p) = b * (egcd_l(a, p) * a + egcd_r(a, p) * p) = egcd_l(a, p) * (a * b) + b * egcd_r(a, p) * p = egcd_l(a, p) * (p * z) + b * egcd_r(a, p) * p = p * (egcd_l(a, p) * z + b * egcd_r(a, p))
+            $divides(p, a) or $divides(p, b)
+        case gcd(a, p) = p:
+            $divides(gcd(a, p), a)
+            have by exist q Z st {a = gcd(a, p) * q}: q
+            witness exist k Z st {a = p * k} from q:
+                a = gcd(a, p) * q = p * q
+            $divides(p, a) or $divides(p, b)
+
+prop euclid_lemma_pow_at(k Z):
+    forall a N, p N_pos:
+        k >= 1
+        $prime(p)
+        $divides(p, a ^ k)
+        =>:
+            $divides(p, a)
+
+by induc k from 1:
+    prove:
+        $euclid_lemma_pow_at(k)
+
+    prove from k = 1:
+        claim:
+            prove:
+                forall a N, p N_pos:
+                    k >= 1
+                    $prime(p)
+                    $divides(p, a ^ k)
+                    =>:
+                        $divides(p, a)
+
+            a ^ k = a ^ 1 = a
+            $divides(p, a)
+
+        $euclid_lemma_pow_at(k)
+
+    prove induc:
+        claim:
+            prove:
+                forall a N, p N_pos:
+                    k + 1 >= 1
+                    $prime(p)
+                    $divides(p, a ^ (k + 1))
+                    =>:
+                        $divides(p, a)
+
+            k $in N_pos
+            a ^ k $in N
+            a ^ (k + 1) = a ^ k * a
+            $divides(p, a ^ k * a)
+            $divides(p, a ^ k) or $divides(p, a)
+            by cases:
+                prove:
+                    $divides(p, a)
+                case $divides(p, a ^ k):
+                    $divides(p, a)
+                case $divides(p, a):
+                    $divides(p, a)
+
+        $euclid_lemma_pow_at(k + 1)
+
+claim:
+    prove:
+        forall a, k N, p N_pos:
+            1 <= k
+            $prime(p)
+            $divides(p, a ^ k)
+            =>:
+                $divides(p, a)
+
+    k $in Z
+    $euclid_lemma_pow_at(k)
+    $divides(p, a)
+```
+
+
+## 7.3 The square root of 2 is irrational
+
+The proof is the classical contradiction argument. Assume `sqrt(2)` is
+rational, write it as a positive fraction `p / q` in lowest terms, and square
+both sides. From
+
+```text
+p^2 = 2 * q^2
+```
+
+we get that `2` divides `p^2`, hence `2` divides `p`. Writing `p = 2 * c`
+then gives `q^2 = 2 * c^2`, so `2` also divides `q`. This contradicts the
+choice of `p / q` as a fraction with `gcd(p, q) = 1`.
+
+In the Litex proof below, `prime` is introduced as an `abstract_prop`, and
+`gcd` is introduced as an abstract function with `have`. The `know` block lists
+the exact number-theoretic facts used by the proof: common divisors are bounded
+by `gcd`, every positive rational has a reduced positive fraction, divisibility
+of a square by a prime descends to the base, and `2` is prime. These concepts
+were developed earlier in chapter 6, so this section does not repeat their full definitions
+and proofs. Keeping them abstract also makes the proof easier to read: the code
+shows which properties of `prime`, `gcd`, and rational numbers are actually
+needed for irrationality of `sqrt(2)`.
+
+```litex
+abstract_prop prime(x)
+have gcd fn(a, b N_pos) N_pos
+know:
+    forall a, b, c N_pos:
+        a % c = 0
+        b % c = 0
+        =>:
+            c <= gcd(a, b)
+    forall a Q:
+        a > 0
+        =>:
+            exist p, q N_pos st {a = p / q, gcd(p, q) = 1}
+    forall a, k N_pos:
+        $prime(a)
+        k^2 % a = 0
+        =>:
+            k % a = 0
+    $prime(2)
+
+by contra not 2^(1/2) $in Q:
+    have by exist p, q N_pos st {2^(1/2) = p / q, gcd(p, q) = 1}: p, q
+    p^2 / q^2 = (p/q)^2 = (2^(1/2))^2 = 2^(1/2 * 2) = 2^(1) = 2
+    p^2 = 2 * q^2
+    witness exist k Z st {p^2 = 2 * k} from q^2
+    p^2 % 2 = 0
+    p % 2 = 0
+    have by exist k Z st {p = 2 * k}: c
+    q^2 = p^2 / 2 = (2 * c)^2 / 2 = 4 * c^2 / 2 = 2 * c^2
+    witness exist k Z st {q^2 = 2 * k} from c^2
+    q^2 % 2= 0
+    q % 2 = 0
+    2 <= gcd(p, q) = 1
+    impossible 2 <= 1
+```
