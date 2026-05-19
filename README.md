@@ -2,42 +2,35 @@
 
 Jiachen Shen and The Litex Team, 2026-05-14. Email: litexlang@outlook.com
 
+Special thanks to *Yunwen Guo* for helping with the book.
+
 Try all snippets in browser: https://litexlang.com/doc/The_Mechanics_of_Litex_Proof/Introduction
 
 Markdown source: https://github.com/litexlang/The-Mechanics-of-Litex-Proof/blob/main/README.md
 
-Litex is a formal language for writing and checking mathematical proofs. Its
-design emphasizes simplicity, learnability, and proof scripts that look close to
-the mathematical facts they justify. Instead of asking users to build every
-small logical or algebraic step by hand, Litex provides builtin reasoning for
-routine calculation, order, membership, and logical structure.
 
-> This book reworks examples from Heather Macbeth's **The Mechanics of Proof** in
-> Litex. The original book is written around Lean; this version asks what the same
-> mathematical training looks like when proofs are written in a language whose
-> surface is closer to ordinary textbook reasoning. Comparison between Litex and Lean will be discussed here and there in this book.
+## What is Litex?
 
-Special thanks to *Yunwen Guo* for helping with the book.
+_Truth is ever to be found in simplicity, and not in the multiplicity and confusion of things._
 
-## How Litex Proofs Work
+_– Isaac Newton_
 
-_A mathematician, like a painter or a poet, is a maker of patterns._
+Litex is an open-source formal language for writing mathematical proofs that
+look close to ordinary mathematical writing. Users write facts, definitions, and
+proof steps in a direct mathematical style; Litex checks them, stores verified
+results, and reuses them as the proof context grows.
 
-_– G. H. Hardy, *A Mathematician's Apology*_
+The central idea is: **users write facts; Litex grows a verified context**. A
+Litex file introduces mathematical objects, states claims about them, verifies
+those claims, and makes successful facts available to later lines.
 
-The central idea of Litex is: **users write facts; Litex grows a verified context**. A file introduces objects, states facts, checks them, stores successful results, and reuses them later.
+Litex is designed around familiar proof structures: equalities, inequalities,
+membership, subsets, functions, witnesses, contradiction, case splits, and
+induction. Instead of asking users to spell out every small logical or algebraic
+step, Litex provides builtin reasoning for routine calculation, order,
+membership, substitution, and logical structure.
 
-Litex proofs are built from three main ingredients:
-
-- **Objects** are mathematical things, such as `2`, `R`, `{1, 2, 3}`, `x + 1`, or `cart(A, B)`.
-- **Facts** are mathematical claims about objects, such as `x = 2`, `x $in R`, `0 <= x`, or `forall x R: x = x`.
-- **Statements** are proof-script actions: introduce objects, state facts, prove facts, or store known information.
-
-Litex often lets the *shape of a statement* guide verification. Litex expects you to recognize familiar proof patterns (equality chains, membership, subsets, witnesses, contradiction, finite case splits). The checker matches those shapes to facts and routine consequences—more like following a textbook argument than memorizing tactic or library names for each line.
-
-> This is very different from Lean, where the user often chooses the step explicitly: rewrite with this hypothesis, simplify this definition, apply this theorem, run this tactic.
-
-For example:
+For example, a Litex proof can state the desired facts directly:
 
 ```litex
 forall x R:
@@ -49,150 +42,95 @@ forall x R:
 
 The user states the desired facts directly. Litex handles routine rewriting, arithmetic, and reuse of the assumption `x = 2`.
 
+## About This Book
 
-Not only does Litex aim to be **the language where mathematics verifies itself**, but it also tells you how it was proved.
+_A mathematician, like a painter or a poet, is a maker of patterns._
 
-```litex
-abstract_prop p(x)
-know forall x R:
-    $p(x)
-$p(2)
-```
+_– G. H. Hardy, *A Mathematician's Apology*_
 
-The output looks like:
+This book reworks examples from Heather Macbeth's **The Mechanics of Proof** in
+Litex. The original book is written around Lean; this version asks what the same
+mathematical training looks like when proofs are written in a language whose
+surface is closer to ordinary textbook reasoning.
 
-```json
-{
-  "result": "success",
-  "type": "Fact",
-  "line": 4,
-  "stmt": "$p(2)",
-  "verified_by":   {
-    "type": "known_fact",
-    "line": 2,
-    "source": "entry",
-    "cited_fact": "forall x R:\n    $p(x)"
-  },
-  "infer_facts": [],
-  "inside_results": []
-}
-```
+The goal is not to replace the Lean version. Lean has a broad, mature ecosystem,
+and Mathlib gives it far more coverage of advanced mathematics today. This book
+instead explores a different interface for proof writing: one where the user
+tries to write the mathematical argument itself, and the checker explains why
+each accepted fact follows.
 
-This says `$p(2)` was proved by reusing the known `forall`: Litex matched `x` with `2`, substituted into `$p(x)`, and closed the goal. You can see whether a fact closed by a builtin rule, a known fact, a known `forall`, or an inferred consequence.
-
-In this book, you will discover how Litex proofs work in practice. I hope you will enjoy the journey.
-
-## Setup
-
-Litex also does not require an IDE-specific output panel to see this feedback. The
-online documentation can run examples directly in the page; for instance,
+The online documentation can run examples directly in the page; for instance,
 [Chapter 1 online](https://litexlang.com/doc/The_Mechanics_of_Litex_Proof/Chapter_1_Proofs_By_Calculation)
 lets you click **Run** on each example and inspect the verification output.
-If you install Litex locally, the command-line runner prints the same kind of
+
+If you install Litex locally (Visit [Setup](https://litexlang.com/doc/Setup) for installation instructions), the command-line runner prints the same kind of
 output when you run a file or a snippet.
 
 ## Chapters
 
 ### Chapter 1 — Proofs by calculation
 
-Chapter 1 begins with equalities and inequalities over the familiar number systems `N`, `Z`, `Q`, and `R`.
-
-It introduces the main Litex style for calculation proofs:
-
-- writing equality and inequality chains directly;
-- letting Litex use built-in rules such as calculation, substitution, citation, and order reasoning;
-- comparing short Litex proofs with Lean-style `calc` proofs;
-- reading Litex's verification messages to see which fact or rule proved each step;
-- using common shortcuts, such as stored values from simple equations like `x + 4 = 2`.
+Chapter 1 begins with equalities and inequalities over the familiar number
+systems `N`, `Z`, `Q`, and `R`. It introduces calculation chains, substitution,
+order reasoning, and the habit of reading Litex's verification output to see why
+each step was accepted.
 
 ### Chapter 2 — Proofs with structure
 
-Chapter 2 moves from single calculation chains to structured proofs.
-
-It introduces:
-
-- universal statements with `forall`;
-- implications with `=>:`;
-- local proof blocks with `claim`;
-- existential statements with `witness` and `have by exist`;
-- proof by contradiction with `by contra`;
-- case splits with `by cases`.
+Chapter 2 moves from single calculation chains to structured proofs. It covers
+universal statements, implications, local claims, existential witnesses, proof
+by contradiction, and case splits.
 
 ### Chapter 3 — Parity and divisibility
 
-Chapter 3 develops examples about evenness, divisibility, and modular arithmetic.
-
-It shows how to:
-
-- define reusable predicates with `prop`;
-- use existential witnesses for divisibility;
-- work with integer and natural-number divisibility;
-- reason with congruences and modular residues;
-- combine earlier proof structure with arithmetic facts.
+Chapter 3 develops examples about evenness, divisibility, and modular
+arithmetic. It shows how reusable predicates, witnesses, congruences, and
+arithmetic facts work together in short forward proofs.
 
 ### Chapter 4 — Proofs with structure II
 
-Chapter 4 revisits structured proof tools in larger examples.
-
-It covers:
-
-- quantified statements with multiple hypotheses;
-- equivalence proofs and `iff`-style reasoning;
-- uniqueness and `exist_unique`;
-- contradiction and impossible branches;
-- case splits over algebraic, order, and modular facts.
+Chapter 4 revisits structured proof tools in larger examples. It discusses
+multiple hypotheses, equivalence proofs, uniqueness, impossible branches, and
+case splits over algebraic, order, and modular facts.
 
 ### Chapter 5 — Logic
 
-Chapter 5 focuses on the logical patterns behind the earlier proofs.
-
-It explains:
-
-- why Litex does not quantify over `Prop`;
-- how to use `abstract_prop` for schematic logical examples;
-- how built-in logic handles `and`, `or`, `not`, and implication-shaped facts;
-- how `by for` proves bounded universal statements over finite ranges;
-- how to write negation-normal forms directly in Litex.
+Chapter 5 focuses on the logical patterns behind the earlier proofs. It explains
+schematic propositions, builtin reasoning for `and`, `or`, `not`, and
+implication-shaped facts, bounded universal proofs, and negation-normal forms.
 
 ### Chapter 6 — Induction
 
 Chapter 6 develops induction, recursive definitions, and well-founded
-definitions by decreasing measures.
-
-It shows how to:
-
-- prove formulas by ordinary induction and strong induction;
-- define recursive sequences and functions in a Litex-first style;
-- work with examples such as Pascal's triangle and factorial identities;
-- use AI assistance for long mechanical algebraic expansions while relying on
-  Litex, not the AI draft, to check every proof line.
+definitions by decreasing measures. It includes ordinary induction, strong
+induction, recursive sequences and functions, Pascal's triangle, factorial
+identities, and examples where Litex checks long mechanical expansions.
 
 ### Chapter 7 — Number theory
 
 Chapter 7 starts with Euclid's theorem that there are infinitely many primes.
+It shows how standard number-theoretic facts can be recorded with `know`, how a
+full proof can justify those facts inside the same file, and how Litex expresses
+the core argument as a short forward proof script.
 
-It highlights:
+### Chapter 8 — Sets
 
-- how Litex can express the core proof as a short forward proof script;
-- how `know` facts can record standard mathematical facts before the main proof;
-- how the full version can also prove those facts inside the same file;
-- how the Litex style compares with Lean proofs that depend on remembered theorem and tactic names.
+Chapter 8 turns to set-theoretic reasoning. It introduces subsets, set
+membership, set equality, unions, intersections, complements, products, and the
+way Litex checks ordinary element-chasing arguments.
 
-Feedback and corrections are welcome on [GitHub](https://github.com/litexlang/golitex) or at litexlang@outlook.com. Visit [Litex's website](https://litexlang.com), [Online Manual](https://litexlang.com/doc/Manual) for more information.
+### Chapter 9 — Functions
 
-Reference:
+Chapter 9 treats functions as mathematical objects. It discusses function
+application, images and preimages, injective and surjective maps, inverse
+functions, and how Litex represents functions in a set-theoretic style.
+
+### Chapter 10 — Cardinality
+
+Chapter 10 studies bijections, finite and infinite sets, countability, and
+cardinality comparisons. It includes examples such as constructing bijections
+and formalizing arguments in the spirit of Cantor-Schröder-Bernstein.
+
+## References
+
 - [The Mechanics of Proof](https://hrmacbeth.github.io/math2001/)
-
-> Litex asks users to recognize mathematical structures and proof patterns: an equality chain, a membership claim, a subset argument, an existential witness, a contradiction, or a finite case split. The checker uses those patterns to look for the corresponding facts and routine consequences. The burden is not to remember the name of the right tactic or the right library helper for each small move.
-
-> That distinction between Litex and Lean matters. Every large library eventually has edges where the needed argument is not already packaged in exactly the form the user wants, and then the user must still write mathematics. Litex tries to keep the remembered material close to the mathematics itself. Remembering theorem and tactic names can be useful engineering knowledge, but it is not where the beauty of the mathematical argument lives.
-
-> The other side of the story is just as important: Lean currently has enormous
-> advantages. Mathlib is broad, mature, and professionally maintained by a large
-> community of serious users. The Lean ecosystem has more examples, more tested
-> infrastructure, more expert knowledge, and far more coverage of advanced
-> mathematics. Litex is exploring a different interface for ordinary proof
-> writing, but Lean has a clear present-day advantage in library depth,
-> community size, tooling, and production experience.
-
-> The Litex author is fascinated by the idea of a language where mathematics verifies itself. This book is a journey to explore how Litex can encode mathematical reasoning in a computer language.
