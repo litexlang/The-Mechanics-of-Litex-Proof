@@ -7,6 +7,13 @@ GitHub source: https://github.com/litexlang/The-Mechanics-of-Litex-Proof/blob/ma
 Litex proofs are meant to look close to the mathematical sentence they justify.
 To help you get started, in this first chapter the examples are just familiar algebraic equalities and inequalities.
 
+The proofs in this chapter are often written in a **full, step-by-step** style
+so you can see how Litex verifies each link. That is for learning, not because
+every line is required. Litex also **infers** routine consequences after a fact
+is stored, so many intermediate steps can be omitted once you know what the
+checker already supplies. See **How to read the proofs in this book** in the
+[Introduction](https://litexlang.com/doc/The_Mechanics_of_Litex_Proof/Introduction).
+
 ## How Facts Are Written
 
 A factual statement is a mathematical sentence
@@ -30,8 +37,8 @@ and `1 + 1` and `2` are the two object terms passed to it.
 $is_set({1, 2, 3})
 
 # user-defined proposition
-abstract_prop between(a, b, c)
-know $between(1, 2, 3)
+prop between(a, b, c R):
+    a <= b <= c
 $between(1, 2, 3)
 ```
 
@@ -640,7 +647,137 @@ forall a, b, c R:
         a^2 * (a^6 + 8 * b^3 * c^3) <= 2 * (a^2 * (b^2 - c^2))^2 + (b^4 - c^4)^2 + 4 * (a^2 * b * c - b^2 * c^2)^2 + a^2 * (a^6 + 8 * b^3 * c^3) = (a^4 + b^4 + c^4)^2
 ```
 
-## 1.5 Chapter summary: common shortcuts and built-in rules
+## 1.5 How Litex verifies: matching and substitution
+
+The simplest verification is direct citation: if `$p(a)` is already known, then
+the later line `$p(a)` is verified. This has almost no hidden work, because the
+two facts have exactly the same shape.
+
+The next step is substitution. If `$p(a)` is known and `a = b` is also known,
+then Litex may verify `$p(b)` by replacing `b` with the equal object `a`. This is
+still a one-fact-to-one-fact move: a known fact is reused after an equality
+substitution.
+
+Known `forall` facts are more powerful. A single `forall` can stand for
+potentially infinitely many concrete facts. It does not merely remember one
+already-written statement; it describes a pattern of statements. To use it,
+Litex looks for a pattern that matches the fact you wrote, substitutes the
+concrete objects from your fact into that pattern, and then checks that the
+required supporting facts are already known.
+
+This is the common idea behind both known `forall` facts and builtin rules.
+
+### Matching a known `forall`
+
+A known `forall` is a reusable pattern. For example:
+
+```litex
+know forall x human:
+    $mortal(x)
+
+$mortal(Socrates)
+```
+
+When Litex sees the goal `$mortal(Socrates)`, it can match it against the
+conclusion pattern `$mortal(x)`. The substitution is `x -> Socrates`. After that
+substitution, Litex checks the parameter condition `Socrates human`. If that
+condition is already known, the goal is verified.
+
+The same process works when the `forall` has assumptions:
+
+```litex
+know forall x R:
+    x > 0
+    =>:
+        $positive(x)
+
+have a R, a > 0
+$positive(a)
+```
+
+Here the goal `$positive(a)` matches the conclusion `$positive(x)`, so Litex
+uses the substitution `x -> a`. The remaining obligation is the substituted
+assumption `a > 0`. Since that fact is already known, the `forall` can prove the
+goal.
+
+In this sense, `forall` is also a kind of pattern search, but it is deliberately
+only a one-layer search. Litex may use a known `forall` whose conclusion matches
+the current goal, and then it checks the substituted assumptions. It does not
+keep using other `forall` facts recursively to prove every new assumption
+created by that match. For example, if a known theorem has the shape
+`forall ...: $p(...) =>: $q(...)`, Litex can use it when the current goal has
+the shape `$q(...)`, but the required `$p(...)` should already be known or be
+checkable by ordinary builtin reasoning.
+
+This restriction is intentional. If every `forall` match could freely start more
+`forall` matches while checking its assumptions, the search space would grow very
+quickly. Litex keeps `forall` matching local and predictable, and leaves broader
+proof-search behavior to more explicit mechanisms. Later, Litex will introduce
+the `strategy` keyword so users can define rule-like proof behavior closer to
+builtin rules.
+
+### Matching a builtin rule
+
+Builtin rules are used in the same spirit, but the rule is supplied by Litex
+instead of being written as a `forall` in the proof.
+
+Suppose the current goal is:
+
+```litex
+0 < a * b
+```
+
+Litex first sees the verb-like relation `<`. That tells it to look among builtin
+rules about strict inequalities. Then it sees that the left side is `0`, so it
+looks for rules whose conclusion has the shape:
+
+```text
+0 < obj
+```
+
+One matching rule says, informally:
+
+```text
+0 < obj
+is true if obj has the shape left_factor * right_factor,
+and 0 < left_factor,
+and 0 < right_factor.
+```
+
+Now the object `a * b` matches the pattern
+`left_factor * right_factor`. Litex gets the substitution:
+
+```text
+left_factor -> a
+right_factor -> b
+obj -> a * b
+```
+
+After substitution, the builtin rule asks Litex to check two smaller facts:
+
+```text
+0 < a
+0 < b
+```
+
+If those facts are already in the context, or can themselves be verified by
+other known facts and builtin rules, then the original goal `0 < a * b` is
+verified.
+
+So builtin proof search is not magic. Litex does not start by asking you for a
+tactic name. It starts from the mathematical shape of the fact:
+
+1. What is the main relation or proposition being proved?
+2. Which known `forall` facts or builtin rules have conclusions with that shape?
+3. Can the objects in the goal be matched with the objects in the rule?
+4. After substitution, are the rule's required assumptions already known?
+
+This is why the proof language can stay close to ordinary mathematics. When you
+write a line such as `0 < a * b`, Litex reads its pattern, looks for matching
+mathematical rules, substitutes the concrete terms, and checks the resulting
+smaller obligations from the current context.
+
+## 1.6 Chapter summary: common shortcuts and built-in rules
 
 The examples in this chapter are short, but they already show the main style of
 Litex calculation proofs: write the mathematical chain, and let the checker try
@@ -707,13 +844,9 @@ forall x Z:
 
 > There is no separate tactic script saying `by rw`, `by ring`, or `by rel [hx]`, which languages like Lean use to tell the proof engine what one-step rule to try.
 
-> The design difference is that Litex tries to make proof writing follow the
-> way people usually write mathematics. You look at the current expression,
-> remember the pattern of a theorem or rule that applies there, and write the
-> next mathematical statement. The proof is driven by the pattern in the
-> mathematics, not by first remembering a tactic name or theorem name.
+*The design difference is that Litex tries to make proof writing follow the way people usually write mathematics. You look at the current expression, remember the pattern of a theorem or rule that applies there, and write the next mathematical statement. The proof is driven by the pattern in the mathematics, not by first remembering a tactic name or theorem name.*
 
-## 1.6 Litex statements and ideas in this chapter
+## 1.7 Litex statements and ideas in this chapter
 
 This chapter uses only a small part of the Litex proof language.
 
@@ -753,4 +886,8 @@ This chapter uses only a small part of the Litex proof language.
 5. The standard number sets `N`, `Z`, `Q`, and `R` are enough for the first
    examples, and their parameter constraints give Litex the arithmetic domain
    information needed to check the proof.
+
+6. A known `forall` can close an atomic goal by matching the goal's proposition
+   shape, substituting the goal arguments into the `forall` parameters, and
+   checking the substituted assumptions.
 

@@ -20,11 +20,7 @@ This is also where Litex's feedback becomes more important. Lean emphasizes a
 live infoview that continuously shows the current hypotheses and goals. Litex
 instead exposes the proof structure through its run output: each statement is
 reported with the facts it inferred, the known assumptions it cited, and the
-built-in rules used to verify each line. For multi-step proofs, that output is
-the main way to debug whether an intermediate fact was actually established and
-whether the next step is using the intended information.
-
-The work of this chapter continues, after a break, in Chapter 4.
+built-in rules used to verify each line.
 
 ## 2.1 Intermediate steps
 
@@ -58,10 +54,9 @@ example {a b : ℝ} (h1 : a - 5 * b = 4) (h2 : b + 2 = 3) : a = 9 := by
 
 The first line after `=>:` establishes the intermediate fact `b = 1`. Once that
 line is verified, Litex adds it to the local context of the proof. The next line
-can then use both original assumptions and this newly established fact; no name
-such as `hb` is required, and there is no separate tactic script.
+can then use both original assumptions and this newly established fact.
 
-This is the main simplification: Litex treats a proof as a growing list of
+Litex treats a proof as a growing list of
 verified facts. You state the facts in the order you want to use them, and Litex
 checks each one by calculation, citation of previous lines, or built-in rules.
 The proof stays close to the way the argument would be written on paper:
@@ -106,6 +101,27 @@ Litex, the line itself becomes part of the local context once it is verified.
 The final line can therefore use `m + 3 <= 9` directly to subtract `3` from both
 sides and conclude `m <= 6`.
 
+### Hint: Impossible Assumptions
+
+One subtle point is that the assumptions inside a `forall` may describe an
+impossible case. For example, a statement with assumptions like this is
+logically acceptable:
+
+```text
+forall a R:
+    a = 1
+    a = 0
+    =>:
+        ...
+```
+
+This does not say that such a real number `a` exists. It says: if there were a
+real number `a` satisfying both `a = 1` and `a = 0`, then the conclusion would
+follow. Since no such `a` exists, the assumption set is empty in practice, and
+the implication is true in the usual logical sense. From contradictory
+assumptions, one can derive strange-looking conclusions without making the
+overall `forall` false.
+
 ### 2.1.3 Example
 
 Let r and s be rational numbers, and suppose that s + 3 >= r and s + r <= 3. Show that r <= 3.
@@ -143,15 +159,6 @@ example {t : ℝ} (h1 : t ^ 2 = 3 * t) (h2 : t ≥ 1) : t ≥ 2 := by
   addarith [h3]
 ```
 
-This example is the first one where cancellation matters. In Lean, the proof
-usually creates an intermediate equality `h3 : t * t = 3 * t`, then runs
-`cancel t at h3`, which changes that hypothesis into `h3 : t = 3`.
-
-Litex writes the same reasoning as another fact in the growing proof context:
-`t = (t^2) / t = (3 * t) / t = 3`. There is no separate command that mutates a
-named hypothesis. You state the cancelled equality directly, and Litex checks
-that the division is legitimate.
-
 The subtle point is the same in both systems: cancelling `t` is valid only when
 `t` is known to be nonzero. Here the assumption `t >= 1` gives `t > 0`, so Litex
 has enough information to justify dividing by `t`.
@@ -163,6 +170,41 @@ comparison to the numeric fact `3 >= 2`.
 ### 2.1.5 Example
 
 Let a and b be real numbers, and suppose that a^2 = b^2 + 1 and a >= 0. Show that a >= 1.
+
+When a proof needs **proof statements** such as `by contra`, not only bare facts,
+wrap it in `claim`. The syntax is:
+
+```text
+claim:
+    prove:
+        <goal>
+    <proof steps>
+```
+
+Here `<goal>` can be an atomic fact, a `forall ... =>:` statement, or another
+fact shape Litex accepts after `prove:`. After `prove:`, write the actual proof
+process: fact lines, `by contra`, `by cases`, `witness`, and similar statements.
+
+`by contra` proves a goal by assuming its negation and deriving a contradiction.
+It has two surface forms:
+
+```text
+by contra:
+    prove:
+        <goal>
+    <proof body>
+    impossible <atomic fact>
+```
+
+```text
+by contra <goal>:
+    <proof body>
+    impossible <atomic fact>
+```
+
+The second form is shorthand: write the goal on the same line as `by contra`
+instead of opening an inner `prove:` block. The branch must end with
+`impossible <atomic fact>`.
 
 ```litex
 claim:
@@ -179,28 +221,12 @@ claim:
         a^2 < 1^2 = 1
         1 <= a^2 < 1
         impossible 1 < 1
+    a >= 1
 ```
 
 This example is structurally different from the previous ones. It is no longer
-just a `forall ... =>:` block whose body is a list of facts. When the thing you
-want to prove is a fact, but the proof process needs non-fact statements such
-as `by contra`, you wrap the proof in a `claim`. Under `claim: prove:`, you
-write the fact you want to prove:
-
-```text
-forall a, b R:
-    a^2 = b^2 + 1
-    a >= 0
-    =>:
-        a >= 1
-```
-
-After the `prove:` block, you write the actual proof process. Here that process
-is proof by contradiction:
-
-```text
-by contra a >= 1:
-```
+just a `forall ... =>:` block whose body is a list of facts. The example uses
+`by contra a >= 1:`, the shorthand form above.
 
 It is important to understand what happens when the claimed fact is a universal
 statement such as this one. Litex opens a **local proof environment** for the
@@ -232,16 +258,14 @@ The local goal is then just:
 a >= 1
 ```
 
-This is why the proof body can immediately mention `a`, `b`, `a^2 = b^2 + 1`,
-and `a >= 0`. They are not global objects; they are the temporary parameters
-and assumptions created by the `claim forall ...` statement. When the claim is
-finished, Litex exports the proved universal fact to the surrounding context,
-not the temporary names `a` and `b`.
-
-The meaning is: to prove `a >= 1`, temporarily enter a local contradiction
+To sum up, the whole process is: to prove `a >= 1`, temporarily enter a local contradiction
 environment where the opposite of `a >= 1` is assumed. In this case, since `a`
 is real, that opposite is `a < 1`, which is why the proof can use the line
 `a < 1`.
+
+The first proof statement is `by contra: ...`. The second is `a >= 1`.
+
+The `by contra` statement is a proof statement that opens a local contradiction environment. To prove the goal `a >= 1`, it assumes the opposite `a < 1` and derives a contradiction.
 
 Inside the contradiction branch, the proof first derives
 `a^2 = b^2 + 1 >= 0 + 1 = 1`. This uses the fact that `b^2 >= 0`, so from
@@ -273,15 +297,6 @@ example {a b : ℝ} (h1 : a ^ 2 = b ^ 2 + 1) (h2 : a ≥ 0) : a ≥ 1 := by
     _ = 1 ^ 2 := by ring
   cancel 2 at h3
 ```
-
-> Litex tries to keep the proof focused on the mathematical argument itself.
-> On one hand, you usually do not need to give intermediate facts names like
-> `h1`, `h2`, or `hb`; verified facts are simply available in the local context.
-> On the other hand, when you use one fact to prove another, you usually do not
-> need to write a separate `by ...` instruction. This also means Litex is less
-> dependent on a large standard library of named tactics and lemmas: users can
-> often write the proof process directly, instead of first searching the library
-> for the exact method that might prove the step.
 
 ### 2.1.6 Example
 
@@ -315,33 +330,6 @@ forall a, b R:
         a^2 <= b^2
 ```
 
-The next block repeats the same theorem in a shorter form. This is not a
-separate trick. Once Litex has verified a fact, it is saved as part of the
-available context for later verification. In particular, the first `forall`
-statement has proved that for any real `a` and `b`, if `-b <= a <= b`, then
-`a^2 <= b^2`. In the second block, the variables `a` and `b` satisfy exactly
-that already-proved condition, so the final conclusion can be checked directly.
-
-The detailed mechanism for how Litex stores proved facts and reuses matching
-universal statements will appear in later chapters. For now, the important
-point is that intermediate work does not have to be repeated once it has become
-part of the verified context.
-
-```litex
-forall a, b R:
-    -b <= a <= b
-    =>:
-        a - b <= 0
-        a + b = a - (-b) >= 0
-        a^2 - b^2 = (a - b) * (a + b) <= 0
-        a^2 <= b^2
-
-forall a, b R:
-    -b <= a <= b
-    =>:
-        a^2 <= b^2
-```
-
 ### 2.1.8
 
 Let a and b be real numbers and suppose that a <= b. Show that a^3 <= b^3.
@@ -355,24 +343,16 @@ forall a, b R:
 
 ## 2.2 Reusing Verified Facts
 
-In some proof assistants, a short step often means naming the exact lemma that
-should be applied. Litex is organized differently. You usually write the next
+In Litex, you usually write the next
 mathematical fact you want, and Litex tries to verify it from the current
-context, built-in rules, and facts that have already been proved.
-
-This makes the proof script closer to ordinary mathematical prose. The code
-states the chain of facts; the verification output explains how each accepted
-statement was proved. It can also report useful consequences that become
-available after a fact is accepted, so later lines may be shorter than the first
-time the idea appears.
+context, built-in rules, and facts that have already been proved. If it is verified, it is added to the context and can be used in later proof statements.
 
 ### 2.2.1 Strict Inequality Gives Inequality
 
 Let x be a rational number, and suppose that 3x = 2. Show that x != 1.
 
 After the calculation shows `x < 1`, the line `x != 1` follows from the
-ordinary order fact that strictly smaller objects are not equal. The user does
-not have to name that fact.
+ordinary order fact that strictly smaller objects are not equal.
 
 ```litex
 forall x Q:
@@ -404,6 +384,35 @@ the assumption `b <= a` contradicts that case, so the case is impossible.
 Litex's output records this reasoning step by step, including which known fact
 made the impossible branch close.
 
+`by cases` splits a proof into branches. Each `case ...:` line names one branch
+assumption; under that branch, Litex must verify the same goal. It also has two
+surface forms:
+
+```text
+by cases:
+    prove:
+        <goal>
+    case <assumption1>:
+        <proof for goal under assumption1>
+    case <assumption2>:
+        ...
+```
+
+```text
+by cases <goal>:
+    case <assumption1>:
+        ...
+    case <assumption2>:
+        ...
+```
+
+The second form is shorthand: write the case goal on the same line as
+`by cases`. If the case assumption already implies the goal, `do_nothing` closes
+that branch. If the case leads to contradiction, close with
+`impossible <atomic fact>`.
+
+The example below uses `claim` with the shorthand form `by cases a = b:`.
+
 ```litex
 claim:
     prove:
@@ -412,9 +421,7 @@ claim:
             b <= a
             =>:
                 a = b
-    by cases:
-        prove:
-            a = b
+    by cases a = b:
         case a = b:
             do_nothing
         case a < b:
@@ -428,6 +435,20 @@ An `or` fact gives several possible ways the current context may look. A
 Inside each branch, Litex temporarily adds the case assumption and checks the
 same goal under that assumption.
 
+When the case goal is not written on the header line, use the long form with an
+inner `prove:` block:
+
+```text
+by cases:
+    prove:
+        <goal>
+    case ...:
+        ...
+```
+
+When the branches all prove the same atomic goal, the shorthand
+`by cases <goal>:` is often enough.
+
 The interaction also goes in the other direction. If the goal itself is an `or`,
 Litex can accept it once one side has been proved. This matches ordinary
 mathematical writing: to prove `P or Q`, it is enough to prove `P`, and it is
@@ -439,6 +460,7 @@ Let x and y be real numbers and suppose that x = 1 or y = -1. Show that x*y + x 
 
 The hypothesis is an `or`, so the proof naturally splits into two cases. In
 each case, the same target expression is checked with one extra assumption.
+This example uses the long form `by cases:` with an inner `prove:` block.
 
 ```litex
 claim:
@@ -465,7 +487,7 @@ placing `n^2` on the correct side of `2`.
 Let n be any natural number. Show that n^2 != 2.
 
 This example is currently skipped because the supporting dichotomy fact is still
-written by hand.
+written by hand. It uses the shorthand `by cases n^2 != 2:`.
 
 ```litex
 claim:
@@ -507,14 +529,9 @@ Let x be a real number for which x^2 - 3x + 2 = 0. Show that either x = 1 or x =
 This example shows both directions of `or` reasoning. First, a known fact turns
 `(x - 1) * (x - 2) = 0` into the disjunction `x - 1 = 0 or x - 2 = 0`. Then
 `by cases` consumes that disjunction, proving the final `or` goal in each
-branch.
+branch. Here `by cases:` again uses the long form with an inner `prove:` block.
 
 ```litex
-know:
-    forall a,b R:
-        a*b=0
-        =>:
-            a=0 or b=0
 claim:
     prove:
         forall x R:
@@ -539,7 +556,8 @@ Let n be a integer number. Show that n^2 != 2.
 Nested `by cases` blocks are useful when a first split leaves a branch that
 still needs more structure. Here the first split separates `n <= 1` from
 `n >= 2`; the left branch is split again into the finite interval `-1 <= n <= 1`
-and the negative tail `n <= -2`.
+and the negative tail `n <= -2`. Both outer and inner splits use the shorthand
+form `by cases n^2 != 2:`.
 
 ```litex
 claim:
@@ -594,17 +612,16 @@ forall x, y Z:
 
 Let p be a rational number for which p^2 <= 8. Show that p >= -5.
 
-The `know` block records a reusable universal fact. After the proof shows
-`p^2 <= 3^2`, Litex can use that known fact to obtain the chain
-`-3 <= p <= 3`.
+The first `forall` statement is used to prove the second `forall` statement.
 
 ```litex
-know:
-    forall x,y R:
-        x^2<=y^2
-        y>=0
-        =>:
-            -y<=x<=y
+forall x, y R:
+    x^2 <= y^2
+    y >= 0
+    =>:
+        abs(x) <= abs(y)
+        -y <= x <= y
+
 forall p Q:
     p^2 <= 8
     =>:
@@ -637,6 +654,10 @@ This proof establishes each component of the final `and` separately. Both parts
 use contradiction: if one variable were nonzero, its square would be positive,
 forcing `a^2 + b^2` to be positive, contradicting the assumption that the sum is
 zero.
+
+Inside one `claim`, you may write several `by contra:` blocks one after another.
+Each block proves one fact from its inner `prove:` line. This example uses the
+long form `by contra:` twice, once for `a = 0` and once for `b = 0`.
 
 ```litex
 claim:
@@ -695,6 +716,8 @@ exists a real number a such that a*t < 0. Show that t != 0.
 
 Here `have by exist` extracts a witness `a` from the existential assumption.
 After that, the fact `a * t < 0` can be used like any other known fact.
+The contradiction step uses the long form `by contra:` with an inner `prove:`
+block for `t != 0`.
 
 ```litex
 claim:
@@ -813,13 +836,59 @@ and each verified statement becomes useful context for the next one.
    is useful when the proof uses non-fact statements such as `by contra`,
    `by cases`, or `witness`.
 
+   ```text
+   claim:
+       prove:
+           <goal>
+       <proof steps>
+   ```
+
 3. `by contra:` and `by contra <goal>:` open a temporary contradiction proof.
    In the local environment of that block, the fact being proved is negated and
    added as a temporary assumption. The proof is expected to derive a
    contradiction, and the branch closes with an `impossible <FACT>` line.
 
+   Long form:
+
+   ```text
+   by contra:
+       prove:
+           <goal>
+       <proof body>
+       impossible <atomic fact>
+   ```
+
+   Shorthand:
+
+   ```text
+   by contra <goal>:
+       <proof body>
+       impossible <atomic fact>
+   ```
+
 4. `by cases:` and `by cases <goal>:` split a proof into branches, each written
-   as a `case ...:` block.
+   as a `case ...:` block. Every branch must establish the same case goal.
+
+   Long form:
+
+   ```text
+   by cases:
+       prove:
+           <goal>
+       case <assumption>:
+           ...
+   ```
+
+   Shorthand:
+
+   ```text
+   by cases <goal>:
+       case <assumption>:
+           ...
+   ```
+
+   A branch may close with `do_nothing` when the case assumption already gives
+   the goal, or with `impossible <atomic fact>` when the case is contradictory.
 
 5. `exist ... st {...}` writes an existential fact. The braces contain the facts
    the witness must satisfy.
@@ -853,3 +922,10 @@ and each verified statement becomes useful context for the next one.
 6. A witness may depend on parameters already in scope, such as choosing
    `(p + q) / 2` between two real numbers or choosing `a + 1` for a value
    larger than `a`.
+
+7. Litex also has compact forms for common proof shapes. A multiline `forall` fact
+can be written on one line as:
+
+```text
+forall! <arg type, ...>: <FACT1> ... <FACTN> => {<THENFACT1> ... <THENFACTN>}
+```

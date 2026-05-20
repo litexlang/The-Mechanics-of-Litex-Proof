@@ -5,22 +5,15 @@ Online: https://litexlang.com/doc/The_Mechanics_of_Litex_Proof/Chapter_4_Proofs_
 GitHub source: https://github.com/litexlang/The-Mechanics-of-Litex-Proof/blob/main/Chapter_4_Proofs_With_Structure_II.md
 
 In Chapter 2, we started using proof structures that go beyond a single
-calculation: intermediate facts, case splits, and contradiction arguments. In
-Litex, these are not mainly about choosing tactics from a library. They are
+calculation: intermediate facts, case splits, and contradiction arguments. They are
 about writing the mathematical structure explicitly enough that Litex can check
-which facts are available, which facts have been proved, and which statement is
-being established next.
+which facts/builtin rule are available to prove the goal.
 
 This chapter continues that work. We look more systematically at the proof
 grammar for `forall`, implication, `iff`, uniqueness, contradictory hypotheses,
-and proof by contradiction. In each case, the Litex version focuses on two
-questions: how do you use such a statement when it is already known, and how do
-you prove such a statement when it is the goal?
+and proof by contradiction.
 
-The examples are organized as one mathematical problem paired with one Litex
-idea. Some snippets state standard facts with `know` so the example can stand
-alone; in a longer development, those facts would usually come from earlier
-proved lemmas.
+The examples are organized as one mathematical problem paired with one Litex idea.
 
 The main things to watch for while reading are:
 
@@ -52,38 +45,16 @@ claim:
     a <= 1^2 - 2 * 1 = -1
 ```
 
-Do not overlook the parameter type in the outer quantifier. The header
-`forall a R:` introduces an arbitrary object `a` together with the domain fact
-`a $in R`, so Litex can use real-number arithmetic involving `a`.
+The header
+`forall a R:` introduces an arbitrary object `a` together with assumption that
+`a $in R`, so Litex can use real-number arithmetic involving `a`. The hypothesis
+then says that this fixed `a` satisfies `a <= x^2 - 2 * x` for every real `x`.
 
-The line `a <= 1^2 - 2 * 1` is matched against the available `forall`
-hypothesis
-
-```text
-a $in R
-forall x R:
-    a <= x^2 - 2 * x
-```
-
-by taking the universally quantified variable `x` to be the concrete value
-`1`. After that, the final equality `1^2 - 2 * 1 = -1` is just arithmetic.
-
-A Litex parameter type is the mathematical constraint written after a variable.
-It can be a membership constraint such as `R`, `Z`, or `N`, or a structural
-constraint such as `set`, `nonempty_set`, or `finite_set`. The same notation
-appears in `prop`, `forall`, and `exist`.
-
-```text
-prop p(a R, s set):
-    ...
-
-forall x R:
-    ...
-
-exist y Z st {...}
-```
-
-Read `forall x R:` as: for every object `x` satisfying `x $in R`.
+Therefore Litex can verify `a <= 1^2 - 2 * 1 = -1` by matching the known
+`forall x R: a <= x^2 - 2 * x` with the target inequality and instantiating
+`x` with `1`. This is the basic way a known `forall` is used: match the shape
+of the goal against the shape of the quantified fact, then check that the
+chosen arguments satisfy the quantified assumptions.
 
 ### 4.1.2
 
@@ -99,12 +70,24 @@ prop dvdN(a N, b N):
     a >= 1
     exist c N st {b = a * c}
 
-know:
-    forall a, b N:
-        $dvdN(a, b)
-        b > 0
-        =>:
-            a <= b
+claim:
+    prove:
+        forall a, b N_pos:
+            $dvdN(a, b)
+            =>:
+                a <= b
+    
+    have by exist c N st {b = a * c}: c
+    by contra c != 0:
+        b = a * c = a * 0 = 0
+        impossible 0 > 0
+    by cases c > 0:
+        case c = 0:
+            impossible c = 0
+        case c > 0:
+            do_nothing
+    c >= 1
+    a = a * 1 <= a * c = b
 
 claim:
     prove:
@@ -129,10 +112,6 @@ forall m N:
 
 with the concrete value `m = 1`. The outer statement `forall n N:` also gives
 the domain fact `n $in N`, so the proposition `$dvdN(n, 1)` is well-formed.
-The `know` block records a divisibility fact proved earlier. It gives
-`n <= 1`, while the definition of `$dvdN` includes `a >= 1`, so `$dvdN(n, 1)`
-also gives `n >= 1`.
-Together these two inequalities force `n = 1`.
 
 ### 4.1.3
 
@@ -161,31 +140,19 @@ claim:
             a <= b
 ```
 
-In the first branch, the midpoint is at least `a`, so solving the inequality
-for `b` gives `b >= a`. In the second branch, the midpoint is at most `b`, so
-solving the inequality for `a` gives `a <= b`.
-
-In `by cases a <= b:`, the header is the goal of the case split. The case
-labels come from the available `or` fact.
-
 ### 4.1.4
 
 Problem: Two real numbers `a` and `b` both have square at most `2`, and each is
 greater than or equal to every real number whose square is at most `2`. Prove
 that `a = b`.
 
-The two universal hypotheses say that both `a` and `b` are upper bounds for
-all real numbers whose square is at most `2`. Since `a^2 <= 2`, the second
-universal hypothesis can be applied with `y = a`, giving `a <= b`. Since
-`b^2 <= 2`, the first one can be applied with `y = b`, giving `b <= a`.
 
 ```litex
-know:
-    forall a, b R:
-        a <= b
-        b <= a
-        =>:
-            a = b
+forall a, b R:
+    a <= b
+    b <= a
+    =>:
+        a = b
 
 claim:
     prove:
@@ -206,10 +173,6 @@ claim:
     b <= a
     a = b
 ```
-
-The final line uses a small known fact: two real numbers that are both
-`<=` each other are equal. The interesting part is not that last step, but how
-the two `forall y R` assumptions are instantiated with `y = a` and `y = b`.
 
 ### 4.1.5
 
@@ -234,7 +197,7 @@ claim:
             -1 <= x^2 - 2 * x
 ```
 
-Inside the `witness` block, the line `forall x R:` proves the universal part
+Inside the `witness` block (witness block is used to prove an existence statement), the line `forall x R:` proves the universal part
 of the proposition `$lower_bound_for_parabola(-1)`. The calculation rewrites
 `x^2 - 2x` as `-1 + (x - 1)^2`, which is visibly at least `-1`.
 
@@ -255,14 +218,6 @@ prop lower_bound_on_disk(c R):
         =>:
             x + y >= c
 
-know:
-    forall x, y R:
-        x^2 <= y^2
-        y >= 0
-        =>:
-            -y <= x
-            x <= y
-
 claim:
     prove:
         exist c R st {$lower_bound_on_disk(c)}
@@ -271,6 +226,7 @@ claim:
             x^2 + y^2 <= 4
             =>:
                 (x + y)^2 <= (x + y)^2 + (x - y)^2 = 2 * (x^2 + y^2) <= 2 * 4 = 8 <= 9 = 3^2
+                $even_power_bound_by_nonnegative_rhs(x + y, 3, 2)
                 x + y >= -3
 ```
 
@@ -278,6 +234,49 @@ The calculation shows `(x + y)^2 <= 3^2`. The known fact about squares then
 turns that into `x + y >= -3`. This is a typical Litex pattern: write the
 estimate you would write on paper, and let the previously stated rule bridge
 from the squared inequality to the final inequality.
+
+The line
+
+```text
+$even_power_bound_by_nonnegative_rhs(x + y, 3, 2)
+```
+
+uses a named proposition from the builtin common facts. Its meaning is that if
+`(x + y)^2 <= 3^2` and `3 >= 0`, then `x + y` lies between `-3` and `3`. After
+this proposition is verified, its definition gives the concrete facts
+`-3 <= x + y` and `x + y <= 3`, so the next line can cite the lower bound.
+
+It's defined inside litex kernel like this
+
+```text
+prop even_power_bound_by_nonpositive_rhs(x, y R, k N_pos):
+    y <= x
+    x <= -y
+
+know forall x, y R, k N_pos:
+    k % 2 = 0
+    x^k <= y^k
+    y <= 0
+    =>:
+        $even_power_bound_by_nonpositive_rhs(x, y, k)
+```
+
+This proposition also illustrates a useful design pattern for `forall` facts.
+
+Sometimes a theorem needs parameters that do not all appear in the final
+conclusion. Here the exponent `2` is needed to match the hypothesis
+`(x + y)^2 <= 3^2`, but it would not appear in a plain conclusion such as
+`-3 <= x + y`. If a `forall` has more parameters than its conclusion shows,
+Litex cannot reliably recover the hidden parameters by matching the goal.
+
+The usual solution is to package the result in a proposition whose arguments
+include all the parameters needed for matching. Instead of trying to store a
+bare rule that concludes `-y <= x` and `x <= y`, the common fact proves
+`$even_power_bound_by_nonnegative_rhs(x, y, k)`. The proposition carries `x`,
+`y`, and `k` explicitly, while its definition expands to the ordinary bounds
+that the proof needs.
+
+
 
 ### 4.1.7
 
@@ -323,64 +322,26 @@ The example `p = 2` is small enough that the divisor condition can be checked
 from the general divisibility facts already established.
 
 ```litex
-prop dvdN(a N, b N):
-    a >= 1
-    exist c N st {b = a * c}
-
-prop Prime(p N):
-    2 <= p
-    forall m N:
-        $dvdN(m, p)
+prop prime(a N_pos):
+    2 <= a
+    forall b N_pos:
+        2 <= b < a
         =>:
-            m = 1 or m = p
+            a % b != 0
 
-know:
-    forall a, b N:
-        $dvdN(a, b)
-        b > 0
-        =>:
-            a <= b
-            a >= 1
-    forall m N:
-        m <= 2
-        m >= 1
-        =>:
-            m = 1 or m = 2
-
-claim:
+by for:
     prove:
-        $Prime(2)
-    2 <= 2
-    forall m N:
-        $dvdN(m, 2)
-        =>:
-            0 < 2
-            m <= 2
-            m >= 1
-            m = 1 or m = 2
+        forall n range(2, 2):
+            2 % n != 0
+
+$prime(2)
 ```
 
-After proving `2 <= 2`, the proof turns to the universal divisor condition.
-For an arbitrary natural number `m`, assuming `$dvdN(m, 2)`, the known
-divisibility bound gives `m <= 2` and `m >= 1`; the final known fact converts
-those two inequalities into `m = 1 or m = 2`.
-
-One syntax point is worth keeping in mind. In a Litex `forall` fact, the
-requirements before `=>:` may themselves include `forall` facts, but the facts
-after `=>:` should not be `forall` facts. If you want the conclusion to be
-universal, move the universally quantified variables into the outer `forall`
-header instead. Also, when there are no extra requirements on the arguments
-beyond their parameter types, do not write `=>:` at all; just put the conclusion
-directly in the body of the `forall`.
 
 ## 4.2 “If and Only If”
 
 In Litex, an "if and only if" proof can be unfolded into two separate `claim`s,
 one for each direction.
-
-This is intentionally less compact than Lean's `constructor`, but it has a
-useful teaching advantage: each direction has its own assumptions and its own
-goal, so it is clear which implication is being proved.
 
 ### 4.2.1
 
@@ -560,6 +521,7 @@ translated to modulo `2`. The `know` block repeats the Chapter 3 modular facts
 so the snippet can stand alone.
 
 ```litex
+
 prop odd(a Z):
     exist k Z st {a = 2 * k + 1}
 
@@ -569,28 +531,62 @@ prop mod_eq(a Z, b Z, n Z):
 prop mod_eq_trans(a Z, b Z, c Z, n Z):
     $mod_eq(a, c, n)
 
-know:
-    forall a Z:
-        $odd(a)
-        =>:
-            $mod_eq(a, 1, 2)
-    forall a Z:
-        $mod_eq(a, 1, 2)
-        =>:
+claim:
+    prove:
+        forall a Z:
             $odd(a)
-    forall a, n Z:
-        =>:
+            =>:
+                $mod_eq(a, 1, 2)
+    have by exist k Z st {a = 2 * k + 1}: k
+    witness exist t Z st {a - 1 = 2 * t} from k:
+        a - 1 = (2 * k + 1) - 1 = 2 * k
+    $mod_eq(a, 1, 2)
+
+claim:
+    prove:
+        forall a Z:
+            $mod_eq(a, 1, 2)
+            =>:
+                $odd(a)
+    have by exist k Z st {a - 1 = 2 * k}: k
+    witness exist t Z st {a = 2 * t + 1} from k:
+        a = (a - 1) + 1 = 2 * k + 1
+    $odd(a)
+
+claim:
+    prove:
+        forall a, n Z:
             $mod_eq(a, a, n)
-    forall a, b, c, n Z:
-        $mod_eq(a, b, n)
-        $mod_eq(b, c, n)
-        =>:
-            $mod_eq_trans(a, b, c, n)
-    forall a, b, c, d, n Z:
-        $mod_eq(a, b, n)
-        $mod_eq(c, d, n)
-        =>:
-            $mod_eq(a + c, b + d, n)
+    witness exist k Z st {a - a = n * k} from 0:
+        a - a = n * 0
+    $mod_eq(a, a, n)
+
+claim:
+    prove:
+        forall a, b, c, n Z:
+            $mod_eq(a, b, n)
+            $mod_eq(b, c, n)
+            =>:
+                $mod_eq_trans(a, b, c, n)
+    have by exist x Z st {a - b = n * x}: x
+    have by exist y Z st {b - c = n * y}: y
+    witness exist k Z st {a - c = n * k} from x + y:
+        a - c = (a - b) + (b - c) = n * x + n * y = n * (x + y)
+    $mod_eq(a, c, n)
+    $mod_eq_trans(a, b, c, n)
+
+claim:
+    prove:
+        forall a, b, c, d, n Z:
+            $mod_eq(a, b, n)
+            $mod_eq(c, d, n)
+            =>:
+                $mod_eq(a + c, b + d, n)
+    have by exist x Z st {a - b = n * x}: x
+    have by exist y Z st {c - d = n * y}: y
+    witness exist k Z st {(a + c) - (b + d) = n * k} from x + y:
+        (a + c) - (b + d) = (a - b) + (c - d) = n * x + n * y = n * (x + y)
+    $mod_eq(a + c, b + d, n)
 
 claim:
     prove:
@@ -645,20 +641,16 @@ any value satisfying the same equation must equal that witness.
 For more complex uniqueness proofs, split the work into small claims:
 existence, uniqueness, and any estimate lemmas needed along the way.
 
-```litex
-prop mod_eq(a Z, b Z, n Z):
-    exist k Z st {a - b = n * k}
+Here the mathematical statement is that the remainder of `14` after division by
+`5` is uniquely determined. We package the usual remainder conditions into a
+proposition: `r` is between `0` and `5`, and the built-in modulo expression
+`14 % 5` is equal to `r`.
 
+```litex
 prop remainder_property(r Z):
     0 <= r
     r < 5
-    $mod_eq(14, r, 5)
-
-know:
-    forall r Z:
-        $remainder_property(r)
-        =>:
-            r = 4
+    14 % 5 = r
 
 claim:
     prove:
@@ -666,9 +658,7 @@ claim:
     witness exist r Z st {$remainder_property(r)} from 4:
         0 <= 4
         4 < 5
-        witness exist k Z st {14 - 4 = 5 * k} from 2:
-            14 - 4 = 5 * 2
-        $mod_eq(14, 4, 5)
+        14 % 5 = 4
 
 claim:
     prove:
@@ -676,8 +666,17 @@ claim:
             $remainder_property(r)
             =>:
                 r = 4
-    r = 4
+    r = 14 % 5 = 4
 ```
+
+The first claim proves existence by giving the witness `r = 4`. The final line
+uses the builtin `%` calculation directly: Litex can compute `14 % 5 = 4`, so
+the witness satisfies the remainder property.
+
+The second claim proves uniqueness. If an arbitrary integer `r` satisfies the
+same property, then the definition gives `14 % 5 = r`. Since the builtin modulo
+rule also gives `14 % 5 = 4`, the chain `r = 14 % 5 = 4` proves that every such
+`r` must equal the same value `4`.
 
 ## 4.4 Contradictory Hypotheses
 

@@ -13,14 +13,10 @@ In Litex, we can
 introduce predicates such as `$odd(a)` and `$even(a)` directly, define them by
 existence of an integer witness, and then reuse the resulting facts in later
 proofs. This makes the chapter a useful bridge from calculation proofs to
-structured proofs: the user writes the mathematical definitions, witnesses, and
-chains explicitly, while Litex checks the routine algebra and stores the facts
-that have been established.
+structured proofs: the user writes the mathematical definitions, prove existential facts with witnesses, and
+use the facts in later proofs.
 
 ## 3.1 Definitions; parity
-
-### 3.1.1
-
 The definition of oddness and evenness can be introduced as a Litex proposition:
 
 ```litex
@@ -33,8 +29,7 @@ prop even(a Z):
 
 A `prop` definition has the general shape
 
-<!-- litex:skip-test -->
-```litex
+```text
 prop prop_name(arg1 Type1, arg2 Type2, ...):
     Fact1
     Fact2
@@ -78,8 +73,7 @@ example : Odd (7 : ℤ) := by
   numbers
 ```
 
-Lean has rich libraries and expressive syntax, but it also has many tactics and
-idioms to remember. Litex takes the opposite approach here: it gives the user a
+Litex gives the user a
 small set of direct statements, such as `prove`, `witness exist`, and equality
 chains, so the proof script stays close to the mathematical sentence being
 written.
@@ -127,39 +121,6 @@ For example, `exist l Z st {3 * n + 2 = 2 * l + 1}` has the same meaning as
 `exist m Z st {3 * n + 2 = 2 * m + 1}`. In this proof we use `l` in the second
 existential statement instead of reusing `k`, because `k` has already been
 introduced as the witness for `n = 2 * k + 1`.
-
-Litex also has compact forms for common proof shapes. A multiline `forall` fact
-can be written on one line as:
-
-<!-- litex:skip-test -->
-```litex
-forall! <arg type, ...>: <FACT1> ... <FACTN> => {<THENFACT1> ... <THENFACTN>}
-```
-
-If there are no extra assumptions on the parameters, the `: <FACT1> ...
-<FACTN>` part can be omitted.
-
-For example, the theorem above could be written schematically as
-`forall! n Z: $odd(n) => {$odd(3 * n + 2)}`. Similarly, a `claim` does not have
-to be written in the longer
-
-<!-- litex:skip-test -->
-```litex
-claim:
-    prove:
-        <FACT_YOU_WANT_TO_PROVE>
-    <STATEMENT1>
-    ...
-```
-
-form. It can also be written as:
-
-<!-- litex:skip-test -->
-```litex
-claim <FACT_YOU_WANT_TO_PROVE>:
-    <STATEMENT1>
-    ...
-```
 
 ```litex
 prop odd(a Z):
@@ -262,14 +223,6 @@ claim forall! n Z: $even(n) => {$odd(n^2 + 2 * n - 5)}:
 
 In fact every integer is either even or odd.
 
-Two builtin facts about remainders do the main work here. First, for any integer
-`a` and positive integer `b`, Litex knows that the remainder must be one of
-`0, 1, ..., b - 1`; in particular, `n % 2 = 0 or n % 2 = 1`. This is why the
-`by cases` split below is accepted as covering all cases. Second, a remainder
-fact such as `a % b = c` gives an existential quotient fact:
-`exist k Z st {a = b * k + c}`. In the two branches below, that quotient witness
-is exactly what lets us prove either `$even(n)` or `$odd(n)`.
-
 ```litex
 prop even(a Z):
     exist k Z st {a = 2 * k}
@@ -308,7 +261,15 @@ claim:
                 n^2 + n + 4 = (2 * k + 1)^2 + (2 * k + 1) + 4 = 2 * (2 * k^2 + 3 * k + 3)
 ```
 
+Two builtin facts about remainders do the main work here. First, for any integer
+`a` and positive integer `b`, Litex knows that the remainder must be one of
+`0, 1, ..., b - 1`; in particular, `n % 2 = 0 or n % 2 = 1`. This is why the
+`by cases` split below is accepted as covering all cases.
 
+Second, a remainder
+fact such as `a % b = c` gives an existential quotient fact:
+`exist k Z st {a = b * k + c}`. In the two branches below, that quotient witness
+is exactly what lets us prove either `$even(n)` or `$odd(n)`. This is the definition of parity.
 
 ## 3.2 Divisibility
 
@@ -323,9 +284,33 @@ prop dvdN(a N, b N):
     exist c N st {b = a * c}
 ```
 
-The key move is the same as in the parity examples. To prove a divisibility
-statement, give the missing multiplier with `witness`. To use a divisibility
-hypothesis, unpack the multiplier with `have by exist`.
+These divisibility propositions are not introducing a new mathematical idea.
+They restate what Litex already knows about remainders. For a positive modulus,
+saying `$dvdZ(a, b)` or `$dvdN(a, b)` is the same as saying `b % a = 0`: there
+is a multiplier `c` with `b = a * c`.
+
+Litex ships with builtin `forall` facts that link `%` to exactly these
+existential forms, for example:
+
+```text
+a % m = k  <=>  exist r ... st {a = m * r + k}   (with k < m)
+a % m = 0  <=>  exist r ... st {a = m * r}
+```
+
+In that sense, the builtin rules are the definition of the `%` symbol. The
+`prop dvdZ` and `prop dvdN` blocks above are user-written names for the same
+meaning, chosen so later proofs can write `$dvdZ(a, b)` instead of repeating
+`b % a = 0`.
+
+The same pattern appeared already for parity: `$even(a)` and `$odd(a)` match
+`a % 2 = 0` and `a % 2 = 1`; we defined those props explicitly, but the
+remainder facts are what connect them back to `%`.
+
+We still use these custom props in the examples on purpose. Litex could prove
+many of the same steps with `%` and the builtin remainder facts alone, but the
+chapter is also teaching a habit: name a mathematical idea once with `prop`, then
+reuse it as `$prop_name(...)` in later proofs. Getting comfortable with that
+pattern is one of the main points of this chapter.
 
 ### 3.2.1
 
@@ -335,11 +320,10 @@ Show that the natural number 88 is divisible by 11.
 prop dvdN(a N, b N):
     exist c N st {b = a * c}
 
-claim:
-    prove:
-        $dvdN(11, 88)
-    witness exist c N st {88 = 11 * c} from 8:
-        88 = 11 * 8
+witness exist c N st {88 = 11 * c} from 8:
+    88 = 11 * 8
+
+$dvdN(11, 88)
 ```
 
 ### 3.2.2
@@ -350,12 +334,19 @@ Show that the integer 6 is divisible by -2.
 prop dvdZ(a Z, b Z):
     exist c Z st {b = a * c}
 
-claim:
-    prove:
-        $dvdZ(-2, 6)
+claim $dvdZ(-2, 6):
     witness exist c Z st {6 = (-2) * c} from -3:
         6 = (-2) * (-3)
 ```
+
+> **Two ways to write the same proof.** Example 3.2.1 is the flat style: write
+> `witness ...`, then write the goal `$dvdN(11, 88)` on the next line. Example
+> 3.2.2 wraps the same pattern in `claim`. The mathematics is the same; the
+> difference is what stays in the main environment afterward. In the flat style,
+> every verified line — including `88 = 11 * 8` from the witness body — is
+> stored in the main context and can be reused later. In the `claim` style, the
+> proof process runs in a local environment; only the claimed goal
+> `$dvdZ(-2, 6)` is exported to the main context when the claim succeeds.
 
 ### 3.2.3
 
@@ -370,10 +361,6 @@ claim forall! a, b Z: $dvdZ(a, b) => {$dvdZ(a, b^2 + 2 * b)}:
     witness exist l Z st {b^2 + 2 * b = a * l} from a * k^2 + 2 * k:
         b^2 + 2 * b = (a * k)^2 + 2 * (a * k) = a^2 * k^2 + 2 * a * k = a * (a * k^2 + 2 * k)
 ```
-
-Here `have by exist` names the multiplier hidden inside the assumption
-`$dvdZ(a, b)`. Once `b = a * k` is available, the rest is just algebra:
-factor one copy of `a` out of `b^2 + 2b`.
 
 ### 3.2.4
 
@@ -443,8 +430,6 @@ claim:
         2 = 12 % 5
         impossible 2 = 0
 ```
-
-> The statement `12 % 5 = 0` is the modulo form of an existential division fact: it says that there is an integer quotient `c` such that `12 = 5 * c + 0`. In Litex, these two styles express the same mathematical relationship. When the numbers are concrete, such as `12` and `5`, the `%` notation is often the shortest way to describe the integer remainder. When the quotient or the numbers are symbolic, an `exist` statement can be more natural because it gives a name to the quotient and lets later steps use that object directly. Neither style is more fundamental; choose the one that makes the current proof easier to read.
 
 ### 3.2.7
 
@@ -737,23 +722,40 @@ One way is to work directly from the definition and supply the quotient.
 prop mod_eq(a Z, b Z, n Z):
     exist k Z st {a - b = n * k}
 
-know:
-    forall a Z:
-        =>:
-            a^2 $in Z
-    forall a, n Z:
-        =>:
-            $mod_eq(a, a, n)
-    forall a, b, c, d, n Z:
-        $mod_eq(a, b, n)
-        $mod_eq(c, d, n)
-        =>:
-            $mod_eq(a + c, b + d, n)
-            $mod_eq(a * c, b * d, n)
-    forall a, b, n Z:
-        $mod_eq(a, b, n)
-        =>:
-            $mod_eq(a^2, b^2, n)
+claim:
+    prove:
+        forall a, b Z:
+            $mod_eq(a, 2, 4)
+            =>:
+                $mod_eq(a * b^2 + a^2 * b + 3 * a, 2 * b^2 + 2^2 * b + 3 * 2, 4)
+    have by exist x Z st {a - 2 = 4 * x}: x
+    witness exist k Z st {a * b^2 + a^2 * b + 3 * a - (2 * b^2 + 2^2 * b + 3 * 2) = 4 * k} from x * (b^2 + a * b + 2 * b + 3):
+        a * b^2 + a^2 * b + 3 * a - (2 * b^2 + 2^2 * b + 3 * 2) = (a - 2) * (b^2 + a * b + 2 * b + 3) = 4 * x * (b^2 + a * b + 2 * b + 3) = 4 * (x * (b^2 + a * b + 2 * b + 3))
+
+```
+
+## 3.4 Modular arithmetic: calculations
+
+The examples in this section apply the congruence rules from 3.3 in
+calculation-style proofs. Each subsection is one problem with its own Litex
+snippet.
+
+When a proof needs a rule such as multiplication or transitivity of
+congruence, we use an earlier `claim` in the same snippet instead of `know`.
+Litex stores the proved `forall` from each `claim`, then later lines can close
+by matching the goal against that known `forall` and checking the assumptions.
+
+### 3.4.1
+
+Let `a` and `b` be integers, and suppose that `a ≡ 2 (mod 4)`. Show that
+
+`a*b^2 + a^2*b + 3*a ≡ 2*b^2 + 2^2*b + 3*2 (mod 4)`.
+
+This is the same problem as 3.3.11. One direct witness is enough.
+
+```litex
+prop mod_eq(a Z, b Z, n Z):
+    exist k Z st {a - b = n * k}
 
 claim:
     prove:
@@ -766,51 +768,15 @@ claim:
         a * b^2 + a^2 * b + 3 * a - (2 * b^2 + 2^2 * b + 3 * 2) = (a - 2) * (b^2 + a * b + 2 * b + 3) = 4 * x * (b^2 + a * b + 2 * b + 3) = 4 * (x * (b^2 + a * b + 2 * b + 3))
 ```
 
-After the modular arithmetic rules above are known, the proof can also be
-written in a shorter, more compositional way. Litex lets the earlier `claim`s
-act as reusable mathematical facts.
+### 3.4.2
 
-```litex
-prop mod_eq(a Z, b Z, n Z):
-    exist k Z st {a - b = n * k}
+Let `a` and `b` be integers, with `a ≡ 4 (mod 5)` and `b ≡ 3 (mod 5)`. Show
+that `a*b + b^3 + 3 ≡ 2 (mod 5)`.
 
-know:
-    forall a, n Z:
-        =>:
-            $mod_eq(a, a, n)
-    forall a, b, c, d, n Z:
-        $mod_eq(a, b, n)
-        $mod_eq(c, d, n)
-        =>:
-            $mod_eq(a + c, b + d, n)
-            $mod_eq(a * c, b * d, n)
-    forall a, b, n Z:
-        $mod_eq(a, b, n)
-        =>:
-            $mod_eq(a^2, b^2, n)
+Here the proof is a sequence of congruence-preserving rewrites. The snippet
+first records the rules it needs as `claim`s, then applies them line by line.
 
-claim:
-    prove:
-        forall a, b Z:
-            $mod_eq(a, 2, 4)
-            =>:
-                $mod_eq(a * b^2 + a^2 * b + 3 * a, 2 * b^2 + 2^2 * b + 3 * 2, 4)
-    $mod_eq(b^2, b^2, 4)
-    $mod_eq(a * b^2, 2 * b^2, 4)
-    $mod_eq(a^2, 2^2, 4)
-    $mod_eq(b, b, 4)
-    $mod_eq(a^2 * b, 2^2 * b, 4)
-    $mod_eq(a * b^2 + a^2 * b, 2 * b^2 + 2^2 * b, 4)
-    $mod_eq(3, 3, 4)
-    $mod_eq(3 * a, 3 * 2, 4)
-    $mod_eq(a * b^2 + a^2 * b + 3 * a, 2 * b^2 + 2^2 * b + 3 * 2, 4)
-```
-
-## 3.4 Modular arithmetic: calculations
-
-From now on, modular arithmetic calculation examples are written together. The
-basic congruence rules are listed once at the top, then the examples use them
-directly.
+Here we not only proves the goal, but also proves the intermediate facts that are needed to prove the goal. The intermediate facts are pretty common in modular arithmetic proofs, so it is a good idea to prove them once and reuse them later.
 
 ```litex
 prop mod_eq(a Z, b Z, n Z):
@@ -819,46 +785,59 @@ prop mod_eq(a Z, b Z, n Z):
 prop mod_eq_trans(a Z, b Z, c Z, n Z):
     $mod_eq(a, c, n)
 
-know:
-    forall a, b, c, n Z:
-        $mod_eq(a, b, n)
-        $mod_eq(b, c, n)
-        =>:
-            $mod_eq_trans(a, b, c, n)
-    forall a, n Z:
-        =>:
-            $mod_eq(a, a, n)
-    forall a, b, c, d, n Z:
-        $mod_eq(a, b, n)
-        $mod_eq(c, d, n)
-        =>:
-            $mod_eq(a + c, b + d, n)
-            $mod_eq(a * c, b * d, n)
-    forall a, b, n Z:
-        $mod_eq(a, b, n)
-        =>:
-            $mod_eq(a^2, b^2, n)
-            $mod_eq(a^3, b^3, n)
-            $mod_eq(b, a, n)
-    forall x Z:
-        =>:
-            $mod_eq(x, 0, 3) or $mod_eq(x, 1, 3) or $mod_eq(x, 2, 3)
+claim:
+    prove:
+        forall a, b, c, d, n Z:
+            $mod_eq(a, b, n)
+            $mod_eq(c, d, n)
+            =>:
+                $mod_eq(a * c, b * d, n)
+    have by exist x Z st {a - b = n * x}: x
+    have by exist y Z st {c - d = n * y}: y
+    witness exist k Z st {a * c - b * d = n * k} from x * c + b * y:
+        a * c - b * d = (a - b) * c + b * (c - d) = n * x * c + b * (n * y) = n * (x * c + b * y)
 
 claim:
     prove:
-        forall a, b Z:
-            $mod_eq(a, 2, 4)
+        forall a, b, c, d, n Z:
+            $mod_eq(a, b, n)
+            $mod_eq(c, d, n)
             =>:
-                $mod_eq(a * b^2 + a^2 * b + 3 * a, 2 * b^2 + 2^2 * b + 3 * 2, 4)
-    $mod_eq(b^2, b^2, 4)
-    $mod_eq(a * b^2, 2 * b^2, 4)
-    $mod_eq(a^2, 2^2, 4)
-    $mod_eq(b, b, 4)
-    $mod_eq(a^2 * b, 2^2 * b, 4)
-    $mod_eq(a * b^2 + a^2 * b, 2 * b^2 + 2^2 * b, 4)
-    $mod_eq(3, 3, 4)
-    $mod_eq(3 * a, 3 * 2, 4)
-    $mod_eq(a * b^2 + a^2 * b + 3 * a, 2 * b^2 + 2^2 * b + 3 * 2, 4)
+                $mod_eq(a + c, b + d, n)
+    have by exist x Z st {a - b = n * x}: x
+    have by exist y Z st {c - d = n * y}: y
+    witness exist k Z st {(a + c) - (b + d) = n * k} from x + y:
+        (a + c) - (b + d) = (a - b) + (c - d) = n * x + n * y = n * (x + y)
+
+claim:
+    prove:
+        forall a, n Z:
+            =>:
+                $mod_eq(a, a, n)
+    witness exist k Z st {a - a = n * k} from 0:
+        a - a = n * 0
+
+claim:
+    prove:
+        forall a, b, c, n Z:
+            $mod_eq(a, b, n)
+            $mod_eq(b, c, n)
+            =>:
+                $mod_eq_trans(a, b, c, n)
+    have by exist x Z st {a - b = n * x}: x
+    have by exist y Z st {b - c = n * y}: y
+    witness exist k Z st {a - c = n * k} from x + y:
+        a - c = (a - b) + (b - c) = n * x + n * y = n * (x + y)
+
+claim:
+    prove:
+        forall a, b, n Z:
+            $mod_eq(a, b, n)
+            =>:
+                $mod_eq(a^3, b^3, n)
+    have by exist x Z st {a - b = n * x}: x
+    witness exist k Z st {a^3 - b^3 = n * k} from x * (a^2 + a * b + b^2):
+        a^3 - b^3 = (a - b) * (a^2 + a * b + b^2) = n * x * (a^2 + a * b + b^2) = n * (x * (a^2 + a * b + b^2))
 
 claim:
     prove:
@@ -867,16 +846,32 @@ claim:
             $mod_eq(b, 3, 5)
             =>:
                 $mod_eq(a * b + b^3 + 3, 2, 5)
+    $mod_eq(b, b, 5)
     $mod_eq(a * b, 4 * 3, 5)
     $mod_eq(b^3, 3^3, 5)
     $mod_eq(a * b + b^3, 4 * 3 + 3^3, 5)
     $mod_eq(3, 3, 5)
+    $mod_eq(3 * a, 3 * 4, 5)
     $mod_eq(a * b + b^3 + 3, 4 * 3 + 3^3 + 3, 5)
     witness exist k Z st {4 * 3 + 3^3 + 3 - 2 = 5 * k} from 8:
         4 * 3 + 3^3 + 3 - 2 = 5 * 8
     $mod_eq(4 * 3 + 3^3 + 3, 2, 5)
     $mod_eq_trans(a * b + b^3 + 3, 4 * 3 + 3^3 + 3, 2, 5)
     $mod_eq(a * b + b^3 + 3, 2, 5)
+```
+
+For example, once the multiplication rule is stored, the line
+`$mod_eq(a * b, 4 * 3, 5)` closes by matching the known `forall` with
+`b = 4`, `c = b`, `d = b`, and `n = 5`, then checking `$mod_eq(a, 4, 5)` and
+`$mod_eq(b, b, 5)`.
+
+### 3.4.3
+
+Show that there exists an integer `a` such that `6a ≡ 4 (mod 11)`.
+
+```litex
+prop mod_eq(a Z, b Z, n Z):
+    exist k Z st {a - b = n * k}
 
 claim:
     prove:
@@ -885,107 +880,41 @@ claim:
         witness exist k Z st {6 * 8 - 4 = 11 * k} from 4:
             6 * 8 - 4 = 11 * 4
         $mod_eq(6 * 8, 4, 11)
+```
+
+### 3.4.4
+
+Let `x` be an integer. Show that `x^3 ≡ x (mod 3)`.
+
+Split by the remainder of `x` modulo `3`. Litex knows that an integer remainder
+must be `0`, `1`, or `2`.
+
+```litex
+prop mod_eq(a Z, b Z, n Z):
+    exist k Z st {a - b = n * k}
 
 claim:
     prove:
         forall x Z:
             =>:
                 $mod_eq(x^3, x, 3)
-    by cases:
-        prove:
+    by cases $mod_eq(x^3, x, 3):
+        case x % 3 = 0:
+            have by exist k Z st {x = 3 * k}: k
+            witness exist m Z st {x^3 - x = 3 * m} from k * (9 * k^2 - 1):
+                x^3 - x = (3 * k)^3 - 3 * k = 3 * k * (9 * k^2 - 1)
             $mod_eq(x^3, x, 3)
-        case $mod_eq(x, 0, 3):
-            $mod_eq(x^3, 0^3, 3)
-            witness exist k Z st {0^3 - 0 = 3 * k} from 0:
-                0^3 - 0 = 3 * 0
-            $mod_eq(0^3, 0, 3)
-            $mod_eq_trans(x^3, 0^3, 0, 3)
-            $mod_eq(x^3, 0, 3)
-            $mod_eq(0, x, 3)
-            $mod_eq_trans(x^3, 0, x, 3)
+        case x % 3 = 1:
+            have by exist k Z st {x = 3 * k + 1}: k
+            witness exist m Z st {x^3 - x = 3 * m} from k * (9 * k^2 + 9 * k + 2):
+                x^3 - x = (3 * k + 1)^3 - (3 * k + 1) = 3 * k * (9 * k^2 + 9 * k + 2)
             $mod_eq(x^3, x, 3)
-        case $mod_eq(x, 1, 3):
-            $mod_eq(x^3, 1^3, 3)
-            witness exist k Z st {1^3 - 1 = 3 * k} from 0:
-                1^3 - 1 = 3 * 0
-            $mod_eq(1^3, 1, 3)
-            $mod_eq_trans(x^3, 1^3, 1, 3)
-            $mod_eq(x^3, 1, 3)
-            $mod_eq(1, x, 3)
-            $mod_eq_trans(x^3, 1, x, 3)
-            $mod_eq(x^3, x, 3)
-        case $mod_eq(x, 2, 3):
-            $mod_eq(x^3, 2^3, 3)
-            witness exist k Z st {2^3 - 2 = 3 * k} from 2:
-                2^3 - 2 = 3 * 2
-            $mod_eq(2^3, 2, 3)
-            $mod_eq_trans(x^3, 2^3, 2, 3)
-            $mod_eq(x^3, 2, 3)
-            $mod_eq(2, x, 3)
-            $mod_eq_trans(x^3, 2, x, 3)
+        case x % 3 = 2:
+            have by exist k Z st {x = 3 * k + 2}: k
+            witness exist m Z st {x^3 - x = 3 * m} from 9 * k^3 + 18 * k^2 + 11 * k + 2:
+                x^3 - x = (3 * k + 2)^3 - (3 * k + 2) = 3 * (9 * k^3 + 18 * k^2 + 11 * k + 2)
             $mod_eq(x^3, x, 3)
 ```
-
-The `know` block above is a compact way to state reusable facts. When a later
-line asks for a fact, Litex tries to match it against the conclusion of a
-`forall` fact and then checks that the matched assumptions are available.
-
-For example, suppose Litex knows the multiplication rule
-`a $in Z, b $in Z, c $in Z, d $in Z, n $in Z, $mod_eq(a, b, n), $mod_eq(c, d, n) => $mod_eq(a * c, b * d, n)`.
-If the current goal is `$mod_eq(a * y, 2 * y, 4)`, Litex can match the rule with
-`b = 2`, `c = y`, `d = y`, and `n = 4`. Then it only needs the assumptions
-: `a $in Z`, `2 $in Z`, `y $in Z`, `4 $in Z`, `$mod_eq(a, 2, 4)`, and `$mod_eq(y, y, 4)`.
-
-```litex
-prop mod_eq(a Z, b Z, n Z):
-    exist k Z st {a - b = n * k}
-
-know:
-    forall a, n Z:
-        =>:
-            $mod_eq(a, a, n)
-    forall a, b, c, d, n Z:
-        $mod_eq(a, b, n)
-        $mod_eq(c, d, n)
-        =>:
-            $mod_eq(a * c, b * d, n)
-
-claim:
-    prove:
-        forall a, y Z:
-            $mod_eq(a, 2, 4)
-            =>:
-                $mod_eq(a * y, 2 * y, 4)
-    $mod_eq(y, y, 4)
-    $mod_eq(a * y, 2 * y, 4)
-```
-
-The facts in the `know` block are not magic. They are all short consequences of
-the definition of `$mod_eq`, just like the lemmas proved in 3.3. A good exercise
-is to replace each `know` line by a `claim` and prove it directly with witnesses.
-
-### 3.4.1
-
-This is the same problem as 3.3.11. After the rules in 3.3 are known, the
-proof is just a sequence of congruence-preserving rewrites.
-
-### 3.4.2
-
-Let a and b be integers, with a ≡ 4 (mod 5) and b ≡ 3 (mod 5). Show that a*b + b^3 + 3 ≡ 2 (mod 5).
-
-The Litex proof follows the same calculation: first replace `a` and `b` by
-their residues, then check the final integer arithmetic by a witness.
-
-### 3.4.3
-
-Show that there exists an integer a such that 6a ≡ 4 (mod 11).
-
-### 3.4.4
-
-Let x be an integer. Show that x^3 ≡ x (mod 3).
-
-This mirrors `mod_cases`: use the fact that every integer is congruent to
-`0`, `1`, or `2` modulo `3`, then handle the three residues.
 
 ## 3.5 Bézout’s identity
 
@@ -1004,15 +933,6 @@ claim:
                 $dvdZ(8, n)
     witness exist c Z st {n = 8 * c} from -3 * a + 2 * n:
         n = -3 * (5 * n) + 16 * n = -3 * (8 * a) + 16 * n = 8 * (-3 * a + 2 * n)
-
-claim:
-    prove:
-        forall n, a Z:
-            5 * n = 8 * a
-            =>:
-                $dvdZ(8, n)
-    witness exist c Z st {n = 8 * c} from 5 * a - 3 * n:
-        n = 5 * (5 * n) - 24 * n = 5 * (8 * a) - 24 * n = 8 * (5 * a - 3 * n)
 
 claim:
     prove:
@@ -1056,69 +976,50 @@ Here the two divisibility assumptions are written with their witnesses:
 
 ## 3.6 Litex statements and ideas in this chapter
 
-This chapter is mostly about turning familiar number-theory words into Litex
-propositions, then using the same existential proof patterns repeatedly.
+This chapter adds **definitions** on top of the proof forms from Chapters 1
+and 2. The summary below lists only what is new here.
 
 ### Litex statements and syntax used
 
-1. `prop name(args...):` defines a proposition. For example:
+1. `prop name(args...):` defines a proposition whose meaning is the body
+   below it. For example, `$odd(a)` means the existential fact in the
+   definition of `odd`.
 
-   ```text
-   prop odd(a Z):
-       exist k Z st {a = 2 * k + 1}
-   ```
+2. User-defined names such as `$odd`, `$even`, `$dvdZ`, `$dvdN`, and
+   `$mod_eq` package number-theoretic ideas so later proofs read like ordinary
+   mathematics instead of repeating long existential formulas.
 
-   After this definition, `$odd(n)` means the body of the proposition with
-   `a` replaced by `n`.
+3. `forall! ...` and `claim forall! ... => {...}:` are compact one-line forms
+   for short universal statements and claims.
 
-2. `$prop_name(...)` calls a proposition as a fact, such as `$odd(7)`,
-   `$even(n)`, `$dvdZ(a, b)`, or `$mod_eq(a, b, n)`.
+4. `%` connects to the existential definitions of parity and divisibility.
+   Facts such as `n % 2 = 0` and `b % a = 0` match the props `$even(n)` and
+   `$dvdZ(a, b)` for positive moduli; the builtin remainder rules are the
+   definition of `%`, while the `prop` blocks give readable names.
 
-3. `exist ... st {...}` is used inside definitions of parity, divisibility, and
-   modular equivalence.
-
-4. `witness exist ... from ...:` proves propositions whose definitions contain
-   an existential fact.
-
-5. `have by exist ...: k` opens an existential hypothesis and gives a name to
-   the witness.
-
-6. `claim forall! ... => {...}:` is the compact one-line form of a `claim`
-   proving a `forall` fact.
-
-7. `forall! ...` is the compact one-line form of a universal statement.
-
-8. `by cases:` and `case ...:` are used for parity and residue splits, such as
-   `n % 2 = 0` versus `n % 2 = 1`, or the three cases modulo `3`.
-
-9. `know:` records reusable facts without reproving them in the current
-   example.
-
-10. `%` is the remainder operator. Facts such as `n % 2 = 0` can be connected
-    to existential quotient facts.
+5. A helper proposition such as `mod_eq_trans` can package a derived rule when
+   a calculation proof needs to chain several congruence steps.
 
 ### Litex knowledge points
 
-1. A `prop` is a named mathematical statement, not a tactic. It packages facts
-   so that later proof lines can use a readable name.
+1. Definitions by existence are the main pattern of this chapter: odd, even,
+   divisibility, and congruence all mean “there is an integer witness
+   satisfying …”.
 
-2. Definitions by existence are central in elementary number theory. Odd,
-   even, divisibility, and modular equivalence all have the same proof shape:
-   either provide the missing integer with `witness`, or extract it with
-   `have by exist`.
+2. Custom props restate builtin meanings on purpose. They do not change the
+   mathematics; they train the habit of naming an idea once and then calling
+   `$prop_name(...)` later.
 
-3. The name of an existential variable is local to that existential fact. Two
-   statements such as `exist k Z st {...}` and `exist l Z st {...}` can express
-   the same mathematical content.
+3. The same goal can be written flatly or inside `claim`. The mathematics is
+   the same; only what stays in the main environment afterward differs.
 
-4. Compact forms such as `forall!` and `claim forall! ...` are convenient for
-   short theorems, while the multiline forms are clearer for longer proofs.
+4. In calculation-style congruence proofs, reuse rules from 3.3 by proving them
+   with earlier `claim`s in the same snippet, then let Litex match later lines
+   against those stored `forall` facts.
 
-5. `know` is useful for standalone exposition, but in a developed proof file
-   those facts should usually be earlier `claim`s or imported lemmas.
+5. Residue splits use `by cases` on facts such as `n % 2 = 0` or
+   `x % 3 = 1`, connecting builtin remainders to parity and small-modulus
+   arguments.
 
-6. Modular proofs often combine three ingredients: a definition of congruence,
-   reusable congruence rules, and a finite residue split by `by cases`.
-
-7. Bézout-style divisibility proofs are witness proofs. The main work is
-   finding the integer expression that makes the divisibility equation true.
+6. Bézout-style proofs are witness searches: from an equation such as
+   `5 * n = 8 * a`, find an explicit expression for `n` as a multiple of `8`.

@@ -66,6 +66,22 @@ lets you click **Run** on each example and inspect the verification output.
 If you install Litex locally (Visit [Setup](https://litexlang.com/doc/Setup) for installation instructions), the command-line runner prints the same kind of
 output when you run a file or a snippet.
 
+### How to read the proofs in this book
+
+Many proofs here are written **longer and more complete than necessary** on
+purpose. The goal is to help new readers see how Litex checks each step and how
+a mathematical argument is assembled fact by fact.
+
+In everyday use, you often do **not** need to write every intermediate line.
+Once a fact is verified or introduced, Litex stores it and may **infer** useful
+consequences automatically: sign information from membership, substitutions from
+known equalities, routine order steps, and similar background facts. When you
+run an example, read the output message; it often shows both what you wrote
+and what Litex inferred or matched from earlier context.
+
+So treat the book proofs as **pedagogical full versions**. As you get
+comfortable, try leaving out steps that Litex already closes for you.
+
 ## Chapters
 
 ### Chapter 1 — Proofs by calculation
