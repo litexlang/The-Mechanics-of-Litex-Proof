@@ -815,7 +815,7 @@ the four witnesses are chosen.
 witness exist a, b, c, d N st {a^3 + b^3 = 1729, c^3 + d^3 = 1729, a != c, a != d} from 1, 12, 9, 10
 ```
 
-## 2.6 Litex statements and ideas in this chapter
+## 2.6 Summary: Litex statements and ideas in this chapter
 
 This chapter adds proof structure on top of the calculation style from Chapter
 1. The main change is that the body of a proof can contain several statements,

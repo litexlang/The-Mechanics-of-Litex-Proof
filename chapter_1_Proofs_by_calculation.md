@@ -846,7 +846,7 @@ forall x Z:
 
 *The design difference is that Litex tries to make proof writing follow the way people usually write mathematics. You look at the current expression, remember the pattern of a theorem or rule that applies there, and write the next mathematical statement. The proof is driven by the pattern in the mathematics, not by first remembering a tactic name or theorem name.*
 
-## 1.7 Litex statements and ideas in this chapter
+## 1.7 Summary: Litex statements and ideas in this chapter
 
 This chapter uses only a small part of the Litex proof language.
 
@@ -890,4 +890,3 @@ This chapter uses only a small part of the Litex proof language.
 6. A known `forall` can close an atomic goal by matching the goal's proposition
    shape, substituting the goal arguments into the `forall` parameters, and
    checking the substituted assumptions.
-

@@ -1117,7 +1117,7 @@ same diagonal idea is also the source of the proof that the real numbers are
 uncountable, and it became one of the basic tools of modern set theory, logic,
 and later computability theory.
 
-## 9.4 Litex statements and ideas in this chapter
+## 9.4 Summary: Litex statements and ideas in this chapter
 
 This chapter extends the earlier proof style from numbers and logic to sets. The
 main point is that sets are ordinary mathematical objects in Litex: they can be

@@ -874,7 +874,7 @@ The remaining examples combine earlier tools:
 The Litex knowledge point is not a new command, but combining `by cases`,
 `by contra`, `witness`, `have by exist`, and the modular facts from Chapter 3.
 
-## 4.6 Litex statements and ideas in this chapter
+## 4.6 Summary: Litex statements and ideas in this chapter
 
 This chapter revisits the structural proof tools from Chapter 2 in more
 logical settings: universal statements, implications, equivalences, uniqueness,

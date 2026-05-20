@@ -2098,3 +2098,24 @@ The proof is organized around three induction measures:
 This is the main lesson of these examples: recursive algorithms often become
 straightforward once the induction statement is indexed by the same measure
 that makes the function definition well-founded.
+
+## Summary
+
+Induction turns a proof about infinitely many inputs into a proof about how a
+statement starts and how it is preserved. In Litex, `by induc` handles ordinary
+one-step induction, `by strong_induc` handles proofs that may use all smaller
+cases, and the proof body records exactly which induction statement is being
+proved.
+
+The chapter uses this idea in several forms:
+
+- direct induction on natural numbers;
+- induction for recursively defined sequences;
+- two-step induction, where two base cases are needed;
+- strong induction, where the current case can appeal to any smaller case;
+- recursive function definitions checked by a decreasing measure.
+
+The later examples show why choosing the right measure matters. Division,
+remainders, gcd, and the extended Euclidean algorithm are recursive algorithms,
+but their correctness proofs become ordinary induction proofs once the measure
+matches the recursive calls.

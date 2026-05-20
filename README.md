@@ -82,6 +82,28 @@ and what Litex inferred or matched from earlier context.
 So treat the book proofs as **pedagogical full versions**. As you get
 comfortable, try leaving out steps that Litex already closes for you.
 
+### Using this book with AI agents
+
+The examples in this book are useful for human readers, and they are also useful context for AI agents. Litex is close enough to ordinary mathematical writing that agents such as GPT-5.5 or Codex can often build a large proof by first writing the human argument, then translating the argument into checked facts.
+
+When asking an AI agent to work on a larger Litex proof, use a workflow like this:
+
+```text
+First solve the theorem in natural language, step by step.
+
+Then formalize every step in Litex. If a step is not yet formalized,
+write it as a precise `know` fact, so the proof skeleton is still clear.
+
+Next, refine each broad `know` into smaller and more concrete claims.
+Keep running Litex, reading the verification output and error messages,
+and shrinking the remaining assumptions until they are local facts.
+
+Finally, remove redundant lines that Litex already infers, and abstract
+repeated proof patterns into `claim forall` blocks or named `prop`s.
+```
+
+This mirrors how Litex proofs grow: from a readable mathematical plan, to a checked context, to a cleaner proof where broad assumptions have been replaced by smaller verified steps. Large examples are a good fit for this style. For example, in chapter 8 formalizes a bijection from `N^2` to `N`: the natural workflow is to build the bijection argument, mark the hard branches precisely, and then keep refining those branches until the proof is concrete.
+
 ## Chapters
 
 ### Chapter 1 — Proofs by calculation

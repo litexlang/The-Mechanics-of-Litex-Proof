@@ -974,7 +974,7 @@ Let m be an integer which is divisible by 8 and by 5. Show that it is also divis
 Here the two divisibility assumptions are written with their witnesses:
 `m = 8 * a` and `m = 5 * b`.
 
-## 3.6 Litex statements and ideas in this chapter
+## 3.6 Summary: Litex statements and ideas in this chapter
 
 This chapter adds **definitions** on top of the proof forms from Chapters 1
 and 2. The summary below lists only what is new here.

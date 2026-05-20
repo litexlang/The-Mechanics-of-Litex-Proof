@@ -9,44 +9,8 @@ Chapters 2 and 4 introduced the grammar of logical symbols such as `and`,
 the logical patterns themselves: when two statement forms can always be
 converted into each other, and how negation can be pushed inward.
 
-There is one important difference from the Lean chapter. Lean can quantify over
-abstract propositions:
-
-```text
-forall P Prop, Q Prop:
-    P
-    =>:
-        P or Q
-```
-
-Litex does not have this form. A proposition is not an object that can be passed
-as a parameter to `forall`, `exist`, or `prop`. So we do not write `forall P
-Prop:` or `exist P Prop:` in Litex.
-
-This is intentional. Basic propositional reasoning is built into Litex's fact
-checker. If Litex already knows a fact `A`, then `A or B` can be verified
-directly because the left branch holds; there is no need to prove or cite a
-separate theorem saying "from `A`, infer `A or B`." Similarly, `and`, `or`,
-case splits, and contradictions are handled as ordinary fact shapes.
-
-This reflects a design choice. Lean starts from a very abstract foundation;
-Litex takes more mathematical infrastructure as built in: numbers such as
-`1234`, standard sets such as `N` and `R`, and basic logical rules are part of
-the language. The goal is that users write the mathematical facts they want to
-check, instead of first turning logic itself into data.
-
-When this chapter needs schematic propositions, we use `abstract_prop` names.
-For pure propositional patterns, the names can have no parameters:
-
-```litex
-abstract_prop p()
-abstract_prop q()
-abstract_prop r()
-```
-
-The names are not important. Any `abstract_prop` or ordinary `prop` with the
-same arity would do; these names only give Litex facts such as `$p()` and
-`$q()` to manipulate.
+For the main difference from Lean-style quantification over propositions, see
+the summary in [5.4](#54-litex-statements-and-ideas-in-this-chapter).
 
 
 ## 5.1 Logical Equivalence
@@ -79,6 +43,8 @@ claim:
             impossible not $q()
 ```
 
+Here `p` and `q` are abstract propositions, and can be replaced with any other propositions with any number of parameters. Throughout this chapter, we will use similar way to formalize logical patterns.
+
 P implies P ∨ (not Q).
 
 ```litex
@@ -98,14 +64,20 @@ Assign truth values to the basic propositions first, then evaluate the compound
 formula from the inside out.
 
 For example, to analyze `not (P and not Q)`, first decide the values of `P` and
-`Q`, then `not Q`, then `P and not Q`, and finally its negation. Litex does not
-need a special truth-table command for the proofs below; the same logical rules
-are already built into the checker. Truth tables are still useful as a quick
-human sanity check before writing the proof.
+`Q`, then `not Q`, then `P and not Q`, and finally its negation.
 
-Exercise: make the truth table for `P <=> (not P or Q)`. The important question
-is not the notation, but whether the two sides have the same truth value on
-every row.
+```litex
+abstract_prop p()
+abstract_prop q()
+
+forall:
+    not $p() and not $q()
+    =>:
+        not $p()
+        not $q()
+        not $p() or not $q() # this is true because not $p() is true
+        $p() and not $q() # this is true because not $q() is true
+```
 
 ### 5.1.4
 
@@ -119,13 +91,10 @@ the same.
 ```litex
 abstract_prop p()
 
-claim:
-    prove:
-        forall:
-            $p()
-            =>:
-                $p() or $p()
+forall:
     $p()
+    =>:
+        $p() or $p()
 
 claim:
     prove:
@@ -724,14 +693,44 @@ claim:
         impossible w^2 = 2
 ```
 
-## 5.4 Litex statements and ideas in this chapter
+## 5.4 Summary: Litex statements and ideas in this chapter
 
 This chapter separates logical patterns from the particular mathematical facts
 that instantiate them.
 
-1. Litex does not quantify over `Prop`. Use `abstract_prop` (without specific meanings) or small `prop` (with specific meanings)
-   definitions to name schematic facts, then prove the logical pattern on those
-   facts.
+1. Litex does not quantify over `Prop`.
+
+   Lean can quantify over abstract propositions:
+
+   ```text
+   forall P Prop, Q Prop:
+       P
+       =>:
+           P or Q
+   ```
+
+   Litex does not have this form. A proposition is not an object that can be
+   passed as a parameter to `forall`, `exist`, or `prop`, so we do not write
+   `forall P Prop:` or `exist P Prop:` in Litex.
+
+   This is intentional. Basic propositional reasoning is built into Litex's
+   fact checker. If Litex already knows a fact `A`, then `A or B` can be
+   verified directly because the left branch holds; there is no need to prove or
+   cite a separate theorem saying "from `A`, infer `A or B`." Similarly, `and`,
+   `or`, case splits, and contradictions are handled as ordinary fact shapes.
+
+   When this chapter needs schematic propositions, it uses `abstract_prop`
+   names. For pure propositional patterns, the names can have no parameters:
+
+   ```litex
+   abstract_prop p()
+   abstract_prop q()
+   abstract_prop r()
+   ```
+
+   The names are not important. Any `abstract_prop` or ordinary `prop` with the
+   same arity would do; these names only give Litex facts such as `$p()` and
+   `$q()` to manipulate.
 
 2. Basic propositional moves are built in. If `A` is known, then `A or B` can be
    checked directly; if both a fact and its reverse are known, `impossible`

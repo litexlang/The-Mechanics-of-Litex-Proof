@@ -637,3 +637,21 @@ by contra not 2^(1/2) $in Q:
     2 <= gcd(p, q) = 1
     impossible 2 <= 1
 ```
+
+## Summary
+
+This chapter uses the divisibility language from Chapter 3 and the Euclidean
+algorithm from Chapter 6 as reusable number-theoretic tools. The main examples
+show three recurring patterns:
+
+- proving infinitude by contradiction and building a new number from a finite
+  list of primes;
+- using Bézout identities to prove Gauss's lemma and Euclid's lemma;
+- reducing irrationality of `sqrt(2)` to divisibility facts about squares and a
+  lowest-terms fraction.
+
+The Litex style is to name the number-theoretic concepts that matter, state the
+exact facts needed about them, and then let the proof read as the standard
+mathematical argument. Long background developments can be kept in earlier
+chapters or helper claims, while the final proof stays focused on the structure
+of the argument.
